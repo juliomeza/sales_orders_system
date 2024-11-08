@@ -2,16 +2,19 @@
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import { useOrderForm } from '../../hooks/useOrderForm';
+import { useOrderValidation } from '../../hooks/useOrderValidation';
 import { InventoryItem } from '../../types/shipping';
 import OrderHeaderStep from './steps/OrderHeaderStep';
 import InventoryStep from './steps/InventoryStep';
 import ReviewStep from './steps/ReviewStep';
 import FixedHeader from './FixedHeader';
+import ValidationErrors from '../validation/ValidationErrors';
 
 const OrderCreationFlow: React.FC = () => {
   const [activeStep, setActiveStep] = useState<number>(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([]);
+  const [showErrors, setShowErrors] = useState(false);
 
   const {
     orderData,
@@ -19,17 +22,34 @@ const OrderCreationFlow: React.FC = () => {
     resetForm
   } = useOrderForm();
 
+  const {
+    errors,
+    canProceedToNextStep,
+    canSubmitOrder
+  } = useOrderValidation(orderData, selectedItems, activeStep);
+
   const steps = ['Order Details', 'Select Items', 'Review & Submit'];
 
   const handleNext = () => {
-    setActiveStep((prevStep) => prevStep + 1);
+    if (canProceedToNextStep(activeStep)) {
+      setActiveStep((prevStep) => prevStep + 1);
+      setShowErrors(false);
+    } else {
+      setShowErrors(true);
+    }
   };
 
   const handleBack = () => {
     setActiveStep((prevStep) => prevStep - 1);
+    setShowErrors(false);
   };
 
   const handleSubmitOrder = async () => {
+    if (!canSubmitOrder()) {
+      setShowErrors(true);
+      return;
+    }
+
     try {
       console.log('Submitting order:', {
         orderData,
@@ -40,8 +60,10 @@ const OrderCreationFlow: React.FC = () => {
       
       setIsSubmitted(true);
       setActiveStep(steps.length);
+      setShowErrors(false);
     } catch (error) {
       console.error('Error submitting order:', error);
+      // Aquí podrías mostrar un error específico de envío
     }
   };
 
@@ -50,48 +72,47 @@ const OrderCreationFlow: React.FC = () => {
     setIsSubmitted(false);
     resetForm();
     setSelectedItems([]);
+    setShowErrors(false);
   };
 
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
         return (
-          <OrderHeaderStep 
-            orderData={orderData}
-            onOrderDataChange={handleOrderDataChange}
-          />
+          <>
+            <ValidationErrors errors={errors} show={showErrors} />
+            <OrderHeaderStep 
+              orderData={orderData}
+              onOrderDataChange={handleOrderDataChange}
+            />
+          </>
         );
       case 1:
         return (
-          <InventoryStep
-            selectedItems={selectedItems}
-            onItemsChange={setSelectedItems}
-          />
+          <>
+            <ValidationErrors errors={errors} show={showErrors} />
+            <InventoryStep
+              selectedItems={selectedItems}
+              onItemsChange={setSelectedItems}
+            />
+          </>
         );
       case 2:
         return (
-          <ReviewStep
-            orderData={orderData}
-            selectedItems={selectedItems}
-            onRemoveItem={(itemId) => {
-              setSelectedItems(prev => prev.filter(item => item.id !== itemId));
-            }}
-            isSubmitted={isSubmitted}
-          />
+          <>
+            <ValidationErrors errors={errors} show={showErrors} />
+            <ReviewStep
+              orderData={orderData}
+              selectedItems={selectedItems}
+              onRemoveItem={(itemId) => {
+                setSelectedItems(prev => prev.filter(item => item.id !== itemId));
+              }}
+              isSubmitted={isSubmitted}
+            />
+          </>
         );
       default:
         return null;
-    }
-  };
-
-  const isNextDisabled = () => {
-    switch (activeStep) {
-      case 0:
-        return !orderData.carrier || !orderData.shipToAccount || !orderData.preferredWarehouse;
-      case 1:
-        return selectedItems.length === 0;
-      default:
-        return false;
     }
   };
 
@@ -105,7 +126,7 @@ const OrderCreationFlow: React.FC = () => {
         onNext={handleNext}
         onSubmit={handleSubmitOrder}
         onNewOrder={handleNewOrder}
-        isNextDisabled={isNextDisabled}
+        isNextDisabled={() => !canProceedToNextStep(activeStep)}
       />
       
       <Box sx={{ 

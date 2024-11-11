@@ -1,0 +1,96 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  password   String
+  role       String    // "ADMIN" | "USER"
+  customerId Int?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  active    Boolean  @default(true)
+  users     User[]
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customers")
+}
+
+model Order {
+  id                  Int         @id @default(autoincrement())
+  orderNumber        String      @unique
+  status             String      // "DRAFT" | "SUBMITTED" | "PROCESSING" | "COMPLETED"
+  customerId         Int
+  customer           Customer    @relation(fields: [customerId], references: [id])
+  shipToAddress      String
+  shipToCity         String
+  shipToState        String
+  shipToZipCode      String
+  carrierId          Int
+  carrier            Carrier     @relation(fields: [carrierId], references: [id])
+  serviceType        String
+  expectedDeliveryDate DateTime
+  items              OrderItem[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          Int      @id @default(autoincrement())
+  orderId     Int
+  order       Order    @relation(fields: [orderId], references: [id])
+  materialId  Int
+  material    Material @relation(fields: [materialId], references: [id])
+  quantity    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("order_items")
+}
+
+model Material {
+  id               Int         @id @default(autoincrement())
+  code             String      @unique
+  description      String
+  uom              String      // Unit of Measure
+  availableQuantity Int
+  orderItems       OrderItem[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("materials")
+}
+
+model Carrier {
+  id        Int      @id @default(autoincrement())
+  name      String
+  services  String[] // Array of service types
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("carriers")
+}

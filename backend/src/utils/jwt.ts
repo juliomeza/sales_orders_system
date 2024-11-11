@@ -1,0 +1,31 @@
+import jwt from 'jsonwebtoken';
+import { User } from '@prisma/client';
+
+const JWT_SECRET = process.env.JWT_SECRET!;
+const TOKEN_EXPIRATION = '30m'; // 30 minutes
+
+interface JWTPayload {
+  userId: number;
+  email: string;
+  role: string;
+  customerId: number | null;
+}
+
+export const generateToken = (user: User): string => {
+  const payload: JWTPayload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    customerId: user.customerId
+  };
+
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
+};
+
+export const verifyToken = (token: string): JWTPayload => {
+  try {
+    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+  } catch (error) {
+    throw new Error('Invalid token');
+  }
+};

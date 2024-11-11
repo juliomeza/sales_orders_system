@@ -1,21 +1,27 @@
-// src/server.ts
 import express from 'express';
 import cors from 'cors';
 import prisma from './config/database';
+import authRoutes from './routes/authRoutes';
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3001;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
 
 // Root route
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Welcome to Sales Order API',
+    version: '1.0.0',
     endpoints: {
-      dbTest: '/api/db-test',
-      health: '/api/health'
+      auth: '/api/auth',
+      health: '/api/health',
+      dbTest: '/api/db-test'
     }
   });
 });
@@ -57,6 +63,15 @@ app.get('/api/db-test', async (req, res) => {
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
+});
+
+// Global error handler
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 // Error handling for unhandled routes

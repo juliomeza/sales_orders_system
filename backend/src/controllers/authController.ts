@@ -1,7 +1,9 @@
+// backend/src/controllers/authController.ts
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../config/database';
 import { generateToken } from '../utils/jwt';
+import { Prisma } from '@prisma/client';
 
 export const authController = {
   // Login user
@@ -9,28 +11,29 @@ export const authController = {
     try {
       const { email, password } = req.body;
 
-      // Validate input
       if (!email || !password) {
         return res.status(400).json({ error: 'Email and password are required' });
       }
 
-      // Find user
-      const user = await prisma.user.findUnique({ where: { email } });
+      const user = await prisma.user.findUnique({ 
+        where: { email },
+        include: {
+          customer: true
+        }
+      });
+
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Generate token
       const token = generateToken(user);
-
-      // Return user info and token (exclude password)
       const { password: _, ...userWithoutPassword } = user;
+      
       res.json({
         token,
         user: userWithoutPassword
@@ -46,31 +49,43 @@ export const authController = {
     try {
       const { email, password, role, customerId } = req.body;
 
-      // Validate input
       if (!email || !password) {
         return res.status(400).json({ error: 'Email and password are required' });
       }
 
-      // Check if user already exists
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
         return res.status(409).json({ error: 'User already exists' });
       }
 
-      // Hash password
+      const lookupCode = email.split('@')[0].toUpperCase();
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create user
+      const userData: Prisma.UserCreateInput = {
+        email,
+        lookupCode,
+        password: hashedPassword,
+        role: role || 'CLIENT',
+        status: 1,
+        customer: customerId ? {
+          connect: { id: customerId }
+        } : undefined,
+        creator: req.user?.userId ? {
+          connect: { id: req.user.userId }
+        } : undefined,
+        modifier: req.user?.userId ? {
+          connect: { id: req.user.userId }
+        } : undefined
+      };
+
       const user = await prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          role: role || 'CLIENT', // Default to CLIENT if not specified
-          customerId: customerId || null
+        data: userData,
+        include: {
+          customer: true
         }
       });
 
-      // Return created user (exclude password)
+      // Remove sensitive data before sending response
       const { password: _, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
     } catch (error) {
@@ -82,21 +97,21 @@ export const authController = {
   // Refresh token
   refreshToken: async (req: Request, res: Response) => {
     try {
-      // User is already attached to req by authMiddleware
       if (!req.user) {
         return res.status(401).json({ error: 'Invalid token' });
       }
 
-      // Get fresh user data
       const user = await prisma.user.findUnique({
-        where: { id: req.user.userId }
+        where: { id: req.user.userId },
+        include: {
+          customer: true
+        }
       });
 
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
 
-      // Generate new token
       const token = generateToken(user);
       res.json({ token });
     } catch (error) {
@@ -114,14 +129,8 @@ export const authController = {
 
       const user = await prisma.user.findUnique({
         where: { id: req.user.userId },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          customerId: true,
-          customer: true, // Include customer info if exists
-          createdAt: true,
-          updatedAt: true
+        include: {
+          customer: true
         }
       });
 
@@ -129,7 +138,8 @@ export const authController = {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      res.json(user);
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error('Get current user error:', error);
       res.status(500).json({ error: 'Internal server error' });

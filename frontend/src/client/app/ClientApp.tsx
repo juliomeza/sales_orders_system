@@ -1,4 +1,4 @@
-// src/client/app/ClientApp.tsx
+// frontend/src/client/app/ClientApp.tsx
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, Container } from '@mui/material';

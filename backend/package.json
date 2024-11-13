@@ -2,10 +2,13 @@
     "name": "sales-order-backend",
     "version": "1.0.0",
     "main": "index.js",
+    "prisma": {
+        "seed": "ts-node prisma/seed.ts"
+    },
     "scripts": {
         "start": "ts-node src/server.ts",
         "dev": "nodemon src/server.ts",
-        "seed": "ts-node prisma/seed.ts"
+        "seed": "npx prisma db seed"
     },
     "dependencies": {
         "@prisma/client": "^5.22.0",

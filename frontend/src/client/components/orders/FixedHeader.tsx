@@ -1,3 +1,4 @@
+// frontend/src/client/components/orders/FixedHeader.tsx
 import React from 'react';
 import { Box, Stepper, Step, StepLabel, Button } from '@mui/material';
 

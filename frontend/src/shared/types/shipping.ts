@@ -1,4 +1,4 @@
-// src/types/shipping.ts
+// frontend/src/shared/types/shipping.ts
 export interface ShippingAddress {
   id: string;
   name: string;
@@ -21,12 +21,15 @@ export interface Warehouse {
 
 export interface InventoryItem {
   id: string;
-  lookupCode: string;
+  code: string;           // Del backend
+  lookupCode: string;     // Para el frontend
   description: string;
-  baseAvailable: number;
-  available: number;
+  uom: string;
+  availableQuantity: number;  // Del backend
+  available: number;          // Para el frontend
   quantity: number;
   packaging: string;
+  baseAvailable?: number;     // Opcional
 }
 
 export interface OrderData {

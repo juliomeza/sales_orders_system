@@ -1,7 +1,11 @@
-// src/hooks/useAccounts.ts
+// frontend/src/shared/hooks/useAccounts.ts
 import { useState, useEffect } from 'react';
 import { ShippingAddress } from '../types/shipping';
-import { mockApi } from '../services/mockApi';
+import { apiClient } from '../../services/api/apiClient';
+
+interface AddressResponse {
+  addresses: ShippingAddress[];
+}
 
 interface UseAccountsReturn {
   accounts: ShippingAddress[];
@@ -22,31 +26,26 @@ export const useAccounts = (
   initialBillToId?: string,
   initialIsDifferentBillTo: boolean = false
 ): UseAccountsReturn => {
-  // Basic state
   const [accounts, setAccounts] = useState<ShippingAddress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Selection state
   const [selectedShipTo, setSelectedShipTo] = useState<ShippingAddress | null>(null);
   const [selectedBillTo, setSelectedBillTo] = useState<ShippingAddress | null>(null);
   const [isDifferentBillTo, setIsDifferentBillTo] = useState(initialIsDifferentBillTo);
 
-  // Load initial data
   useEffect(() => {
     const loadAccounts = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const accountsData = await mockApi.getAccounts();
-        setAccounts(accountsData);
+        const response = await apiClient.get<AddressResponse>('/ship-to');
+        setAccounts(response.addresses);
 
         // Set initial selections if provided
         if (initialShipToId) {
-          const shipTo = accountsData.find(a => a.id === initialShipToId);
+          const shipTo = response.addresses.find(a => a.id === initialShipToId);
           if (shipTo) {
             setSelectedShipTo(shipTo);
-            // If not different bill to, set bill to same as ship to
             if (!initialIsDifferentBillTo) {
               setSelectedBillTo(shipTo);
             }
@@ -54,14 +53,15 @@ export const useAccounts = (
         }
 
         if (initialBillToId && initialIsDifferentBillTo) {
-          const billTo = accountsData.find(a => a.id === initialBillToId);
+          const billTo = response.addresses.find(a => a.id === initialBillToId);
           if (billTo) {
             setSelectedBillTo(billTo);
           }
         }
 
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error loading accounts');
+      } catch (err: any) {
+        console.error('Error loading accounts:', err);
+        setError(err?.response?.data?.error || 'Error loading shipping addresses');
       } finally {
         setIsLoading(false);
       }
@@ -70,7 +70,6 @@ export const useAccounts = (
     loadAccounts();
   }, [initialShipToId, initialBillToId, initialIsDifferentBillTo]);
 
-  // Watch isDifferentBillTo changes
   useEffect(() => {
     if (!isDifferentBillTo && selectedShipTo) {
       setSelectedBillTo(selectedShipTo);
@@ -81,7 +80,6 @@ export const useAccounts = (
     const shipTo = address || accounts.find(a => a.id === accountId) || null;
     setSelectedShipTo(shipTo);
 
-    // Update bill to if not different
     if (!isDifferentBillTo && shipTo) {
       setSelectedBillTo(shipTo);
     }
@@ -93,14 +91,14 @@ export const useAccounts = (
   };
 
   const createNewAccount = async (newAccount: Omit<ShippingAddress, 'id'>): Promise<ShippingAddress> => {
-    // Simulate API call
-    const createdAccount: ShippingAddress = {
-      ...newAccount,
-      id: `NEW_${Date.now()}`
-    };
-
-    setAccounts(prev => [...prev, createdAccount]);
-    return createdAccount;
+    try {
+      const response = await apiClient.post<ShippingAddress>('/ship-to', newAccount);
+      setAccounts(prev => [...prev, response]);
+      return response;
+    } catch (err: any) {
+      console.error('Error creating address:', err);
+      throw new Error(err?.response?.data?.error || 'Error creating shipping address');
+    }
   };
 
   const resetSelections = () => {

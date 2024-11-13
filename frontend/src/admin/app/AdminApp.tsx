@@ -1,3 +1,4 @@
+// frontend/src/admin/app/AdminApp.tsx
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, Container, Typography } from '@mui/material';

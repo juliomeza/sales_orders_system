@@ -1,4 +1,4 @@
-// src/components/orders/review/Review_Table.tsx
+// frontend/src/client/components/orders/review/Review_Table.tsx
 import React from 'react';
 import {
   Table,

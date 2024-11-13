@@ -1,8 +1,9 @@
-// src/shared/contexts/AuthContext.tsx
+// frontend/src/shared/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../services/api/apiClient';
+import { AuthResponse } from '../../services/api/types/api.types';
 
-// Define el tipo Role como unión literal
 type Role = 'ADMIN' | 'CLIENT';
 
 interface User {
@@ -27,46 +28,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for existing session
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Aquí agregaremos la llamada API para verificar el token
-      // Por ahora solo actualizamos el estado de carga
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // Verificar el token y obtener datos del usuario
+          const userData = await apiClient.get<User>('/auth/me');
+          setUser(userData);
+        } catch (error) {
+          console.error('Error initializing auth:', error);
+          localStorage.removeItem('token');
+        }
+      }
       setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
+    };
+
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      // Aquí irá la llamada al API cuando la implementemos
-      // Por ahora, simulamos la respuesta
-      const determinedRole: Role = email.includes('admin') ? 'ADMIN' : 'CLIENT';
+      const response = await apiClient.post<AuthResponse>('/auth/login', { 
+        email, 
+        password 
+      });
+
+      localStorage.setItem('token', response.token);
+      setUser(response.user);
       
-      const mockUser: User = {
-        id: 1,
-        email,
-        role: determinedRole,
-        customerId: 1,
-      };
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Store token
-      localStorage.setItem('token', 'mock-token');
-      
-      // Update state
-      setUser(mockUser);
-
-      // Redirect based on role
-      if (mockUser.role === 'ADMIN') {
+      // Redirigir según el rol
+      if (response.user.role === 'ADMIN') {
         navigate('/admin');
       } else {
         navigate('/');
       }
     } catch (error) {
+      console.error('Login error:', error);
       throw new Error('Invalid credentials');
     }
   };
@@ -76,6 +73,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     navigate('/login');
   };
+
+  if (isLoading) {
+    // Podrías retornar un componente de loading aquí si lo deseas
+    return null;
+  }
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, logout }}>
@@ -91,3 +93,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;

@@ -1,3 +1,4 @@
+// backend/src/routes/authRoutes.ts
 import express from 'express';
 import { authController } from '../controllers/authController';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';

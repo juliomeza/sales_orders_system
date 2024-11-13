@@ -1,12 +1,12 @@
-// src/auth/components/LoginForm.tsx
+// frontend/src/auth/components/LoginForm.tsx
 import React, { useState } from 'react';
 import {
   TextField,
   Button,
   Alert,
-  Box
+  Box,
+  CircularProgress
 } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 import { useAuth } from '../../shared/contexts/AuthContext';
 
 interface LoginFormProps {
@@ -27,8 +27,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     try {
       await login(credentials.email, credentials.password);
       onSuccess?.();
-    } catch (err) {
-      setError('Invalid credentials. Please try again.');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(
+        err?.response?.data?.message || 
+        err?.message || 
+        'Error al intentar iniciar sesión. Por favor intente nuevamente.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -49,6 +54,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         label="Email Address"
         autoComplete="email"
         autoFocus
+        disabled={isLoading}
         value={credentials.email}
         onChange={(e) => setCredentials({
           ...credentials,
@@ -63,6 +69,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         label="Password"
         type="password"
         autoComplete="current-password"
+        disabled={isLoading}
         value={credentials.password}
         onChange={(e) => setCredentials({
           ...credentials,
@@ -71,15 +78,32 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       />
 
       <Box sx={{ mt: 3 }}>
-        <LoadingButton
+        <Button
           type="submit"
           fullWidth
           variant="contained"
           size="large"
-          loading={isLoading}
+          disabled={isLoading}
+          sx={{
+            height: 48,
+            position: 'relative'
+          }}
         >
-          Sign In
-        </LoadingButton>
+          {isLoading ? (
+            <CircularProgress
+              size={24}
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                marginTop: '-12px',
+                marginLeft: '-12px'
+              }}
+            />
+          ) : (
+            'Sign In'
+          )}
+        </Button>
       </Box>
     </form>
   );

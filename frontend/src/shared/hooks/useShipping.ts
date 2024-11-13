@@ -1,69 +1,95 @@
-// src/hooks/useShipping.ts
+// frontend/src/shared/hooks/useShipping.ts
 import { useState, useEffect } from 'react';
-import { Carrier, Warehouse } from '../types/shipping';
-import { mockApi } from '../services/mockApi';
+import { apiClient } from '../../services/api/apiClient';
 
-interface UseShippingReturn {
+interface CarrierService {
+  id: number;
+  lookupCode: string;
+  name: string;
+  description: string | null;
+  status: number;
+}
+
+interface Carrier {
+  id: number;
+  lookupCode: string;
+  name: string;
+  status: number;
+  services: CarrierService[];
+}
+
+interface Warehouse {
+  id: number;
+  lookupCode: string;
+  name: string;
+  status: number;
+  city: string;
+  state: string;
+}
+
+interface CarriersResponse {
   carriers: Carrier[];
+  total: number;
+}
+
+interface WarehousesResponse {
   warehouses: Warehouse[];
-  isLoading: boolean;
-  error: string | null;
-  selectedCarrier: Carrier | null;
-  selectedWarehouse: Warehouse | null;
-  availableServices: string[];
-  setSelectedCarrierId: (carrierId: string) => void;
-  setSelectedWarehouseId: (warehouseId: string) => void;
-  setSelectedService: (service: string) => void;
-  resetSelections: () => void;
+  total: number;
 }
 
 export const useShipping = (
-  initialCarrierId?: string,
-  initialWarehouseId?: string,
-  initialService?: string
-): UseShippingReturn => {
-  // Basic state
+  initialCarrierId?: string | null,
+  initialWarehouseId?: string | null,
+  initialServiceId?: string | null
+) => {
   const [carriers, setCarriers] = useState<Carrier[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Selection state
   const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
-  const [selectedService, setSelectedService] = useState<string>(initialService || '');
+  const [selectedServiceId, setSelectedServiceId] = useState<string>(initialServiceId || '');
+  const [availableServices, setAvailableServices] = useState<CarrierService[]>([]);
 
   // Load initial data
   useEffect(() => {
     const loadShippingData = async () => {
       setIsLoading(true);
       setError(null);
+
       try {
-        const [carriersData, warehousesData] = await Promise.all([
-          mockApi.getCarriers(),
-          mockApi.getWarehouses()
+        const [carriersResponse, warehousesResponse] = await Promise.all([
+          apiClient.get<CarriersResponse>('/carriers'),
+          apiClient.get<WarehousesResponse>('/warehouses')
         ]);
 
-        setCarriers(carriersData);
-        setWarehouses(warehousesData);
+        setCarriers(carriersResponse.carriers);
+        setWarehouses(warehousesResponse.warehouses);
 
-        // Set initial selections if provided
+        // Set initial carrier and its services if provided
         if (initialCarrierId) {
-          const carrier = carriersData.find(c => c.id === initialCarrierId);
+          const carrier = carriersResponse.carriers.find(
+            c => c.id.toString() === initialCarrierId
+          );
           if (carrier) {
             setSelectedCarrier(carrier);
+            setAvailableServices(carrier.services);
           }
         }
 
+        // Set initial warehouse if provided
         if (initialWarehouseId) {
-          const warehouse = warehousesData.find(w => w.id === initialWarehouseId);
+          const warehouse = warehousesResponse.warehouses.find(
+            w => w.id.toString() === initialWarehouseId
+          );
           if (warehouse) {
             setSelectedWarehouse(warehouse);
           }
         }
 
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error loading shipping data');
+      } catch (err: any) {
+        console.error('Error loading shipping data:', err);
+        setError(err?.response?.data?.error || 'Error loading shipping data');
       } finally {
         setIsLoading(false);
       }
@@ -72,38 +98,63 @@ export const useShipping = (
     loadShippingData();
   }, [initialCarrierId, initialWarehouseId]);
 
-  // Handlers
+  // Update available services when carrier changes
+  useEffect(() => {
+    if (selectedCarrier) {
+      setAvailableServices(selectedCarrier.services || []);
+      
+      // If there's an initial service ID and it's valid for this carrier,
+      // keep it selected
+      if (initialServiceId) {
+        const serviceExists = selectedCarrier.services.some(
+          s => s.id.toString() === initialServiceId
+        );
+        if (!serviceExists) {
+          setSelectedServiceId('');
+        }
+      }
+    } else {
+      setAvailableServices([]);
+      setSelectedServiceId('');
+    }
+  }, [selectedCarrier, initialServiceId]);
+
   const setSelectedCarrierId = (carrierId: string) => {
-    const carrier = carriers.find(c => c.id === carrierId);
+    const carrier = carriers.find(c => c.id.toString() === carrierId);
     setSelectedCarrier(carrier || null);
-    setSelectedService(''); // Reset service when carrier changes
+    if (!carrier) {
+      setSelectedServiceId('');
+      setAvailableServices([]);
+    }
   };
 
   const setSelectedWarehouseId = (warehouseId: string) => {
-    const warehouse = warehouses.find(w => w.id === warehouseId);
+    const warehouse = warehouses.find(w => w.id.toString() === warehouseId);
     setSelectedWarehouse(warehouse || null);
   };
 
-  const resetSelections = () => {
-    setSelectedCarrier(null);
-    setSelectedWarehouse(null);
-    setSelectedService('');
+  const setSelectedService = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
   };
 
-  // Computed values
-  const availableServices = selectedCarrier?.services || [];
-
   return {
+    // Data
     carriers,
     warehouses,
-    isLoading,
-    error,
+    availableServices,
+    
+    // Selected states
     selectedCarrier,
     selectedWarehouse,
-    availableServices,
+    selectedService: selectedServiceId,
+    
+    // UI states
+    isLoading,
+    error,
+    
+    // Handlers
     setSelectedCarrierId,
     setSelectedWarehouseId,
-    setSelectedService,
-    resetSelections
+    setSelectedService
   };
 };

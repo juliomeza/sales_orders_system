@@ -1,13 +1,15 @@
-// src/components/orders/steps/ReviewStep.tsx
+// src/client/components/orders/steps/ReviewStep.tsx
 import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
   Grid,
   Typography,
+  CircularProgress,
+  Box
 } from '@mui/material';
 import { OrderData, InventoryItem } from '../../../../shared/types/shipping';
-import { mockApi } from '../../../../shared/services/mockApi';
+import { apiClient } from '../../../../services/api/apiClient';
 import Review_OrderSummary from '../../../components/orders/review/Review_OrderSummary';
 import Review_Table from '../../../components/orders/review/Review_Table';
 import Review_Totals from '../../../components/orders/review/Review_Totals';
@@ -19,6 +21,29 @@ interface ReviewStepProps {
   isSubmitted: boolean;
 }
 
+interface Carrier {
+  id: string;
+  name: string;
+  services: string[];
+}
+
+interface ShippingAddress {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+interface CarriersResponse {
+  carriers: Carrier[];
+}
+
+interface AddressResponse {
+  addresses: ShippingAddress[];
+}
+
 export const ReviewStep: React.FC<ReviewStepProps> = ({
   orderData,
   selectedItems,
@@ -28,35 +53,63 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   const [carrierName, setCarrierName] = useState('');
   const [shipToName, setShipToName] = useState('');
   const [billToName, setBillToName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
-      const [carriers, accounts] = await Promise.all([
-        mockApi.getCarriers(),
-        mockApi.getAccounts(),
-      ]);
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [carriersResponse, addressesResponse] = await Promise.all([
+          apiClient.get<CarriersResponse>('/carriers'),
+          apiClient.get<AddressResponse>('/ship-to')
+        ]);
 
-      // Set carrier name
-      const carrier = carriers.find(c => c.id === orderData.carrier);
-      if (carrier) {
-        setCarrierName(carrier.name);
-      }
+        // Set carrier name
+        const carrier = carriersResponse.carriers.find(c => c.id === orderData.carrier);
+        if (carrier) {
+          setCarrierName(carrier.name);
+        }
 
-      // Set ship to account name
-      const shipToAccount = accounts.find(a => a.id === orderData.shipToAccount);
-      if (shipToAccount) {
-        setShipToName(shipToAccount.name);
-      }
+        // Set ship to account name
+        const shipToAccount = addressesResponse.addresses.find(a => a.id === orderData.shipToAccount);
+        if (shipToAccount) {
+          setShipToName(shipToAccount.name);
+        }
 
-      // Set bill to account name
-      const billToAccount = accounts.find(a => a.id === orderData.billToAccount);
-      if (billToAccount) {
-        setBillToName(billToAccount.name);
+        // Set bill to account name
+        const billToAccount = addressesResponse.addresses.find(a => a.id === orderData.billToAccount);
+        if (billToAccount) {
+          setBillToName(billToAccount.name);
+        }
+
+        setIsLoading(false);
+      } catch (err: any) {
+        console.error('Error loading review data:', err);
+        setError(err?.response?.data?.error || 'Error loading review data');
+        setIsLoading(false);
       }
     };
 
     loadData();
   }, [orderData.carrier, orderData.shipToAccount, orderData.billToAccount]);
+
+  if (isLoading) {
+    return (
+      <Box className="flex justify-center items-center h-64">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box className="p-4">
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Card sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>

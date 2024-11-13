@@ -1,4 +1,4 @@
-// src/components/orders/review/Review_OrderSummary.tsx
+// frontend/src/client/components/orders/review/Review_OrderSummary.tsx
 import React from 'react';
 import {
   Grid,

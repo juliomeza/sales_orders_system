@@ -1,17 +1,35 @@
 import express from 'express';
 import cors from 'cors';
 import prisma from './config/database';
+
+// Import routes
 import authRoutes from './routes/authRoutes';
+import orderRoutes from './routes/orderRoutes';
+import materialsRoutes from './routes/materialsRoutes';
+import carriersRoutes from './routes/carriersRoutes';
+import warehousesRoutes from './routes/warehousesRoutes';
+import shipToRoutes from './routes/shipToRoutes';
 
 const app = express();
 const port = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/materials', materialsRoutes);
+app.use('/api/carriers', carriersRoutes);
+app.use('/api/warehouses', warehousesRoutes);
+app.use('/api/ship-to', shipToRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -20,6 +38,11 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
+      orders: '/api/orders',
+      materials: '/api/materials',
+      carriers: '/api/carriers',
+      warehouses: '/api/warehouses',
+      'ship-to': '/api/ship-to',
       health: '/api/health',
       dbTest: '/api/db-test'
     }

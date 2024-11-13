@@ -1,4 +1,4 @@
-// src/auth/pages/LoginPage.tsx
+// frontend/src/auth/pages/LoginPage.tsx
 import React from 'react';
 import {
   Box,

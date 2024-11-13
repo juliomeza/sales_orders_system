@@ -1,4 +1,4 @@
-// src/components/orders/header/Header_ShippingInfo.tsx
+// src/client/components/orders/header/Header_ShippingInfo.tsx
 import React from 'react';
 import {
   Grid,
@@ -15,6 +15,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { OrderData } from '../../../../shared/types/shipping';
 import { useShipping } from '../../../../shared/hooks/useShipping';
+import CarrierServiceSelector from '../CarrierServiceSelector';
 
 interface ShippingInfoProps {
   orderData: OrderData;
@@ -57,9 +58,17 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
   }
 
   const handleCarrierChange = (carrierId: string) => {
+    console.log('Carrier changed to:', carrierId);
     setSelectedCarrierId(carrierId);
     onOrderDataChange('carrier', carrierId);
+    // Reset service type when carrier changes
     onOrderDataChange('serviceType', '');
+  };
+
+  const handleServiceChange = (serviceId: string) => {
+    console.log('Service changed to:', serviceId);
+    setSelectedService(serviceId);
+    onOrderDataChange('serviceType', serviceId);
   };
 
   return (
@@ -73,7 +82,7 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
             label="Carrier"
           >
             {carriers.map((carrier) => (
-              <MenuItem key={carrier.id} value={carrier.id}>
+              <MenuItem key={carrier.id} value={carrier.id.toString()}>
                 {carrier.name}
               </MenuItem>
             ))}
@@ -82,24 +91,12 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
       </Grid>
 
       <Grid item xs={12} md={4}>
-        <FormControl fullWidth variant="outlined">
-          <InputLabel>Service Type</InputLabel>
-          <Select
-            value={orderData.serviceType}
-            onChange={(e) => {
-              setSelectedService(e.target.value);
-              onOrderDataChange('serviceType', e.target.value);
-            }}
-            label="Service Type"
-            disabled={!orderData.carrier}
-          >
-            {availableServices.map((service) => (
-              <MenuItem key={service} value={service}>
-                {service}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <CarrierServiceSelector
+          services={availableServices}
+          value={orderData.serviceType}
+          onChange={handleServiceChange}
+          disabled={!orderData.carrier}
+        />
       </Grid>
 
       <Grid item xs={12} md={4}>
@@ -125,7 +122,7 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
             label="Preferred Warehouse"
           >
             {warehouses.map((warehouse) => (
-              <MenuItem key={warehouse.id} value={warehouse.id}>
+              <MenuItem key={warehouse.id} value={warehouse.id.toString()}>
                 {warehouse.name}
               </MenuItem>
             ))}

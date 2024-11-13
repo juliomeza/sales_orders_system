@@ -1,7 +1,20 @@
-// src/hooks/useInventory.ts
+// frontend/src/shared/hooks/useInventory.ts
 import { useState, useEffect } from 'react';
 import { InventoryItem } from '../types/shipping';
-import { mockApi } from '../services/mockApi';
+import { apiClient } from '../../services/api/apiClient';
+
+interface MaterialResponse {
+  materials: Array<{
+    id: string;
+    code: string;
+    description: string;
+    uom: string;
+    availableQuantity: number;
+  }>;
+  total: number;
+  page?: number;
+  limit?: number;
+}
 
 export const useInventory = (initialSelectedItems: InventoryItem[] = []) => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -9,21 +22,46 @@ export const useInventory = (initialSelectedItems: InventoryItem[] = []) => {
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadInventory = async () => {
       setIsLoading(true);
+      setError(null);
       try {
-        const data = await mockApi.getInventory();
-        setInventory(data);
-      } catch (error) {
-        console.error('Error loading inventory:', error);
+        const endpoint = searchTerm ? 
+          `/materials/search?query=${encodeURIComponent(searchTerm)}` : 
+          '/materials';
+        
+        const response = await apiClient.get<MaterialResponse>(endpoint);
+        
+        // Mapear los datos del backend al formato del frontend
+        const mappedMaterials = response.materials.map(material => ({
+          id: material.id.toString(),
+          code: material.code,
+          lookupCode: material.code,         // Usar code como lookupCode
+          description: material.description,
+          uom: material.uom,
+          availableQuantity: material.availableQuantity,
+          available: material.availableQuantity, // Duplicar para mantener compatibilidad
+          quantity: 0,
+          packaging: material.uom,           // Usar uom como packaging
+          baseAvailable: material.availableQuantity
+        }));
+
+        setInventory(mappedMaterials);
+      } catch (err: any) {
+        console.error('Error loading inventory:', err);
+        setError(err?.response?.data?.error || 'Error loading inventory');
       } finally {
         setIsLoading(false);
       }
     };
-    loadInventory();
-  }, []);
+
+    // Debounce para la búsqueda
+    const timeoutId = setTimeout(loadInventory, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
 
   const handleQuantityChange = (itemId: string, value: string) => {
     setInputValues(prev => ({
@@ -53,8 +91,6 @@ export const useInventory = (initialSelectedItems: InventoryItem[] = []) => {
     }
 
     setSelectedItems(newItems);
-    
-    // Reset input value after adding
     setInputValues(prev => ({
       ...prev,
       [item.id]: ''
@@ -66,18 +102,13 @@ export const useInventory = (initialSelectedItems: InventoryItem[] = []) => {
     setSelectedItems(prev => prev.filter(item => item.id !== itemId));
   };
 
-  const filteredInventory = inventory.filter(item =>
-    item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.lookupCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return {
-    inventory: filteredInventory,
+    inventory,
     selectedItems,
     inputValues,
     searchTerm,
     isLoading,
+    error,
     setSearchTerm,
     handleQuantityChange,
     handleAddItem,

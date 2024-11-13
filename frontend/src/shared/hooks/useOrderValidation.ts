@@ -1,4 +1,4 @@
-// src/hooks/useOrderValidation.ts
+// frontend/src/shared/hooks/useOrderValidation.ts
 import { useState, useEffect } from 'react';
 import { OrderData, InventoryItem } from '../types/shipping';
 

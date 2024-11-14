@@ -12,8 +12,7 @@ import {
   Typography,
   Box,
   Snackbar,
-  Alert,
-  styled,
+  Alert
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 
@@ -35,17 +34,6 @@ interface AccountSelectorProps {
   type: 'shipping' | 'billing';
   label?: string;
 }
-
-const StyledTextField = styled(TextField)({
-  '& .MuiInputLabel-shrink': {
-    transform: 'translate(14px, -3px) scale(0.75)',
-    background: '#fff',
-    padding: '0 8px',
-  },
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '4px',
-  }
-});
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   accounts,
@@ -92,6 +80,14 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     }
   };
 
+  const labelStyles = {
+    '& .MuiInputLabel-shrink': {
+      transform: 'translate(14px, -3px) scale(0.75)',
+      background: '#fff',
+      padding: '0 8px'
+    }
+  };
+
   return (
     <Box>
       <Autocomplete
@@ -119,18 +115,17 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         )}
         disabled={disabled}
         renderInput={(params) => (
-          <StyledTextField
+          <TextField
             {...params}
             label={displayLabel}
             variant="outlined"
             placeholder={`Search or select ${accountTypeLabel.toLowerCase()} account`}
             fullWidth
+            sx={labelStyles}
           />
         )}
         ListboxProps={{
-          sx: { 
-            maxHeight: '256px'
-          }
+          sx: { maxHeight: '256px' }
         }}
       />
 
@@ -161,7 +156,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         <DialogContent sx={{ mt: 2 }}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <StyledTextField
+              <TextField
                 label="Account Name"
                 fullWidth
                 value={newAccount.name}
@@ -170,11 +165,12 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   name: e.target.value
                 }))}
                 variant="outlined"
+                sx={labelStyles}
               />
             </Grid>
             
             <Grid item xs={12}>
-              <StyledTextField
+              <TextField
                 label="Street Address"
                 fullWidth
                 value={newAccount.address}
@@ -183,11 +179,12 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   address: e.target.value
                 }))}
                 variant="outlined"
+                sx={labelStyles}
               />
             </Grid>
             
             <Grid item xs={12} sm={6}>
-              <StyledTextField
+              <TextField
                 label="City"
                 fullWidth
                 value={newAccount.city}
@@ -196,11 +193,12 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   city: e.target.value
                 }))}
                 variant="outlined"
+                sx={labelStyles}
               />
             </Grid>
             
             <Grid item xs={12} sm={3}>
-              <StyledTextField
+              <TextField
                 label="State"
                 fullWidth
                 value={newAccount.state}
@@ -209,11 +207,12 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   state: e.target.value
                 }))}
                 variant="outlined"
+                sx={labelStyles}
               />
             </Grid>
             
             <Grid item xs={12} sm={3}>
-              <StyledTextField
+              <TextField
                 label="ZIP Code"
                 fullWidth
                 value={newAccount.zipCode}
@@ -222,6 +221,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   zipCode: e.target.value
                 }))}
                 variant="outlined"
+                sx={labelStyles}
               />
             </Grid>
           </Grid>

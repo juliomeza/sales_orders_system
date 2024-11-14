@@ -25,21 +25,25 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
 }) => {
   return (
     <Box
-      sx={{
-        bgcolor: '#fff',
-        borderBottom: '1px solid',
-        borderColor: (theme) => theme.palette.divider,
-        boxShadow: (theme) => theme.shadows[1]
-      }}
+      sx={(theme) => ({
+        backgroundColor: theme.palette.background.paper,
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        boxShadow: theme.shadows[1],
+        position: 'fixed',
+        top: '64px',
+        left: 0,
+        right: 0,
+        zIndex: theme.zIndex.appBar
+      })}
     >
-      <Box sx={{ 
-        px: 4, 
-        py: 2, 
-        bgcolor: 'background.paper',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2
-      }}>
+      <Box
+        sx={(theme) => ({
+          padding: `${theme.spacing(2)} ${theme.spacing(4)}`,
+          backgroundColor: theme.palette.background.paper,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: theme.spacing(2)
+        })}>
         <Stepper 
           activeStep={isSubmitted ? steps.length : activeStep}
           sx={{ 
@@ -58,28 +62,29 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
           ))}
         </Stepper>
 
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'flex-end', 
+        <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
           gap: 2,
-          borderTop: '1px solid',
-          borderColor: (theme) => theme.palette.divider,
+          borderTop: 1,
+          borderColor: 'divider',
           pt: 2
         }}>
           {!isSubmitted && activeStep > 0 && (
             <Button 
               onClick={onBack}
               variant="outlined"
-              sx={{
+              sx={(theme) => ({
                 borderColor: 'grey.300',
                 color: 'grey.700',
-                borderRadius: 1,
+                borderRadius: theme.shape.borderRadius,
                 textTransform: 'none',
                 '&:hover': {
                   borderColor: 'grey.400',
                   bgcolor: 'grey.50',
                 },
-              }}
+              })}
             >
               Back
             </Button>
@@ -89,14 +94,14 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
             <Button
               variant="contained"
               onClick={onNewOrder}
-              sx={{
-                borderRadius: 1,
+              sx={(theme) => ({
+                borderRadius: theme.shape.borderRadius,
                 textTransform: 'none',
                 bgcolor: 'primary.main',
                 '&:hover': {
                   bgcolor: 'primary.dark',
                 },
-              }}
+              })}
             >
               New Order
             </Button>
@@ -104,14 +109,14 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
             <Button
               variant="contained"
               onClick={onSubmit}
-              sx={{
-                borderRadius: 1,
+              sx={(theme) => ({
+                borderRadius: theme.shape.borderRadius,
                 textTransform: 'none',
                 bgcolor: 'success.main',
                 '&:hover': {
                   bgcolor: 'success.dark',
                 },
-              }}
+              })}
             >
               Submit Order
             </Button>
@@ -120,14 +125,14 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
               variant="contained"
               onClick={onNext}
               disabled={isNextDisabled()}
-              sx={{
-                borderRadius: 1,
+              sx={(theme) => ({
+                borderRadius: theme.shape.borderRadius,
                 textTransform: 'none',
                 bgcolor: 'primary.main',
                 '&:hover': {
                   bgcolor: 'primary.dark',
                 },
-              }}
+              })}
             >
               Next
             </Button>

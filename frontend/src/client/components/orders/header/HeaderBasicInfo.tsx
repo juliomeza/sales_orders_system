@@ -23,7 +23,7 @@ const Header_BasicInfo: React.FC<BasicInfoProps> = ({
           variant="outlined"
           sx={{
             '& .MuiOutlinedInput-root': {
-              borderRadius: 1
+              borderRadius: (theme) => theme.shape.borderRadius
             }
           }}
         />
@@ -38,7 +38,7 @@ const Header_BasicInfo: React.FC<BasicInfoProps> = ({
           variant="outlined"
           sx={{
             '& .MuiOutlinedInput-root': {
-              borderRadius: 1
+              borderRadius: (theme) => theme.shape.borderRadius
             }
           }}
         />
@@ -53,7 +53,7 @@ const Header_BasicInfo: React.FC<BasicInfoProps> = ({
           variant="outlined"
           sx={{
             '& .MuiOutlinedInput-root': {
-              borderRadius: 1
+              borderRadius: (theme) => theme.shape.borderRadius
             }
           }}
         />

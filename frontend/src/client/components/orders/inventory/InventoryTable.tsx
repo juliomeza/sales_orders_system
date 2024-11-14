@@ -52,11 +52,11 @@ const Inventory_Table: React.FC<TableProps> = ({
               key={item.id}
               sx={{ '&:hover': { bgcolor: 'grey.50' } }}
             >
-              <TableCell>{item.id}</TableCell>
-              <TableCell>{item.lookupCode}</TableCell>
-              <TableCell>{item.description}</TableCell>
-              <TableCell align="right">{item.available}</TableCell>
-              <TableCell align="right">
+              <TableCell sx={{ p: 2, '&:first-of-type': { pl: 3 } }}>{item.id}</TableCell>
+              <TableCell sx={{ p: 2 }}>{item.lookupCode}</TableCell>
+              <TableCell sx={{ p: 2 }}>{item.description}</TableCell>
+              <TableCell sx={{ p: 2 }} align="right">{item.available}</TableCell>
+              <TableCell sx={{ p: 2 }} align="right">
                 <TextField
                   type="number"
                   size="small"
@@ -69,14 +69,14 @@ const Inventory_Table: React.FC<TableProps> = ({
                     style: { textAlign: 'right' }
                   }}
                   sx={{ 
-                    width: '80px',
+                    width: (theme) => theme.spacing(10),
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 1
+                      borderRadius: (theme) => theme.shape.borderRadius
                     }
                   }}
                 />
               </TableCell>
-              <TableCell>{item.packaging}</TableCell>
+              <TableCell sx={{ p: 2, '&:last-of-type': { pr: 3 } }}>{item.packaging}</TableCell>
               <TableCell>
                 <Button
                   variant="contained"

@@ -55,7 +55,13 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
       ];
 
   return (
-    <AppBar position="static" sx={{ mb: 3 }}>
+    <AppBar 
+      position="fixed" 
+      sx={{ 
+        mb: 3,
+        zIndex: (theme) => theme.zIndex.appBar + 1
+      }}
+    >
       <Container maxWidth={false}>
         <Toolbar disableGutters>
           <Typography
@@ -77,15 +83,15 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
               <Button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                sx={{
+                sx={(theme) => ({
                   color: 'white',
                   textTransform: 'none',
-                  borderRadius: 0,
+                  borderRadius: theme.shape.borderRadius,
                   borderBottom: location.pathname === item.path ? '2px solid white' : '2px solid transparent',
                   '&:hover': {
                     borderBottom: '2px solid white',
                   },
-                }}
+                })}
               >
                 {item.label}
               </Button>
@@ -120,14 +126,14 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
               onClose={handleMenuClose}
               PaperProps={{
                 elevation: 3,
-                sx: {
+                sx: (theme) => ({
                   mt: 1,
                   minWidth: 200,
-                  borderRadius: 1,
+                  borderRadius: theme.shape.borderRadius,
                   '& .MuiList-root': {
                     p: 1
                   }
-                }
+                })
               }}
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
@@ -156,16 +162,16 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
               
               <MenuItem 
                 onClick={handleLogout}
-                sx={{
+                sx={(theme) => ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
                   color: 'error.main',
-                  borderRadius: 0.5,
+                  borderRadius: theme.shape.borderRadius,
                   '&:hover': {
                     bgcolor: 'error.light',
                   }
-                }}
+                })}
               >
                 <LogoutIcon fontSize="small" />
                 Log Out

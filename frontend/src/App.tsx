@@ -36,6 +36,18 @@ const theme = createTheme({
       main: '#2e7d32',
       light: '#4caf50',
       dark: '#1b5e20'
+    },
+    grey: {
+      50: '#fafafa',
+      100: '#f5f5f5',
+      200: '#eeeeee',
+      300: '#e0e0e0',
+      400: '#bdbdbd',
+      500: '#9e9e9e',
+      600: '#757575',
+      700: '#616161',
+      800: '#424242',
+      900: '#212121',
     }
   },
   typography: {
@@ -48,21 +60,42 @@ const theme = createTheme({
       'Arial',
       'sans-serif'
     ].join(','),
+    h1: {
+      fontSize: '2.5rem',
+      fontWeight: 600
+    },
+    h2: {
+      fontSize: '2rem',
+      fontWeight: 600
+    },
+    h3: {
+      fontSize: '1.75rem',
+      fontWeight: 600
+    },
     h4: {
+      fontSize: '1.5rem',
+      fontWeight: 600
+    },
+    h5: {
+      fontSize: '1.25rem',
       fontWeight: 600
     },
     h6: {
-      fontWeight: 500
+      fontSize: '1rem',
+      fontWeight: 600
     }
   },
+  spacing: (factor: number) => `${8 * factor}px`,
   shape: {
-    borderRadius: 8
+    borderRadius: 0
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
+          borderRadius: 2,
+          padding: '8px 16px',
           fontWeight: 500
         },
         contained: {
@@ -76,7 +109,8 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          borderRadius: 2,
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)'
         }
       }
     },
@@ -87,6 +121,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
+            borderRadius: 2,
             '&.Mui-focused fieldset': {
               borderWidth: 2
             }
@@ -94,26 +129,10 @@ const theme = createTheme({
         }
       }
     },
-    MuiOutlinedInput: {
+    MuiPaper: {
       styleOverrides: {
         root: {
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(0, 0, 0, 0.23)'
-          }
-        }
-      }
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        head: {
-          fontWeight: 600
-        }
-      }
-    },
-    MuiAlert: {
-      styleOverrides: {
-        root: {
-          alignItems: 'center'
+          borderRadius: 2
         }
       }
     }

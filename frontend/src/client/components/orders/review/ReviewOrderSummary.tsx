@@ -24,11 +24,9 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
     <>
       <Grid item xs={12} md={3}>
         <Paper sx={{ 
-          p: 2, 
-          bgcolor: 'grey.50', 
-          height: '100%',
-          borderRadius: 1,
-          boxShadow: 1
+          p: 3, 
+          height: '100%', 
+          backgroundColor: (theme) => theme.palette.grey[50]
         }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             Order Details
@@ -47,11 +45,9 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
 
       <Grid item xs={12} md={3}>
         <Paper sx={{ 
-          p: 2, 
-          bgcolor: 'grey.50', 
-          height: '100%',
-          borderRadius: 1,
-          boxShadow: 1
+          p: 3, 
+          height: '100%', 
+          backgroundColor: (theme) => theme.palette.grey[50]
         }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             Shipping Details
@@ -73,11 +69,9 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
 
       <Grid item xs={12} md={3}>
         <Paper sx={{ 
-          p: 2, 
-          bgcolor: 'grey.50', 
-          height: '100%',
-          borderRadius: 1,
-          boxShadow: 1
+          p: 3, 
+          height: '100%', 
+          backgroundColor: (theme) => theme.palette.grey[50]
         }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             Ship To Address
@@ -96,11 +90,9 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
 
       <Grid item xs={12} md={3}>
         <Paper sx={{ 
-          p: 2, 
-          bgcolor: 'grey.50', 
-          height: '100%',
-          borderRadius: 1,
-          boxShadow: 1
+          p: 3, 
+          height: '100%', 
+          backgroundColor: (theme) => theme.palette.grey[50]
         }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             Bill To Address

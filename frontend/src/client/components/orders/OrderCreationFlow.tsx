@@ -132,7 +132,8 @@ const OrderCreationFlow: React.FC = () => {
         px: 4, 
         py: 3, 
         bgcolor: 'grey.50',
-        minHeight: 'calc(100vh - 240px)'
+        minHeight: 'calc(100vh - 240px)',
+        marginTop: '180px'
       }}>
         {getStepContent(activeStep)}
       </Box>

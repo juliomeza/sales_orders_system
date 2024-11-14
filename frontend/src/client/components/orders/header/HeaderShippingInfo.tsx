@@ -1,4 +1,4 @@
-// src/client/components/orders/header/HeaderShippingInfo.tsx
+// frontend/src/client/components/orders/header/HeaderShippingInfo.tsx
 import React from 'react';
 import {
   Grid,
@@ -9,6 +9,7 @@ import {
   Alert,
   CircularProgress,
   Box,
+  Typography,  // Añadir esta línea
   styled
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -90,20 +91,27 @@ const HeaderShippingInfo: React.FC<ShippingInfoProps> = ({
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} md={4}>
-        <StyledFormControl>
-          <InputLabel>Carrier</InputLabel>
-          <Select
-            value={orderData.carrier}
-            onChange={(e) => handleCarrierChange(e.target.value)}
-            label="Carrier"
-          >
-            {carriers.map((carrier) => (
-              <MenuItem key={carrier.id} value={carrier.id.toString()}>
-                {carrier.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </StyledFormControl>
+      <StyledFormControl>
+  <InputLabel>Carrier</InputLabel>
+  <Select
+    value={orderData.carrier}
+    onChange={(e) => handleCarrierChange(e.target.value)}
+    label="Carrier"
+  >
+    {carriers.map((carrier) => (
+      <MenuItem key={carrier.id} value={carrier.id.toString()}>
+        <Box>
+          <Typography variant="body1">
+            {carrier.lookupCode}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {carrier.name}
+          </Typography>
+        </Box>
+      </MenuItem>
+    ))}
+  </Select>
+</StyledFormControl>
       </Grid>
 
       <Grid item xs={12} md={4}>

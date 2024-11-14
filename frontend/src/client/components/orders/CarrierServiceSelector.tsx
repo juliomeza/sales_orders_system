@@ -5,7 +5,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  SelectChangeEvent,
   Typography,
   Box
 } from '@mui/material';
@@ -29,17 +28,19 @@ const CarrierServiceSelector: React.FC<CarrierServiceSelectorProps> = ({
   onChange,
   disabled = false
 }) => {
-  const handleChange = (event: SelectChangeEvent<string>) => {
-    onChange(event.target.value);
-  };
-
   return (
     <FormControl fullWidth variant="outlined" disabled={disabled}>
       <InputLabel>Service Type</InputLabel>
       <Select
         value={value}
-        onChange={handleChange}
+        onChange={(e) => onChange(e.target.value)}
         label="Service Type"
+        sx={{
+          borderRadius: 1,
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderRadius: 1
+          }
+        }}
       >
         {services.map((service) => (
           <MenuItem key={service.id} value={service.id.toString()}>
@@ -48,7 +49,11 @@ const CarrierServiceSelector: React.FC<CarrierServiceSelectorProps> = ({
                 {service.name}
               </Typography>
               {service.description && (
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary" 
+                  sx={{ display: 'block' }}
+                >
                   {service.description}
                 </Typography>
               )}

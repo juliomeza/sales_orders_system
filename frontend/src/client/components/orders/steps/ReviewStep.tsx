@@ -10,9 +10,9 @@ import {
 } from '@mui/material';
 import { OrderData, InventoryItem } from '../../../../shared/types/shipping';
 import { apiClient } from '../../../../services/api/apiClient';
-import Review_OrderSummary from '../../../components/orders/review/Review_OrderSummary';
-import Review_Table from '../../../components/orders/review/Review_Table';
-import Review_Totals from '../../../components/orders/review/Review_Totals';
+import ReviewOrderSummary from '../review/ReviewOrderSummary';
+import ReviewTable from '../review/ReviewTable';
+import ReviewTotals from '../review/ReviewTotals';
 
 interface ReviewStepProps {
   orderData: OrderData;
@@ -66,19 +66,16 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           apiClient.get<AddressResponse>('/ship-to')
         ]);
 
-        // Set carrier name
         const carrier = carriersResponse.carriers.find(c => c.id === orderData.carrier);
         if (carrier) {
           setCarrierName(carrier.name);
         }
 
-        // Set ship to account name
         const shipToAccount = addressesResponse.addresses.find(a => a.id === orderData.shipToAccount);
         if (shipToAccount) {
           setShipToName(shipToAccount.name);
         }
 
-        // Set bill to account name
         const billToAccount = addressesResponse.addresses.find(a => a.id === orderData.billToAccount);
         if (billToAccount) {
           setBillToName(billToAccount.name);
@@ -97,7 +94,12 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
   if (isLoading) {
     return (
-      <Box className="flex justify-center items-center h-64">
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '64vh'
+      }}>
         <CircularProgress />
       </Box>
     );
@@ -105,23 +107,34 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
   if (error) {
     return (
-      <Box className="p-4">
-        <Typography color="error">{error}</Typography>
+      <Box sx={{ p: 2 }}>
+        <Typography color="error.main">{error}</Typography>
       </Box>
     );
   }
 
   return (
-    <Card sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+    <Card sx={{ 
+      bgcolor: '#fff', 
+      borderRadius: 1,
+      boxShadow: 1
+    }}>
       <CardContent>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Typography variant="h6" sx={{ mb: 3, color: 'primary.main', fontWeight: 'bold' }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                mb: 3, 
+                color: 'primary.main', 
+                fontWeight: 'bold' 
+              }}
+            >
               Order Summary
             </Typography>
           </Grid>
 
-          <Review_OrderSummary
+          <ReviewOrderSummary
             orderData={orderData}
             carrierName={carrierName}
             shipToName={shipToName}
@@ -129,14 +142,14 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           />
 
           <Grid item xs={12}>
-            <Review_Table
+            <ReviewTable
               selectedItems={selectedItems}
               onRemoveItem={onRemoveItem}
               isSubmitted={isSubmitted}
             />
           </Grid>
 
-          <Review_Totals
+          <ReviewTotals
             selectedItems={selectedItems}
             orderNotes={orderData.orderNotes}
           />

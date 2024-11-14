@@ -39,7 +39,6 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
     logout();
   };
 
-  // Get first letter of email for avatar
   const avatarLetter = user?.email.charAt(0).toUpperCase() || '?';
   
   const navItems = isAdmin
@@ -93,14 +92,13 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
             ))}
           </Box>
 
-          {/* User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton
               onClick={handleMenuOpen}
               sx={{ 
                 color: 'white',
                 '&:hover': { 
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)' 
+                  bgcolor: 'rgba(255, 255, 255, 0.1)' 
                 }
               }}
             >
@@ -125,9 +123,9 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
                 sx: {
                   mt: 1,
                   minWidth: 200,
-                  borderRadius: '8px',
+                  borderRadius: 1,
                   '& .MuiList-root': {
-                    padding: 1,
+                    p: 1
                   }
                 }
               }}
@@ -138,7 +136,7 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
                 <Typography variant="subtitle2" color="text.secondary">
                   Signed in as
                 </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Typography variant="body2" fontWeight={500}>
                   {user?.email}
                 </Typography>
                 <Typography 
@@ -163,9 +161,9 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
                   alignItems: 'center',
                   gap: 1,
                   color: 'error.main',
-                  borderRadius: '4px',
+                  borderRadius: 0.5,
                   '&:hover': {
-                    backgroundColor: 'error.light',
+                    bgcolor: 'error.light',
                   }
                 }}
               >

@@ -29,7 +29,7 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
         bgcolor: '#fff',
         borderBottom: '1px solid',
         borderColor: 'grey.200',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+        boxShadow: theme => `0 2px 4px ${theme.palette.grey[100]}`
       }}
     >
       <Box sx={{ 
@@ -73,6 +73,8 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
               sx={{
                 borderColor: 'grey.300',
                 color: 'grey.700',
+                borderRadius: 1,
+                textTransform: 'none',
                 '&:hover': {
                   borderColor: 'grey.400',
                   bgcolor: 'grey.50',
@@ -88,6 +90,8 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
               variant="contained"
               onClick={onNewOrder}
               sx={{
+                borderRadius: 1,
+                textTransform: 'none',
                 bgcolor: 'primary.main',
                 '&:hover': {
                   bgcolor: 'primary.dark',
@@ -101,6 +105,8 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
               variant="contained"
               onClick={onSubmit}
               sx={{
+                borderRadius: 1,
+                textTransform: 'none',
                 bgcolor: 'success.main',
                 '&:hover': {
                   bgcolor: 'success.dark',
@@ -115,6 +121,8 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
               onClick={onNext}
               disabled={isNextDisabled()}
               sx={{
+                borderRadius: 1,
+                textTransform: 'none',
                 bgcolor: 'primary.main',
                 '&:hover': {
                   bgcolor: 'primary.dark',

@@ -31,13 +31,13 @@ const ValidationErrors: React.FC<ValidationErrorsProps> = ({
           }}
         >
           <AlertTitle>Please correct the following errors:</AlertTitle>
-          <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+          <Box component="ul" sx={{ m: 0, pl: 2 }}>
             {errors.map((error, index) => (
               <li key={`${error.field}_${index}`}>
                 {error.message}
               </li>
             ))}
-          </ul>
+          </Box>
         </Alert>
       </Box>
     </Collapse>

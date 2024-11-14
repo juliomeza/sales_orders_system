@@ -6,9 +6,9 @@ import {
   Box,
 } from '@mui/material';
 import { OrderData } from '../../../../shared/types/shipping';
-import Header_BasicInfo from '../header/Header_BasicInfo';
-import Header_ShippingInfo from '../header/Header_ShippingInfo';
-import Header_AddressSection from '../header/Header_AddressSection';
+import Header_BasicInfo from '../header/HeaderBasicInfo';
+import Header_ShippingInfo from '../header/HeaderShippingInfo';
+import Header_AddressSection from '../header/HeaderAddressSection';
 
 interface OrderHeaderStepProps {
   orderData: OrderData;
@@ -20,7 +20,11 @@ const OrderHeaderStep: React.FC<OrderHeaderStepProps> = ({
   onOrderDataChange,
 }) => {
   return (
-    <Card sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+    <Card sx={{ 
+      bgcolor: '#fff', 
+      borderRadius: 1, 
+      boxShadow: 1 
+    }}>
       <CardContent>
         <Header_BasicInfo 
           orderData={orderData}

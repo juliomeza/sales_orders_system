@@ -33,13 +33,13 @@ const Review_Totals: React.FC<TotalsProps> = ({
             p: 3, 
             flex: 1, 
             bgcolor: 'primary.main', 
-            color: 'white',
-            borderRadius: 2,
+            color: 'primary.contrastText',
+            borderRadius: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center'
           }}>
-            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+            <Typography variant="h4" fontWeight="bold">
               {totalItems}
             </Typography>
             <Typography>Total Items</Typography>
@@ -49,13 +49,13 @@ const Review_Totals: React.FC<TotalsProps> = ({
             p: 3, 
             flex: 1, 
             bgcolor: 'success.main', 
-            color: 'white',
-            borderRadius: 2,
+            color: 'success.contrastText',
+            borderRadius: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center'
           }}>
-            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+            <Typography variant="h4" fontWeight="bold">
               {totalQuantity}
             </Typography>
             <Typography>Total Quantity</Typography>
@@ -65,7 +65,12 @@ const Review_Totals: React.FC<TotalsProps> = ({
 
       {orderNotes && (
         <Grid item xs={12}>
-          <Paper sx={{ p: 2, bgcolor: 'grey.50', mt: 2 }}>
+          <Paper sx={{ 
+            p: 2, 
+            bgcolor: 'grey.50', 
+            mt: 2,
+            borderRadius: 1
+          }}>
             <Typography variant="subtitle2" color="textSecondary" gutterBottom>
               Order Notes
             </Typography>

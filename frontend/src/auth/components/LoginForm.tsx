@@ -32,7 +32,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       setError(
         err?.response?.data?.message || 
         err?.message || 
-        'Error al intentar iniciar sesión. Por favor intente nuevamente.'
+        'Error logging in. Please try again.'
       );
     } finally {
       setIsLoading(false);
@@ -42,7 +42,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   return (
     <form onSubmit={handleSubmit}>
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2 }}
+        >
           {error}
         </Alert>
       )}
@@ -60,6 +63,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           ...credentials,
           email: e.target.value
         })}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 1
+          }
+        }}
       />
 
       <TextField
@@ -75,6 +83,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           ...credentials,
           password: e.target.value
         })}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 1
+          }
+        }}
       />
 
       <Box sx={{ mt: 3 }}>
@@ -86,7 +99,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           disabled={isLoading}
           sx={{
             height: 48,
-            position: 'relative'
+            position: 'relative',
+            borderRadius: 1,
+            textTransform: 'none'
           }}
         >
           {isLoading ? (

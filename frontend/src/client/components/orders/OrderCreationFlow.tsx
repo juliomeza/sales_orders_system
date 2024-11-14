@@ -128,7 +128,12 @@ const OrderCreationFlow: React.FC = () => {
         isNextDisabled={() => !canProceedToNextStep(activeStep)}
       />
       
-      <Box sx={{ px: 4, py: 3, bgcolor: '#f8fafc', minHeight: 'calc(100vh - 240px)' }}>
+      <Box sx={{ 
+        px: 4, 
+        py: 3, 
+        bgcolor: 'grey.50',
+        minHeight: 'calc(100vh - 240px)'
+      }}>
         {getStepContent(activeStep)}
       </Box>
     </>

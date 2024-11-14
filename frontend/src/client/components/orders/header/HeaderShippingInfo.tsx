@@ -43,7 +43,11 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        p: 3 
+      }}>
         <CircularProgress />
       </Box>
     );
@@ -58,15 +62,12 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
   }
 
   const handleCarrierChange = (carrierId: string) => {
-    console.log('Carrier changed to:', carrierId);
     setSelectedCarrierId(carrierId);
     onOrderDataChange('carrier', carrierId);
-    // Reset service type when carrier changes
     onOrderDataChange('serviceType', '');
   };
 
   const handleServiceChange = (serviceId: string) => {
-    console.log('Service changed to:', serviceId);
     setSelectedService(serviceId);
     onOrderDataChange('serviceType', serviceId);
   };
@@ -80,6 +81,12 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
             value={orderData.carrier}
             onChange={(e) => handleCarrierChange(e.target.value)}
             label="Carrier"
+            sx={{
+              borderRadius: 1,
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderRadius: 1
+              }
+            }}
           >
             {carriers.map((carrier) => (
               <MenuItem key={carrier.id} value={carrier.id.toString()}>
@@ -105,7 +112,12 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
             label="Expected Date"
             value={orderData.expectedDate}
             onChange={(date) => onOrderDataChange('expectedDate', date)}
-            sx={{ width: '100%' }}
+            sx={{ 
+              width: '100%',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 1
+              }
+            }}
           />
         </LocalizationProvider>
       </Grid>
@@ -120,6 +132,12 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
               onOrderDataChange('preferredWarehouse', e.target.value);
             }}
             label="Preferred Warehouse"
+            sx={{
+              borderRadius: 1,
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderRadius: 1
+              }
+            }}
           >
             {warehouses.map((warehouse) => (
               <MenuItem key={warehouse.id} value={warehouse.id.toString()}>

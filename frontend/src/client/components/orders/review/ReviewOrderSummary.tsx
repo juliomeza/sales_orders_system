@@ -23,35 +23,47 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
   return (
     <>
       <Grid item xs={12} md={3}>
-        <Paper sx={{ p: 2, bgcolor: 'grey.50', height: '100%' }}>
+        <Paper sx={{ 
+          p: 2, 
+          bgcolor: 'grey.50', 
+          height: '100%',
+          borderRadius: 1,
+          boxShadow: 1
+        }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             Order Details
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>PO Number:</strong> {orderData.poNo || '-'}
+            <Typography component="span" fontWeight="bold">PO Number:</Typography> {orderData.poNo || '-'}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Reference:</strong> {orderData.referenceNo || '-'}
+            <Typography component="span" fontWeight="bold">Reference:</Typography> {orderData.referenceNo || '-'}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Order Class:</strong> {orderData.orderClass}
+            <Typography component="span" fontWeight="bold">Order Class:</Typography> {orderData.orderClass}
           </Typography>
         </Paper>
       </Grid>
 
       <Grid item xs={12} md={3}>
-        <Paper sx={{ p: 2, bgcolor: 'grey.50', height: '100%' }}>
+        <Paper sx={{ 
+          p: 2, 
+          bgcolor: 'grey.50', 
+          height: '100%',
+          borderRadius: 1,
+          boxShadow: 1
+        }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             Shipping Details
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Carrier:</strong> {carrierName || '-'}
+            <Typography component="span" fontWeight="bold">Carrier:</Typography> {carrierName || '-'}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Service:</strong> {orderData.serviceType || '-'}
+            <Typography component="span" fontWeight="bold">Service:</Typography> {orderData.serviceType || '-'}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Expected Date:</strong>{' '}
+            <Typography component="span" fontWeight="bold">Expected Date:</Typography>{' '}
             {orderData.expectedDate
               ? new Date(orderData.expectedDate).toLocaleDateString()
               : '-'}
@@ -60,12 +72,18 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
       </Grid>
 
       <Grid item xs={12} md={3}>
-        <Paper sx={{ p: 2, bgcolor: 'grey.50', height: '100%' }}>
+        <Paper sx={{ 
+          p: 2, 
+          bgcolor: 'grey.50', 
+          height: '100%',
+          borderRadius: 1,
+          boxShadow: 1
+        }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             Ship To Address
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Account:</strong> {shipToName}
+            <Typography component="span" fontWeight="bold">Account:</Typography> {shipToName}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             {orderData.shipToAddress.address}
@@ -77,12 +95,18 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
       </Grid>
 
       <Grid item xs={12} md={3}>
-        <Paper sx={{ p: 2, bgcolor: 'grey.50', height: '100%' }}>
+        <Paper sx={{ 
+          p: 2, 
+          bgcolor: 'grey.50', 
+          height: '100%',
+          borderRadius: 1,
+          boxShadow: 1
+        }}>
           <Typography variant="subtitle2" color="textSecondary" gutterBottom>
             Bill To Address
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>Account:</strong> {billToName}
+            <Typography component="span" fontWeight="bold">Account:</Typography> {billToName}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             {orderData.billToAddress.address}

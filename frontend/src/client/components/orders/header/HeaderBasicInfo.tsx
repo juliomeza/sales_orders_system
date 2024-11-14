@@ -1,9 +1,6 @@
 // fronend/src/client/components/orders/header/Header_BasicInfo.tsx
 import React from 'react';
-import {
-  Grid,
-  TextField,
-} from '@mui/material';
+import { Grid, TextField } from '@mui/material';
 import { OrderData } from '../../../../shared/types/shipping';
 
 interface BasicInfoProps {
@@ -24,6 +21,11 @@ const Header_BasicInfo: React.FC<BasicInfoProps> = ({
           value={orderData.orderLookup}
           onChange={(e) => onOrderDataChange('orderLookup', e.target.value)}
           variant="outlined"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 1
+            }
+          }}
         />
       </Grid>
 
@@ -34,6 +36,11 @@ const Header_BasicInfo: React.FC<BasicInfoProps> = ({
           value={orderData.poNo}
           onChange={(e) => onOrderDataChange('poNo', e.target.value)}
           variant="outlined"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 1
+            }
+          }}
         />
       </Grid>
 
@@ -44,6 +51,11 @@ const Header_BasicInfo: React.FC<BasicInfoProps> = ({
           value={orderData.referenceNo}
           onChange={(e) => onOrderDataChange('referenceNo', e.target.value)}
           variant="outlined"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 1
+            }
+          }}
         />
       </Grid>
     </Grid>

@@ -8,7 +8,7 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton,
+  IconButton
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import { InventoryItem } from '../../../../shared/types/shipping';
@@ -25,7 +25,14 @@ const Review_Table: React.FC<ReviewTableProps> = ({
   isSubmitted,
 }) => {
   return (
-    <TableContainer component={Paper} sx={{ mt: 3, boxShadow: 'none' }}>
+    <TableContainer 
+      component={Paper} 
+      sx={{ 
+        mt: 3, 
+        boxShadow: 'none',
+        borderRadius: 1
+      }}
+    >
       <Table>
         <TableHead>
           <TableRow sx={{ bgcolor: 'grey.50' }}>
@@ -38,7 +45,14 @@ const Review_Table: React.FC<ReviewTableProps> = ({
         </TableHead>
         <TableBody>
           {selectedItems.map((item) => (
-            <TableRow key={item.id}>
+            <TableRow 
+              key={item.id}
+              sx={{ 
+                '&:hover': { 
+                  bgcolor: 'grey.50'
+                }
+              }}
+            >
               <TableCell>{item.lookupCode}</TableCell>
               <TableCell>{item.description}</TableCell>
               <TableCell>{item.packaging}</TableCell>

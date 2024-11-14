@@ -9,8 +9,8 @@ import {
 } from '@mui/material';
 import { InventoryItem } from '../../../../shared/types/shipping';
 import { useInventory } from '../../../../shared/hooks/useInventory';
-import Inventory_SearchBar from '../../../components/orders/inventory/Inventory_SearchBar';
-import Inventory_Table from '../../../components/orders/inventory/Inventory_Table';
+import Inventory_SearchBar from '../inventory/InventorySearchBar';
+import Inventory_Table from '../inventory/InventoryTable';
 
 interface InventoryStepProps {
   selectedItems: InventoryItem[];
@@ -31,7 +31,6 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
     handleAddItem,
   } = useInventory(selectedItems);
 
-  // Update parent component when items change
   const handleAddItemWrapper = (item: InventoryItem) => {
     handleAddItem(item);
     const updatedItems = [...selectedItems];
@@ -51,7 +50,11 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
 
   if (isLoading) {
     return (
-      <Card sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+      <Card sx={{ 
+        bgcolor: '#fff', 
+        borderRadius: 1, 
+        boxShadow: 1
+      }}>
         <CardContent>
           <Box sx={{ 
             display: 'flex', 
@@ -72,7 +75,7 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
   }
 
   return (
-    <Card sx={{ bgcolor: '#fff', borderRadius: 2, boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+    <Card sx={{ bgcolor: '#fff', borderRadius: 1, boxShadow: 1 }}>
       <CardContent>
         <Inventory_SearchBar
           searchTerm={searchTerm}

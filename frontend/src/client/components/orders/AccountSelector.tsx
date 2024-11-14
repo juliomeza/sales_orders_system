@@ -89,19 +89,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     }
   };
 
-  const renderOption = (props: React.HTMLAttributes<HTMLLIElement>, option: ShippingAddress) => (
-    <Box component="li" {...props}>
-      <Box>
-        <Typography variant="body1">
-          {option.name}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {option.address}, {option.city}, {option.state} {option.zipCode}
-        </Typography>
-      </Box>
-    </Box>
-  );
-
   return (
     <Box>
       <Autocomplete
@@ -115,7 +102,18 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         }}
         options={accounts}
         getOptionLabel={(option) => option.name}
-        renderOption={renderOption}
+        renderOption={(props, option) => (
+          <Box component="li" {...props}>
+            <Box>
+              <Typography variant="body1">
+                {option.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {option.address}, {option.city}, {option.state} {option.zipCode}
+              </Typography>
+            </Box>
+          </Box>
+        )}
         disabled={disabled}
         renderInput={(params) => (
           <TextField
@@ -124,6 +122,11 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             variant="outlined"
             placeholder={`Search or select ${accountTypeLabel.toLowerCase()} account`}
             fullWidth
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 1
+              }
+            }}
           />
         )}
         ListboxProps={{

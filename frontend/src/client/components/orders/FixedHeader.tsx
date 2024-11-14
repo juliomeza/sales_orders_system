@@ -28,8 +28,8 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
       sx={{
         bgcolor: '#fff',
         borderBottom: '1px solid',
-        borderColor: 'grey.200',
-        boxShadow: theme => `0 2px 4px ${theme.palette.grey[100]}`
+        borderColor: (theme) => theme.palette.divider,
+        boxShadow: (theme) => theme.shadows[1]
       }}
     >
       <Box sx={{ 
@@ -63,7 +63,7 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
           justifyContent: 'flex-end', 
           gap: 2,
           borderTop: '1px solid',
-          borderColor: 'grey.200',
+          borderColor: (theme) => theme.palette.divider,
           pt: 2
         }}>
           {!isSubmitted && activeStep > 0 && (

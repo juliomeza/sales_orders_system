@@ -1,4 +1,4 @@
-// src/client/components/orders/header/Header_ShippingInfo.tsx
+// src/client/components/orders/header/HeaderShippingInfo.tsx
 import React from 'react';
 import {
   Grid,
@@ -8,7 +8,8 @@ import {
   MenuItem,
   Alert,
   CircularProgress,
-  Box
+  Box,
+  styled
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -17,12 +18,26 @@ import { OrderData } from '../../../../shared/types/shipping';
 import { useShipping } from '../../../../shared/hooks/useShipping';
 import CarrierServiceSelector from '../CarrierServiceSelector';
 
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+  width: '100%',
+  '& .MuiOutlinedInput-root': {
+    borderRadius: theme.shape.borderRadius,
+  }
+}));
+
+const StyledDatePicker = styled(DatePicker)(({ theme }) => ({
+  width: '100%',
+  '& .MuiOutlinedInput-root': {
+    borderRadius: theme.shape.borderRadius,
+  }
+}));
+
 interface ShippingInfoProps {
   orderData: OrderData;
   onOrderDataChange: (field: keyof OrderData, value: any) => void;
 }
 
-const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
+const HeaderShippingInfo: React.FC<ShippingInfoProps> = ({
   orderData,
   onOrderDataChange,
 }) => {
@@ -75,18 +90,12 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} md={4}>
-        <FormControl fullWidth variant="outlined">
+        <StyledFormControl>
           <InputLabel>Carrier</InputLabel>
           <Select
             value={orderData.carrier}
             onChange={(e) => handleCarrierChange(e.target.value)}
             label="Carrier"
-            sx={{
-              borderRadius: 1,
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderRadius: 1
-              }
-            }}
           >
             {carriers.map((carrier) => (
               <MenuItem key={carrier.id} value={carrier.id.toString()}>
@@ -94,7 +103,7 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
               </MenuItem>
             ))}
           </Select>
-        </FormControl>
+        </StyledFormControl>
       </Grid>
 
       <Grid item xs={12} md={4}>
@@ -108,22 +117,16 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
 
       <Grid item xs={12} md={4}>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <DatePicker
+          <StyledDatePicker
             label="Expected Date"
             value={orderData.expectedDate}
             onChange={(date) => onOrderDataChange('expectedDate', date)}
-            sx={{ 
-              width: '100%',
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 1
-              }
-            }}
           />
         </LocalizationProvider>
       </Grid>
 
       <Grid item xs={12} md={4}>
-        <FormControl fullWidth variant="outlined">
+        <StyledFormControl>
           <InputLabel>Preferred Warehouse</InputLabel>
           <Select
             value={orderData.preferredWarehouse}
@@ -132,12 +135,6 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
               onOrderDataChange('preferredWarehouse', e.target.value);
             }}
             label="Preferred Warehouse"
-            sx={{
-              borderRadius: 1,
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderRadius: 1
-              }
-            }}
           >
             {warehouses.map((warehouse) => (
               <MenuItem key={warehouse.id} value={warehouse.id.toString()}>
@@ -145,10 +142,10 @@ const Header_ShippingInfo: React.FC<ShippingInfoProps> = ({
               </MenuItem>
             ))}
           </Select>
-        </FormControl>
+        </StyledFormControl>
       </Grid>
     </Grid>
   );
 };
 
-export default Header_ShippingInfo;
+export default HeaderShippingInfo;

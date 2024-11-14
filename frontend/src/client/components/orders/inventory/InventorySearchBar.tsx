@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/inventory/Inventory_SearchBar.tsx
+// frontend/src/client/components/orders/inventory/InventorySearchBar.tsx
 import React from 'react';
 import { Box, TextField } from '@mui/material';
 

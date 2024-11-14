@@ -35,7 +35,10 @@ const Materials = () => (
 
 const AdminApp: React.FC = () => {
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+    <Box sx={(theme) => ({ 
+      minHeight: '100vh', 
+      bgcolor: theme.palette.background.default 
+    })}>
       <Navigation isAdmin />
       
       <Container maxWidth={false} sx={{ py: 3 }}>

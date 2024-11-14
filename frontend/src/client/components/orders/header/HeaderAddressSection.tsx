@@ -7,18 +7,26 @@ import {
   TextField,
   Alert,
   CircularProgress,
-  Box
+  Box,
+  styled
 } from '@mui/material';
 import { OrderData } from '../../../../shared/types/shipping';
 import AccountSelector from '../AccountSelector';
 import { useAccounts } from '../../../../shared/hooks/useAccounts';
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  width: '100%',
+  '& .MuiOutlinedInput-root': {
+    borderRadius: theme.shape.borderRadius,
+  }
+}));
 
 interface AddressSectionProps {
   orderData: OrderData;
   onOrderDataChange: (field: keyof OrderData, value: any) => void;
 }
 
-const Header_AddressSection: React.FC<AddressSectionProps> = ({
+const HeaderAddressSection: React.FC<AddressSectionProps> = ({
   orderData,
   onOrderDataChange
 }) => {
@@ -35,7 +43,11 @@ const Header_AddressSection: React.FC<AddressSectionProps> = ({
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center',
+        p: 3 
+      }}>
         <CircularProgress />
       </Box>
     );
@@ -43,7 +55,10 @@ const Header_AddressSection: React.FC<AddressSectionProps> = ({
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mb: 2 }}>
+      <Alert 
+        severity="error" 
+        sx={{ mb: 2 }}
+      >
         {error}
       </Alert>
     );
@@ -106,7 +121,7 @@ const Header_AddressSection: React.FC<AddressSectionProps> = ({
       <Grid item xs={12} md={4} sx={{ 
         display: 'flex', 
         alignItems: 'flex-start',
-        pt: 2
+        pt: 2 
       }}>
         <FormControlLabel
           control={
@@ -121,8 +136,7 @@ const Header_AddressSection: React.FC<AddressSectionProps> = ({
       </Grid>
 
       <Grid item xs={12}>
-        <TextField
-          fullWidth
+        <StyledTextField
           multiline
           rows={4}
           label="Order Notes"
@@ -135,4 +149,4 @@ const Header_AddressSection: React.FC<AddressSectionProps> = ({
   );
 };
 
-export default Header_AddressSection;
+export default HeaderAddressSection;

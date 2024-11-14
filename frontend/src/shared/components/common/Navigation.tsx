@@ -11,9 +11,9 @@ import {
   Menu,
   MenuItem,
   IconButton,
-  Divider
+  Divider,
 } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ExitToApp as LogoutIcon } from '@mui/icons-material';
 
@@ -23,6 +23,7 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   
@@ -75,13 +76,12 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
             {navItems.map((item) => (
               <Button
                 key={item.path}
-                component={Link}
-                to={item.path}
+                onClick={() => navigate(item.path)}
                 sx={{
                   color: 'white',
                   textTransform: 'none',
-                  borderBottom: location.pathname === item.path ? '2px solid white' : 'none',
                   borderRadius: 0,
+                  borderBottom: location.pathname === item.path ? '2px solid white' : '2px solid transparent',
                   '&:hover': {
                     borderBottom: '2px solid white',
                   },
@@ -98,7 +98,7 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
               sx={{ 
                 color: 'white',
                 '&:hover': { 
-                  bgcolor: 'rgba(255, 255, 255, 0.1)' 
+                  bgcolor: 'action.hover'
                 }
               }}
             >
@@ -107,7 +107,7 @@ const Navigation: React.FC<NavigationProps> = ({ isAdmin = false }) => {
                   width: 32, 
                   height: 32,
                   bgcolor: isAdmin ? 'error.dark' : 'primary.dark',
-                  border: '2px solid white'
+                  border: (theme) => `2px solid ${theme.palette.common.white}`
                 }}
               >
                 {avatarLetter}

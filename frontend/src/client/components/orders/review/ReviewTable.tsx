@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/review/Review_Table.tsx
+// frontend/src/client/components/orders/review/ReviewTable.tsx
 import React from 'react';
 import {
   Table,
@@ -27,11 +27,11 @@ const Review_Table: React.FC<ReviewTableProps> = ({
   return (
     <TableContainer 
       component={Paper} 
-      sx={{ 
-        mt: 3, 
-        boxShadow: 'none',
-        borderRadius: 1
-      }}
+      sx={(theme) => ({ 
+        mt: 3,
+        borderRadius: theme.shape.borderRadius,
+        elevation: 0
+      })}
     >
       <Table>
         <TableHead>

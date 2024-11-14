@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/inventory/Inventory_Table.tsx
+// frontend/src/client/components/orders/inventory/InventoryTable.tsx
 import React from 'react';
 import {
   Table,

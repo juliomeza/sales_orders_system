@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/review/Review_Totals.tsx
+// frontend/src/client/components/orders/review/ReviewTotals.tsx
 import React from 'react';
 import {
   Box,

@@ -15,7 +15,10 @@ const OrdersList = () => (
 
 const ClientApp = () => {
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+    <Box sx={(theme) => ({ 
+      minHeight: '100vh', 
+      bgcolor: theme.palette.background.default 
+    })}>
       <Navigation />
       <Container maxWidth={false} sx={{ py: 3 }}>
         <Routes>

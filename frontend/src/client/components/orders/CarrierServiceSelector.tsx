@@ -35,12 +35,11 @@ const CarrierServiceSelector: React.FC<CarrierServiceSelectorProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         label="Service Type"
-        sx={{
-          borderRadius: 1,
-          '& .MuiOutlinedInput-notchedOutline': {
-            borderRadius: 1
+        sx={(theme) => ({
+          '& .MuiOutlinedInput-root': {
+            borderRadius: theme.shape.borderRadius
           }
-        }}
+        })}
       >
         {services.map((service) => (
           <MenuItem key={service.id} value={service.id.toString()}>

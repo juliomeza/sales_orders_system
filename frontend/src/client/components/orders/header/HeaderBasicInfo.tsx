@@ -1,4 +1,4 @@
-// fronend/src/client/components/orders/header/Header_BasicInfo.tsx
+// fronend/src/client/components/orders/header/HeaderBasicInfo.tsx
 import React from 'react';
 import { Grid, TextField } from '@mui/material';
 import { OrderData } from '../../../../shared/types/shipping';

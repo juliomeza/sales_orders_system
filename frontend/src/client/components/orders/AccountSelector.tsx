@@ -13,17 +13,9 @@ import {
   Box,
   Snackbar,
   Alert,
-  styled
+  styled,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-
-const StyledTextField = styled(TextField)({
-  '& .MuiInputLabel-shrink': {
-    transform: 'translate(14px, -3px) scale(0.75)',
-    background: '#fff',
-    padding: '0 8px',
-  },
-});
 
 interface ShippingAddress {
   id: string;
@@ -43,6 +35,17 @@ interface AccountSelectorProps {
   type: 'shipping' | 'billing';
   label?: string;
 }
+
+const StyledTextField = styled(TextField)({
+  '& .MuiInputLabel-shrink': {
+    transform: 'translate(14px, -3px) scale(0.75)',
+    background: '#fff',
+    padding: '0 8px',
+  },
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '4px',
+  }
+});
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   accounts,
@@ -104,7 +107,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         getOptionLabel={(option) => option.name}
         renderOption={(props, option) => (
           <Box component="li" {...props}>
-            <Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant="body1">
                 {option.name}
               </Typography>
@@ -116,21 +119,18 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         )}
         disabled={disabled}
         renderInput={(params) => (
-          <TextField
+          <StyledTextField
             {...params}
             label={displayLabel}
             variant="outlined"
             placeholder={`Search or select ${accountTypeLabel.toLowerCase()} account`}
             fullWidth
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 1
-              }
-            }}
           />
         )}
         ListboxProps={{
-          style: { maxHeight: 256 }
+          sx: { 
+            maxHeight: '256px'
+          }
         }}
       />
 
@@ -170,11 +170,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   name: e.target.value
                 }))}
                 variant="outlined"
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    width: 'auto',
-                  }
-                }}
               />
             </Grid>
             

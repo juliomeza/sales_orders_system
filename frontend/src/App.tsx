@@ -9,18 +9,34 @@ import LoginPage from './auth/pages/LoginPage';
 import AdminApp from './admin/app/AdminApp';
 import ClientApp from './client/app/ClientApp';
 
-// Create a theme instance
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#4a148c', // deep purple
+      main: '#4a148c',
+      light: '#7c43bd',
+      dark: '#12005e',
+      contrastText: '#ffffff'
     },
     secondary: {
-      main: '#9c27b0', // purple
+      main: '#9c27b0',
+      light: '#d05ce3',
+      dark: '#6a0080',
+      contrastText: '#ffffff'
     },
     background: {
       default: '#f5f5f5',
+      paper: '#ffffff'
     },
+    error: {
+      main: '#d32f2f',
+      light: '#ef5350',
+      dark: '#c62828'
+    },
+    success: {
+      main: '#2e7d32',
+      light: '#4caf50',
+      dark: '#1b5e20'
+    }
   },
   typography: {
     fontFamily: [
@@ -30,39 +46,78 @@ const theme = createTheme({
       '"Segoe UI"',
       '"Helvetica Neue"',
       'Arial',
-      'sans-serif',
+      'sans-serif'
     ].join(','),
+    h4: {
+      fontWeight: 600
+    },
+    h6: {
+      fontWeight: 500
+    }
+  },
+  shape: {
+    borderRadius: 8
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
-          borderRadius: 8,
+          fontWeight: 500
         },
-      },
+        contained: {
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none'
+          }
+        }
+      }
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        },
-      },
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+        }
+      }
     },
     MuiTextField: {
       defaultProps: {
-        variant: 'outlined',
+        variant: 'outlined'
       },
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 8,
-          },
-        },
-      },
+            '&.Mui-focused fieldset': {
+              borderWidth: 2
+            }
+          }
+        }
+      }
     },
-  },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'rgba(0, 0, 0, 0.23)'
+          }
+        }
+      }
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          fontWeight: 600
+        }
+      }
+    },
+    MuiAlert: {
+      styleOverrides: {
+        root: {
+          alignItems: 'center'
+        }
+      }
+    }
+  }
 });
 
 function App() {
@@ -72,10 +127,8 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
             
-            {/* Protected Admin Routes */}
             <Route
               path="/admin/*"
               element={
@@ -85,7 +138,6 @@ function App() {
               }
             />
             
-            {/* Protected Client Routes */}
             <Route
               path="/*"
               element={
@@ -95,7 +147,6 @@ function App() {
               }
             />
 
-            {/* Redirect unmatched routes to login */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </AuthProvider>

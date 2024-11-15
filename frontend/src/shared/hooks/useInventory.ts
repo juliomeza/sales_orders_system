@@ -1,5 +1,6 @@
 // frontend/src/shared/hooks/useInventory.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { debounce } from 'lodash';
 import { InventoryItem } from '../types/shipping';
 import { apiClient } from '../api/apiClient';
 
@@ -24,44 +25,57 @@ export const useInventory = (initialSelectedItems: InventoryItem[] = []) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Separar la lógica de carga en una función independiente
+  const fetchInventory = async (query: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const endpoint = query ? 
+        `/materials/search?query=${encodeURIComponent(query)}` : 
+        '/materials';
+      
+      const response = await apiClient.get<MaterialResponse>(endpoint);
+      
+      const mappedMaterials = response.materials.map(material => ({
+        id: material.id.toString(),
+        code: material.code,
+        lookupCode: material.code,
+        description: material.description,
+        uom: material.uom,
+        availableQuantity: material.availableQuantity,
+        available: material.availableQuantity,
+        quantity: 0,
+        packaging: material.uom,
+        baseAvailable: material.availableQuantity
+      }));
+
+      setInventory(mappedMaterials);
+    } catch (err: any) {
+      console.error('Error loading inventory:', err);
+      setError(err?.response?.data?.error || 'Error loading inventory');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Crear una versión debounced de fetchInventory que persiste entre renders
+  const debouncedFetch = useMemo(
+    () => debounce((query: string) => fetchInventory(query), 300),
+    []
+  );
+
+  // Limpiar el debounce al desmontar
   useEffect(() => {
-    const loadInventory = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const endpoint = searchTerm ? 
-          `/materials/search?query=${encodeURIComponent(searchTerm)}` : 
-          '/materials';
-        
-        const response = await apiClient.get<MaterialResponse>(endpoint);
-        
-        // Mapear los datos del backend al formato del frontend
-        const mappedMaterials = response.materials.map(material => ({
-          id: material.id.toString(),
-          code: material.code,
-          lookupCode: material.code,         // Usar code como lookupCode
-          description: material.description,
-          uom: material.uom,
-          availableQuantity: material.availableQuantity,
-          available: material.availableQuantity, // Duplicar para mantener compatibilidad
-          quantity: 0,
-          packaging: material.uom,           // Usar uom como packaging
-          baseAvailable: material.availableQuantity
-        }));
-
-        setInventory(mappedMaterials);
-      } catch (err: any) {
-        console.error('Error loading inventory:', err);
-        setError(err?.response?.data?.error || 'Error loading inventory');
-      } finally {
-        setIsLoading(false);
-      }
+    return () => {
+      debouncedFetch.cancel();
     };
+  }, [debouncedFetch]);
 
-    // Debounce para la búsqueda
-    const timeoutId = setTimeout(loadInventory, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  // Efecto para manejar cambios en searchTerm
+  useEffect(() => {
+    debouncedFetch(searchTerm);
+  }, [searchTerm, debouncedFetch]);
 
   const handleQuantityChange = (itemId: string, value: string) => {
     setInputValues(prev => ({
@@ -102,6 +116,11 @@ export const useInventory = (initialSelectedItems: InventoryItem[] = []) => {
     setSelectedItems(prev => prev.filter(item => item.id !== itemId));
   };
 
+  // Crear una función de búsqueda controlada
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+  }, []);
+
   return {
     inventory,
     selectedItems,
@@ -109,7 +128,7 @@ export const useInventory = (initialSelectedItems: InventoryItem[] = []) => {
     searchTerm,
     isLoading,
     error,
-    setSearchTerm,
+    setSearchTerm: handleSearchChange,
     handleQuantityChange,
     handleAddItem,
     handleRemoveItem,

@@ -1,4 +1,4 @@
-// frontend/src/client/corders/components/creation/steps/ReviewStep.tsx
+// frontend/src/client/orders/components/creation/steps/ReviewStep.tsx
 import React, { useEffect, useState } from 'react';
 import {
   Card,
@@ -6,13 +6,16 @@ import {
   Grid,
   Typography,
   CircularProgress,
-  Box
+  Box,
+  Paper // Añadido el import de Paper
 } from '@mui/material';
 import { OrderData, InventoryItem } from '../../../../../shared/types/shipping';
 import { apiClient } from '../../../../../shared/api/apiClient';
 import ReviewOrderSummary from '../../../../orders/components/review/ReviewOrderSummary';
 import ReviewTable from '../../../../orders/components/review/ReviewTable';
 import ReviewTotals from '../../../../orders/components/review/ReviewTotals';
+
+// ... resto del código exactamente igual ...
 
 interface ReviewStepProps {
   orderData: OrderData;
@@ -114,48 +117,72 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   }
 
   return (
-    <Card sx={{ 
-      bgcolor: '#fff', 
-      borderRadius: 1,
-      boxShadow: 1
-    }}>
-      <CardContent>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                mb: 3, 
-                color: 'primary.main', 
-                fontWeight: 'bold' 
-              }}
-            >
-              Order Summary
-            </Typography>
-          </Grid>
+    <>
+      {/* Totales fuera de la Card principal */}
+      <Box sx={{ mb: 3 }}>
+        <ReviewTotals
+          selectedItems={selectedItems}
+          orderNotes={orderData.orderNotes}
+        />
+      </Box>
 
-          <ReviewOrderSummary
-            orderData={orderData}
-            carrierName={carrierName}
-            shipToName={shipToName}
-            billToName={billToName}
-          />
+      <Card sx={{ 
+        bgcolor: '#fff', 
+        borderRadius: 1,
+        boxShadow: 1
+      }}>
+        <CardContent>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  mb: 3, 
+                  color: 'primary.main', 
+                  fontWeight: 'bold' 
+                }}
+              >
+                Order Summary
+              </Typography>
+            </Grid>
 
-          <Grid item xs={12}>
-            <ReviewTable
-              selectedItems={selectedItems}
-              onRemoveItem={onRemoveItem}
-              isSubmitted={isSubmitted}
+            <ReviewOrderSummary
+              orderData={orderData}
+              carrierName={carrierName}
+              shipToName={shipToName}
+              billToName={billToName}
             />
-          </Grid>
 
-          <ReviewTotals
-            selectedItems={selectedItems}
-            orderNotes={orderData.orderNotes}
-          />
-        </Grid>
-      </CardContent>
-    </Card>
+            <Grid item xs={12}>
+              <ReviewTable
+                selectedItems={selectedItems}
+                onRemoveItem={onRemoveItem}
+                isSubmitted={isSubmitted}
+              />
+            </Grid>
+
+            {/* Order Notes se muestran al final si existen */}
+            {orderData.orderNotes && (
+              <Grid item xs={12}>
+                <Paper sx={{ 
+                  p: 2, 
+                  bgcolor: 'grey.50', 
+                  mt: 2,
+                  borderRadius: 1
+                }}>
+                  <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                    Order Notes
+                  </Typography>
+                  <Typography variant="body2">
+                    {orderData.orderNotes}
+                  </Typography>
+                </Paper>
+              </Grid>
+            )}
+          </Grid>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 

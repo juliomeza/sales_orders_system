@@ -11,7 +11,7 @@ import {
   styled
 } from '@mui/material';
 import { OrderData } from '../../../../../shared/types/shipping';
-import AccountSelector from '../../AccountSelector';
+import AccountSelector from '../../account/AccountSelector';
 import { useAccounts } from '../../../../../shared/hooks/useAccounts';
 
 const StyledTextField = styled(TextField)(({ theme }) => ({

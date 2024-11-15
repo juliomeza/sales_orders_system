@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, Container, Typography } from '@mui/material';
-import Navigation from '../../shared/components/common/Navigation';
+import Navigation from '../../shared/components/navigation/Navigation';
 
 // Placeholder components for admin routes
 const Dashboard = () => (

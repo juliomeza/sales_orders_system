@@ -45,7 +45,7 @@ export interface OrderData {
   project: string;
   carrier: string;
   serviceType: string;
-  expectedDate: Date | null;
+  expectedDate: Date | null | undefined;
   
   // Updated to separate Ship To and Bill To
   shipToAccount: string;

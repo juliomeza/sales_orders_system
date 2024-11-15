@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { OrderData, InventoryItem } from '../types/shipping';
 
-interface ValidationError {
+export interface ValidationError {
   field: string;
   message: string;
 }
@@ -54,13 +54,8 @@ export const useOrderValidation = (
       });
     }
 
-    // Date validation
-    if (!orderData.expectedDate) {
-      errors.push({
-        field: 'expectedDate',
-        message: 'Expected delivery date is required'
-      });
-    } else {
+    // Validación de fecha solo si se proporciona una
+    if (orderData.expectedDate) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const expectedDate = new Date(orderData.expectedDate);

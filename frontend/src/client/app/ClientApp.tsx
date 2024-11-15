@@ -2,8 +2,8 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, Container } from '@mui/material';
-import Navigation from '../../shared/components/common/Navigation';
-import OrderCreationFlow from '../orders/components/OrderCreationFlow';
+import Navigation from '../../shared/components/navigation/Navigation';
+import OrderCreationFlow from '../orders/components/creation/flow/OrderCreationFlow';
 
 // Placeholder for Orders List page
 const OrdersList = () => (

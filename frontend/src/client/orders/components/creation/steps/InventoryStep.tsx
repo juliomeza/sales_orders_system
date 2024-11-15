@@ -48,14 +48,16 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
     onItemsChange(updatedItems);
   };
 
-  if (isLoading) {
-    return (
-      <Card sx={{ 
-        bgcolor: '#fff', 
-        borderRadius: 1, 
-        boxShadow: 1
-      }}>
-        <CardContent>
+  return (
+    <Card sx={{ bgcolor: '#fff', borderRadius: 1, boxShadow: 1 }}>
+      <CardContent>
+        <InventorySearchBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          isLoading={isLoading}
+        />
+        
+        {isLoading && inventory.length === 0 ? (
           <Box sx={{ 
             display: 'flex', 
             justifyContent: 'center', 
@@ -69,25 +71,14 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
               Loading inventory...
             </Typography>
           </Box>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card sx={{ bgcolor: '#fff', borderRadius: 1, boxShadow: 1 }}>
-      <CardContent>
-        <InventorySearchBar
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
-        
-        <InventoryTable
-          inventory={inventory}
-          inputValues={inputValues}
-          onQuantityChange={handleQuantityChange}
-          onAddItem={handleAddItemWrapper}
-        />
+        ) : (
+          <InventoryTable
+            inventory={inventory}
+            inputValues={inputValues}
+            onQuantityChange={handleQuantityChange}
+            onAddItem={handleAddItemWrapper}
+          />
+        )}
       </CardContent>
     </Card>
   );

@@ -26,24 +26,30 @@ const OrderHeaderStep: React.FC<OrderHeaderStepProps> = ({
       boxShadow: 1 
     }}>
       <CardContent>
-        <BasicInfo 
-          orderData={orderData}
-          onOrderDataChange={onOrderDataChange}
-        />
-        
-        <Box sx={{ mt: 3 }}>
-          <ShippingInfo 
+        <form 
+          autoComplete="off" 
+          onSubmit={(e) => e.preventDefault()} 
+          data-form-type="other"
+        >
+          <BasicInfo 
             orderData={orderData}
             onOrderDataChange={onOrderDataChange}
           />
-        </Box>
-        
-        <Box sx={{ mt: 3 }}>
-          <AddressSection 
-            orderData={orderData}
-            onOrderDataChange={onOrderDataChange}
-          />
-        </Box>
+          
+          <Box sx={{ mt: 3 }}>
+            <ShippingInfo 
+              orderData={orderData}
+              onOrderDataChange={onOrderDataChange}
+            />
+          </Box>
+          
+          <Box sx={{ mt: 3 }}>
+            <AddressSection 
+              orderData={orderData}
+              onOrderDataChange={onOrderDataChange}
+            />
+          </Box>
+        </form>
       </CardContent>
     </Card>
   );

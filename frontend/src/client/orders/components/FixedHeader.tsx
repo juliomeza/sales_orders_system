@@ -1,11 +1,14 @@
 // frontend/src/client/orders/components/FixedHeader.tsx
 import React from 'react';
 import { Box, Stepper, Step, StepLabel, Button } from '@mui/material';
+import { InventoryItem } from '../../../shared/types/shipping';
+import ReviewTotals from '../../../client/orders/components/review/ReviewTotals';
 
 interface FixedHeaderProps {
   activeStep: number;
   isSubmitted: boolean;
   steps: string[];
+  selectedItems?: InventoryItem[]; // Nuevo prop
   onBack: () => void;
   onNext: () => void;
   onSubmit: () => void;
@@ -17,6 +20,7 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
   activeStep,
   isSubmitted,
   steps,
+  selectedItems = [],
   onBack,
   onNext,
   onSubmit,
@@ -63,14 +67,25 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
         </Stepper>
 
         <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          gap: 2,
-          borderTop: 1,
-          borderColor: 'divider',
-          pt: 2
-        }}>
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            gap: 2,
+            borderTop: 1,
+            borderColor: 'divider',
+            pt: 2
+          }}>
+          {/* Mostrar totales solo en el paso de Review */}
+          {activeStep === 2 && !isSubmitted && (
+            <Box sx={{ display: 'flex', gap: 2, mr: 'auto' }}>
+              <ReviewTotals
+                selectedItems={selectedItems}
+                compact={true}
+              />
+            </Box>
+          )}
+
           {!isSubmitted && activeStep > 0 && (
             <Button 
               onClick={onBack}

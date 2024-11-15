@@ -1,11 +1,11 @@
-// src/App.tsx
+// frontend/src/App.tsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { AuthProvider } from './shared/contexts/AuthContext';
+import { AuthProvider } from './shared/auth/contexts/AuthContext';
 import ProtectedRoute from './shared/components/auth/ProtectedRoute';
-import LoginPage from './auth/pages/LoginPage';
+import LoginPage from './shared/auth/pages/LoginPage';
 import AdminApp from './admin/app/AdminApp';
 import ClientApp from './client/app/ClientApp';
 

@@ -1,5 +1,5 @@
-// frontend/src/services/api/warehouseService.ts
-import { apiClient } from './apiClient';
+// frontend/src/shared/api/warehouseService.ts
+import { apiClient } from '../../shared/api/apiClient';
 
 // Tipos
 export interface Address {

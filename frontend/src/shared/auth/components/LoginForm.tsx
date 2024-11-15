@@ -1,4 +1,4 @@
-// frontend/src/auth/components/LoginForm.tsx
+// frontend/src/shared/auth/components/LoginForm.tsx
 import React, { useState } from 'react';
 import {
   TextField,
@@ -7,7 +7,7 @@ import {
   Box,
   CircularProgress
 } from '@mui/material';
-import { useAuth } from '../../shared/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LoginFormProps {
   onSuccess?: () => void;

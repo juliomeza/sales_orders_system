@@ -1,8 +1,8 @@
-// frontend/src/shared/contexts/AuthContext.tsx
+// frontend/src/shared/auth/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiClient } from '../../services/api/apiClient';
-import { AuthResponse } from '../../services/api/types/api.types';
+import { apiClient } from '../../api/apiClient';
+import { AuthResponse } from '../../api/types/api.types';
 
 type Role = 'ADMIN' | 'CLIENT';
 

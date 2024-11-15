@@ -1,14 +1,14 @@
-// fronend/src/client/components/orders/header/HeaderBasicInfo.tsx
+// fronend/src/client/orders/components/creatiion/header/BasicInfo.tsx
 import React from 'react';
 import { Grid, TextField } from '@mui/material';
-import { OrderData } from '../../../../shared/types/shipping';
+import { OrderData } from '../../../../../shared/types/shipping';
 
 interface BasicInfoProps {
   orderData: OrderData;
   onOrderDataChange: (field: keyof OrderData, value: any) => void;
 }
 
-const Header_BasicInfo: React.FC<BasicInfoProps> = ({
+const BasicInfo: React.FC<BasicInfoProps> = ({
   orderData,
   onOrderDataChange,
 }) => {
@@ -62,4 +62,4 @@ const Header_BasicInfo: React.FC<BasicInfoProps> = ({
   );
 };
 
-export default Header_BasicInfo;
+export default BasicInfo;

@@ -1,7 +1,7 @@
 // frontend/src/shared/hooks/useAccounts.ts
 import { useState, useEffect } from 'react';
 import { ShippingAddress } from '../types/shipping';
-import { apiClient } from '../../services/api/apiClient';
+import { apiClient } from '../api/apiClient';
 
 interface AddressResponse {
   addresses: ShippingAddress[];

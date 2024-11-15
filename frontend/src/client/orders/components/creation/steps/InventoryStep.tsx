@@ -1,4 +1,4 @@
-// src/components/orders/steps/InventoryStep.tsx
+// frontend/src/client/orders/components/creation/steps/InventoryStep.tsx
 import React from 'react';
 import {
   Card,
@@ -7,10 +7,10 @@ import {
   Box,
   Typography
 } from '@mui/material';
-import { InventoryItem } from '../../../../shared/types/shipping';
-import { useInventory } from '../../../../shared/hooks/useInventory';
-import Inventory_SearchBar from '../inventory/InventorySearchBar';
-import Inventory_Table from '../inventory/InventoryTable';
+import { InventoryItem } from '../../../../../shared/types/shipping';
+import { useInventory } from '../../../../../shared/hooks/useInventory';
+import InventorySearchBar from '../../inventory/SearchBar';
+import InventoryTable from '../../inventory/Table';
 
 interface InventoryStepProps {
   selectedItems: InventoryItem[];
@@ -77,12 +77,12 @@ export const InventoryStep: React.FC<InventoryStepProps> = ({
   return (
     <Card sx={{ bgcolor: '#fff', borderRadius: 1, boxShadow: 1 }}>
       <CardContent>
-        <Inventory_SearchBar
+        <InventorySearchBar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
         
-        <Inventory_Table
+        <InventoryTable
           inventory={inventory}
           inputValues={inputValues}
           onQuantityChange={handleQuantityChange}

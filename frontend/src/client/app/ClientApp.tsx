@@ -3,11 +3,17 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, Container } from '@mui/material';
 import Navigation from '../../shared/components/common/Navigation';
-import OrderCreationFlow from '../components/orders/OrderCreationFlow';
+import OrderCreationFlow from '../orders/components/OrderCreationFlow';
 
 // Placeholder for Orders List page
 const OrdersList = () => (
-  <Box>
+  <Box sx={{ 
+    px: 4, 
+    py: 3, 
+    bgcolor: 'grey.50',
+    minHeight: 'calc(100vh - 240px)',
+    marginTop: '60px'
+  }}>
     <h1>Orders List</h1>
     <p>Orders list will be implemented here</p>
   </Box>

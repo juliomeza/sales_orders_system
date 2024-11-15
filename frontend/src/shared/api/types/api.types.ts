@@ -1,4 +1,4 @@
-// src/services/api/types/api.types.ts
+// frontend/src/shared/api/types/api.types.ts
 
 // Tipo genérico para respuestas de API
 export interface ApiResponse<T> {

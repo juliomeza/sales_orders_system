@@ -1,4 +1,4 @@
-// src/client/components/orders/CarrierServiceSelector.tsx
+// frontend/src/client/components/CarrierServiceSelector.tsx
 import React from 'react';
 import {
   FormControl,

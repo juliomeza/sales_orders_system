@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/inventory/InventorySearchBar.tsx
+// frontend/src/client/orders/components/inventory/SearchBar.tsx
 import React from 'react';
 import { Box, TextField } from '@mui/material';
 
@@ -7,7 +7,7 @@ interface SearchBarProps {
   onSearchChange: (value: string) => void;
 }
 
-const Inventory_SearchBar: React.FC<SearchBarProps> = ({
+const InventorySearchBar: React.FC<SearchBarProps> = ({
   searchTerm,
   onSearchChange,
 }) => {
@@ -32,4 +32,4 @@ const Inventory_SearchBar: React.FC<SearchBarProps> = ({
   );
 };
 
-export default Inventory_SearchBar;
+export default InventorySearchBar;

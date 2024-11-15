@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/inventory/InventoryTable.tsx
+// frontend/src/client/orders/components/inventory/Table.tsx
 import React from 'react';
 import {
   Table,
@@ -20,7 +20,7 @@ interface TableProps {
   onAddItem: (item: InventoryItem) => void;
 }
 
-const Inventory_Table: React.FC<TableProps> = ({
+const InventoryTable: React.FC<TableProps> = ({
   inventory,
   inputValues,
   onQuantityChange,
@@ -103,4 +103,4 @@ const Inventory_Table: React.FC<TableProps> = ({
   );
 };
 
-export default Inventory_Table;
+export default InventoryTable;

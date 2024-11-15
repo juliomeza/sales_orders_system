@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/AccountSelector.tsx
+// frontend/src/client/orders/components/AccountSelector.tsx
 import React, { useState } from 'react';
 import {
   Autocomplete,

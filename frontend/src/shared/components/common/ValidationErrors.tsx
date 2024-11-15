@@ -1,4 +1,4 @@
-// frontend/src/shared/components/validation/ValidationErrors.tsx
+// frontend/src/shared/components/common/ValidationErrors.tsx
 import React from 'react';
 import { Alert, AlertTitle, Box, Collapse } from '@mui/material';
 

@@ -1,4 +1,4 @@
-// src/client/components/orders/steps/ReviewStep.tsx
+// frontend/src/client/corders/components/creation/steps/ReviewStep.tsx
 import React, { useEffect, useState } from 'react';
 import {
   Card,
@@ -8,11 +8,11 @@ import {
   CircularProgress,
   Box
 } from '@mui/material';
-import { OrderData, InventoryItem } from '../../../../shared/types/shipping';
-import { apiClient } from '../../../../services/api/apiClient';
-import ReviewOrderSummary from '../review/ReviewOrderSummary';
-import ReviewTable from '../review/ReviewTable';
-import ReviewTotals from '../review/ReviewTotals';
+import { OrderData, InventoryItem } from '../../../../../shared/types/shipping';
+import { apiClient } from '../../../../../shared/api/apiClient';
+import ReviewOrderSummary from '../../../../orders/components/review/ReviewOrderSummary';
+import ReviewTable from '../../../../orders/components/review/ReviewTable';
+import ReviewTotals from '../../../../orders/components/review/ReviewTotals';
 
 interface ReviewStepProps {
   orderData: OrderData;

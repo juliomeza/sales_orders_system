@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../auth/contexts/AuthContext';
 import { ExitToApp as LogoutIcon } from '@mui/icons-material';
 
 interface NavigationProps {

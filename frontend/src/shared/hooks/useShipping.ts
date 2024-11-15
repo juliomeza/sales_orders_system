@@ -1,6 +1,6 @@
 // frontend/src/shared/hooks/useShipping.ts
 import { useState, useEffect } from 'react';
-import { apiClient } from '../../services/api/apiClient';
+import { apiClient } from '../api/apiClient';
 
 interface CarrierService {
   id: number;
@@ -25,15 +25,16 @@ interface Warehouse {
   status: number;
   city: string;
   state: string;
-}
-
-interface CarriersResponse {
-  carriers: Carrier[];
-  total: number;
+  address: string;
 }
 
 interface WarehousesResponse {
   warehouses: Warehouse[];
+  total: number;
+}
+
+interface CarriersResponse {
+  carriers: Carrier[];
   total: number;
 }
 
@@ -62,6 +63,8 @@ export const useShipping = (
           apiClient.get<CarriersResponse>('/carriers'),
           apiClient.get<WarehousesResponse>('/warehouses')
         ]);
+
+        console.log('Warehouse Response:', warehousesResponse);
 
         setCarriers(carriersResponse.carriers);
         setWarehouses(warehousesResponse.warehouses);

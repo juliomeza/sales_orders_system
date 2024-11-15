@@ -1,7 +1,7 @@
 // frontend/src/shared/hooks/useInventory.ts
 import { useState, useEffect } from 'react';
 import { InventoryItem } from '../types/shipping';
-import { apiClient } from '../../services/api/apiClient';
+import { apiClient } from '../api/apiClient';
 
 interface MaterialResponse {
   materials: Array<{

@@ -1,14 +1,14 @@
-// src/components/orders/steps/OrderHeaderStep.tsx
+// frontend/src/client/orders/components/creation/steps/OrderHeaderStep.tsx
 import React from 'react';
 import {
   Card,
   CardContent,
   Box,
 } from '@mui/material';
-import { OrderData } from '../../../../shared/types/shipping';
-import Header_BasicInfo from '../header/HeaderBasicInfo';
-import Header_ShippingInfo from '../header/HeaderShippingInfo';
-import Header_AddressSection from '../header/HeaderAddressSection';
+import { OrderData } from '../../../../../shared/types/shipping';
+import BasicInfo from '../header/BasicInfo';
+import ShippingInfo from '../header/ShippingInfo';
+import AddressSection from '../header/AddressSection';
 
 interface OrderHeaderStepProps {
   orderData: OrderData;
@@ -26,20 +26,20 @@ const OrderHeaderStep: React.FC<OrderHeaderStepProps> = ({
       boxShadow: 1 
     }}>
       <CardContent>
-        <Header_BasicInfo 
+        <BasicInfo 
           orderData={orderData}
           onOrderDataChange={onOrderDataChange}
         />
         
         <Box sx={{ mt: 3 }}>
-          <Header_ShippingInfo 
+          <ShippingInfo 
             orderData={orderData}
             onOrderDataChange={onOrderDataChange}
           />
         </Box>
         
         <Box sx={{ mt: 3 }}>
-          <Header_AddressSection 
+          <AddressSection 
             orderData={orderData}
             onOrderDataChange={onOrderDataChange}
           />

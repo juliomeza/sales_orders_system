@@ -1,12 +1,12 @@
-// frontend/src/client/components/orders/OrderCreationFlow.tsx
+// frontend/src/client/orders/components/OrderCreationFlow.tsx
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import { useOrderForm } from '../../../shared/hooks/useOrderForm';
 import { useOrderValidation } from '../../../shared/hooks/useOrderValidation';
 import { InventoryItem } from '../../../shared/types/shipping';
-import OrderHeaderStep from './steps/OrderHeaderStep';
-import InventoryStep from './steps/InventoryStep';
-import ReviewStep from './steps/ReviewStep';
+import OrderHeaderStep from './creation/steps/OrderHeaderStep';
+import InventoryStep from '../../orders/components/creation/steps/InventoryStep';
+import ReviewStep from '../../orders/components/creation/steps/ReviewStep';
 import FixedHeader from './FixedHeader';
 import ValidationErrors from '../../../shared/components/common/ValidationErrors';
 

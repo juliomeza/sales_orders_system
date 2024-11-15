@@ -1,12 +1,12 @@
 // frontend/src/shared/hooks/useWarehouse.ts
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../auth/contexts/AuthContext';
 import { 
   warehouseService, 
   Warehouse, 
   WarehouseStats, 
   WarehouseFilters 
-} from '../../services/api/warehouseService';
+} from '../../shared/api/warehouseService';
 
 interface UseWarehouseReturn {
   warehouses: Warehouse[];

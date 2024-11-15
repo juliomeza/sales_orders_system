@@ -17,6 +17,10 @@ export interface Carrier {
 export interface Warehouse {
   id: string;
   name: string;
+  lookupCode: string;
+  city: string;
+  state: string;
+  address: string;  // Añadir este campo
 }
 
 export interface InventoryItem {

@@ -43,6 +43,7 @@ interface FormattedWarehouse {
   id: number;
   lookupCode: string;
   name: string;
+  address: string;
   city: string;
   state: string;
   capacity: number;
@@ -104,15 +105,23 @@ export const warehousesController = {
           where: whereCondition,
           skip,
           take: Number(limit),
-          include: {
-            _count: {
+          select: {           // Añadir esta sección select
+            id: true,
+            lookupCode: true,
+            name: true,
+            address: true,    // Añadir el campo address
+            city: true,
+            state: true,
+            capacity: true,
+            status: true,
+            _count: {         // Mover el _count dentro del select
               select: {
                 orders: true,
                 customers: true
               }
             },
-            customers: isAdmin ? {
-              include: {
+            customers: isAdmin ? {  // Mover customers dentro del select
+              select: {
                 customer: {
                   select: {
                     id: true,
@@ -123,7 +132,7 @@ export const warehousesController = {
               where: {
                 status: 1
               }
-            } : false
+            } : undefined
           },
           orderBy: [
             { status: 'desc' },
@@ -138,6 +147,7 @@ export const warehousesController = {
           id: warehouse.id,
           lookupCode: warehouse.lookupCode,
           name: warehouse.name,
+          address: warehouse.address,  // Añadir esta línea
           city: warehouse.city,
           state: warehouse.state,
           capacity: warehouse.capacity,
@@ -157,7 +167,7 @@ export const warehousesController = {
               }))
           };
         }
-
+      
         return baseWarehouse;
       });
 

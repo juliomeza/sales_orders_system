@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/inventory/InventoryTableRow.tsx
+// frontend/src/client/orders/components/inventory/TableRow.tsx
 import React from 'react';
 import {
   TableRow,

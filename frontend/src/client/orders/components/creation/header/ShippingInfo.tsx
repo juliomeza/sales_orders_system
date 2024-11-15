@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/header/HeaderShippingInfo.tsx
+// frontend/src/client/orders/components/creation/header/ShippingInfo.tsx
 import React from 'react';
 import {
   Grid,
@@ -15,9 +15,9 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { OrderData } from '../../../../shared/types/shipping';
-import { useShipping } from '../../../../shared/hooks/useShipping';
-import CarrierServiceSelector from '../CarrierServiceSelector';
+import { OrderData } from '../../../../../shared/types/shipping';
+import { useShipping } from '../../../../../shared/hooks/useShipping';
+import CarrierServiceSelector from '../../CarrierServiceSelector';
 
 const StyledFormControl = styled(FormControl)(({ theme }) => ({
   width: '100%',
@@ -38,7 +38,7 @@ interface ShippingInfoProps {
   onOrderDataChange: (field: keyof OrderData, value: any) => void;
 }
 
-const HeaderShippingInfo: React.FC<ShippingInfoProps> = ({
+const ShippingInfo: React.FC<ShippingInfoProps> = ({
   orderData,
   onOrderDataChange,
 }) => {
@@ -134,26 +134,36 @@ const HeaderShippingInfo: React.FC<ShippingInfoProps> = ({
       </Grid>
 
       <Grid item xs={12} md={4}>
-        <StyledFormControl>
-          <InputLabel>Preferred Warehouse</InputLabel>
-          <Select
-            value={orderData.preferredWarehouse}
-            onChange={(e) => {
-              setSelectedWarehouseId(e.target.value);
-              onOrderDataChange('preferredWarehouse', e.target.value);
-            }}
-            label="Preferred Warehouse"
-          >
-            {warehouses.map((warehouse) => (
+      <StyledFormControl>
+        <InputLabel>Preferred Warehouse</InputLabel>
+        <Select
+          value={orderData.preferredWarehouse}
+          onChange={(e) => {
+            setSelectedWarehouseId(e.target.value);
+            onOrderDataChange('preferredWarehouse', e.target.value);
+          }}
+          label="Preferred Warehouse"
+        >
+          {warehouses.map((warehouse) => {
+            console.log('Warehouse data:', warehouse); // Añadir este log
+            return (
               <MenuItem key={warehouse.id} value={warehouse.id.toString()}>
-                {warehouse.name}
+                <Box>
+                  <Typography variant="body1">
+                    {`${warehouse.lookupCode} - ${warehouse.city}, ${warehouse.state}`}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    {warehouse.address}
+                  </Typography>
+                </Box>
               </MenuItem>
-            ))}
-          </Select>
-        </StyledFormControl>
+            );
+          })}
+        </Select>
+      </StyledFormControl>
       </Grid>
     </Grid>
   );
 };
 
-export default HeaderShippingInfo;
+export default ShippingInfo;

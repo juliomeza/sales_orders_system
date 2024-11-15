@@ -1,4 +1,4 @@
-// frontend/src/client/components/orders/header/Header_AddressSection.tsx
+// frontend/src/client/orders/components/creation/header/AddressSection.tsx
 import React from 'react';
 import {
   Grid,
@@ -10,9 +10,9 @@ import {
   Box,
   styled
 } from '@mui/material';
-import { OrderData } from '../../../../shared/types/shipping';
-import AccountSelector from '../AccountSelector';
-import { useAccounts } from '../../../../shared/hooks/useAccounts';
+import { OrderData } from '../../../../../shared/types/shipping';
+import AccountSelector from '../../AccountSelector';
+import { useAccounts } from '../../../../../shared/hooks/useAccounts';
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   width: '100%',
@@ -26,7 +26,7 @@ interface AddressSectionProps {
   onOrderDataChange: (field: keyof OrderData, value: any) => void;
 }
 
-const HeaderAddressSection: React.FC<AddressSectionProps> = ({
+const AddressSection: React.FC<AddressSectionProps> = ({
   orderData,
   onOrderDataChange
 }) => {
@@ -149,4 +149,4 @@ const HeaderAddressSection: React.FC<AddressSectionProps> = ({
   );
 };
 
-export default HeaderAddressSection;
+export default AddressSection;

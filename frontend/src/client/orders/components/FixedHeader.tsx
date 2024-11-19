@@ -8,7 +8,7 @@ interface FixedHeaderProps {
   activeStep: number;
   isSubmitted: boolean;
   steps: string[];
-  selectedItems?: InventoryItem[]; // Nuevo prop
+  selectedItems?: InventoryItem[];
   onBack: () => void;
   onNext: () => void;
   onSubmit: () => void;
@@ -27,6 +27,11 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
   onNewOrder,
   isNextDisabled
 }) => {
+  // Modifica los pasos basado en el estado de envío
+  const displaySteps = steps.map((step, index) => 
+    index === steps.length - 1 && isSubmitted ? 'Submitted' : step
+  );
+
   return (
     <Box
       sx={(theme) => ({
@@ -59,7 +64,7 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
             },
           }}
         >
-          {steps.map((label) => (
+          {displaySteps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
             </Step>
@@ -76,7 +81,6 @@ const FixedHeader: React.FC<FixedHeaderProps> = ({
             borderColor: 'divider',
             pt: 2
           }}>
-          {/* Mostrar totales solo en el paso de Review */}
           {activeStep === 2 && !isSubmitted && (
             <Box sx={{ display: 'flex', gap: 2, mr: 'auto' }}>
               <ReviewTotals

@@ -10,6 +10,7 @@ import { OrderData } from '../../../../shared/types/shipping';
 interface OrderSummaryProps {
   orderData: OrderData;
   carrierName: string;
+  carrierService: string;
   shipToName: string;
   billToName: string;
 }
@@ -17,11 +18,13 @@ interface OrderSummaryProps {
 const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
   orderData,
   carrierName,
+  carrierService,
   shipToName,
   billToName,
 }) => {
   return (
     <>
+      {/* Order Details */}
       <Grid item xs={12} md={3}>
         <Paper sx={{ 
           p: 3, 
@@ -43,6 +46,7 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
         </Paper>
       </Grid>
 
+      {/* Shipping Details */}
       <Grid item xs={12} md={3}>
         <Paper sx={{ 
           p: 3, 
@@ -56,7 +60,7 @@ const Review_OrderSummary: React.FC<OrderSummaryProps> = ({
             <Typography component="span" fontWeight="bold">Carrier:</Typography> {carrierName || '-'}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <Typography component="span" fontWeight="bold">Service:</Typography> {orderData.serviceType || '-'}
+            <Typography component="span" fontWeight="bold">Service:</Typography> {carrierService || '-'}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             <Typography component="span" fontWeight="bold">Expected Date:</Typography>{' '}

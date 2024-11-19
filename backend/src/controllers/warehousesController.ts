@@ -136,7 +136,7 @@ export const warehousesController = {
           },
           orderBy: [
             { status: 'desc' },
-            { name: 'asc' }
+            { lookupCode: 'asc' }
           ]
         }),
         prisma.warehouse.count({ where: whereCondition })

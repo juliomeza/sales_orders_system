@@ -1,7 +1,7 @@
-// backend/src/controllers/warehousesController.ts
+// backend/src/controllers/warehouses/warehousesController.ts
 import { Request, Response } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
-import prisma from '../config/database';
+import prisma from '../../config/database';
 
 // Interfaces
 interface CustomerData {
@@ -290,18 +290,6 @@ export const warehousesController = {
       });
     }
   },
-
-  // ...
-
-
-
-
-
-
-
-
-
-
 
 
 // Create new warehouse (admin only)

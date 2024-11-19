@@ -1,6 +1,6 @@
 // backend/src/routes/warehousesRoutes.ts
 import express from 'express';
-import { warehousesController } from '../controllers/warehousesController';
+import { warehousesController } from '../controllers/warehouses/warehouse.controller';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = express.Router();

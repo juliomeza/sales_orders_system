@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "index.js",
     "prisma": {
-        "seed": "ts-node prisma/seed.ts"
+        "seed": "ts-node prisma/seed/index.ts"
     },
     "scripts": {
         "start": "ts-node src/server.ts",

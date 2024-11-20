@@ -2,13 +2,12 @@
 import express from 'express';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
-// Import individual controllers
 import { warehousesController } from '../controllers/warehouses/warehouse.controller';
+import { warehouseListController } from '../controllers/warehouses/warehouse-list.controller';
 import { warehouseCreateController } from '../controllers/warehouses/warehouse-create.controller';
 import { warehouseUpdateController } from '../controllers/warehouses/warehouse-update.controller';
 import { warehouseDeleteController } from '../controllers/warehouses/warehouse-delete.controller';
 import { warehouseStatsController } from '../controllers/warehouses/warehouse-stats.controller';
-
 
 const router = express.Router();
 
@@ -16,7 +15,7 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Public routes (authenticated users)
-router.get('/', warehousesController.list);
+router.get('/', warehouseListController.list);
 router.get('/stats', warehouseStatsController.getStats);
 router.get('/:id', warehousesController.getById);
 

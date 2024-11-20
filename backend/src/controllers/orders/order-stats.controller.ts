@@ -1,3 +1,4 @@
+// backend/src/controllers/orders/order-stats.controller.ts
 import { Request, Response } from 'express';
 import prisma from '../../config/database';
 import { OrderStatsResponse } from './order.controller';

@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,85 +7,84 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Status definitions
 model Status {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   code        Int      @unique
   name        String
   description String?
-  entity      String    // The entity this status applies to (e.g., "customer", "order", etc.)
-  created_at  DateTime  @default(now())
-  created_by  Int?      // Reference to User
-  modified_at DateTime  @updatedAt
-  modified_by Int?      // Reference to User
+  entity      String
+  created_at  DateTime @default(now())
+  created_by  Int?
+  modified_at DateTime @updatedAt
+  modified_by Int?
 
   @@map("statuses")
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  lookupCode  String    @unique // email username part could be default
-  email       String    @unique
-  password    String
-  role        String    // "ADMIN" | "USER"
-  status      Int       @default(1)
-  customerId  Int?
-  customer    Customer? @relation(fields: [customerId], references: [id])
-  created_at  DateTime  @default(now())
-  created_by  Int?      // Self-reference
-  modified_at DateTime  @updatedAt
-  modified_by Int?      // Self-reference
-  creator     User?     @relation("UserCreator", fields: [created_by], references: [id])
-  modifier    User?     @relation("UserModifier", fields: [modified_by], references: [id])
-  created_users User[]  @relation("UserCreator")
-  modified_users User[] @relation("UserModifier")
+  id             Int       @id @default(autoincrement())
+  lookupCode     String    @unique
+  email          String    @unique
+  password       String
+  role           String
+  status         Int       @default(1)
+  customerId     Int?
+  created_at     DateTime  @default(now())
+  created_by     Int?
+  modified_at    DateTime  @updatedAt
+  modified_by    Int?
+  creator        User?     @relation("UserCreator", fields: [created_by], references: [id])
+  created_users  User[]    @relation("UserCreator")
+  customer       Customer? @relation(fields: [customerId], references: [id])
+  modifier       User?     @relation("UserModifier", fields: [modified_by], references: [id])
+  modified_users User[]    @relation("UserModifier")
 
   @@map("users")
 }
 
 model Customer {
-  id            Int       @id @default(autoincrement())
-  lookupCode    String    @unique
-  name          String
-  address       String
-  city          String
-  state         String
-  zipCode       String
-  phone         String?
-  email         String?
-  status        Int       @default(1)
-  users         User[]
-  orders        Order[]
-  projects      Project[]
-  accounts      Account[]
-  warehouses    CustomerWarehouse[]
-  created_at    DateTime  @default(now())
-  created_by    Int?      // Reference to User
-  modified_at   DateTime  @updatedAt
-  modified_by   Int?      // Reference to User
+  id          Int                 @id @default(autoincrement())
+  lookupCode  String              @unique
+  name        String
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  phone       String?
+  email       String?
+  status      Int                 @default(1)
+  created_at  DateTime            @default(now())
+  created_by  Int?
+  modified_at DateTime            @updatedAt
+  modified_by Int?
+  accounts    Account[]
+  warehouses  CustomerWarehouse[]
+  orders      Order[]
+  projects    Project[]
+  users       User[]
 
   @@map("customers")
 }
 
 model CustomerWarehouse {
-  id            Int       @id @default(autoincrement())
-  customerId    Int
-  warehouseId   Int
-  status        Int       @default(1)
-  customer      Customer  @relation(fields: [customerId], references: [id])
-  warehouse     Warehouse @relation(fields: [warehouseId], references: [id])
-  created_at    DateTime  @default(now())
-  created_by    Int?      // Reference to User
-  modified_at   DateTime  @updatedAt
-  modified_by   Int?      // Reference to User
+  id          Int       @id @default(autoincrement())
+  customerId  Int
+  warehouseId Int
+  status      Int       @default(1)
+  created_at  DateTime  @default(now())
+  created_by  Int?
+  modified_at DateTime  @updatedAt
+  modified_by Int?
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
 
   @@unique([customerId, warehouseId])
   @@map("customer_warehouses")
 }
 
 model Warehouse {
-  id          Int       @id @default(autoincrement())
-  lookupCode  String    @unique
+  id          Int                 @id @default(autoincrement())
+  lookupCode  String              @unique
   name        String
   address     String
   city        String
@@ -95,99 +93,99 @@ model Warehouse {
   phone       String?
   email       String?
   capacity    Int
-  status      Int       @default(1)
-  orders      Order[]
+  status      Int                 @default(1)
+  created_at  DateTime            @default(now())
+  created_by  Int?
+  modified_at DateTime            @updatedAt
+  modified_by Int?
   customers   CustomerWarehouse[]
-  created_at  DateTime  @default(now())
-  created_by  Int?      // Reference to User
-  modified_at DateTime  @updatedAt
-  modified_by Int?      // Reference to User
+  orders      Order[]
 
   @@map("warehouses")
 }
 
 model OrderType {
-  id          Int       @id @default(autoincrement())
-  lookupCode  String    @unique
-  name        String    // "Outbound" | "Inbound"
+  id          Int      @id @default(autoincrement())
+  lookupCode  String   @unique
+  name        String
   description String?
-  status      Int       @default(1)
+  status      Int      @default(1)
+  created_at  DateTime @default(now())
+  created_by  Int?
+  modified_at DateTime @updatedAt
+  modified_by Int?
   orders      Order[]
-  created_at  DateTime  @default(now())
-  created_by  Int?      // Reference to User
-  modified_at DateTime  @updatedAt
-  modified_by Int?      // Reference to User
 
   @@map("order_types")
 }
 
 model CarrierService {
-  id          Int       @id @default(autoincrement())
-  lookupCode  String    @unique
+  id          Int      @id @default(autoincrement())
+  lookupCode  String   @unique
   name        String
   description String?
   carrierId   Int
-  carrier     Carrier   @relation(fields: [carrierId], references: [id])
-  status      Int       @default(1)
+  status      Int      @default(1)
+  created_at  DateTime @default(now())
+  created_by  Int?
+  modified_at DateTime @updatedAt
+  modified_by Int?
+  carrier     Carrier  @relation(fields: [carrierId], references: [id])
   orders      Order[]
-  created_at  DateTime  @default(now())
-  created_by  Int?      // Reference to User
-  modified_at DateTime  @updatedAt
-  modified_by Int?      // Reference to User
 
   @@map("carrier_services")
 }
 
 model Account {
-  id               Int       @id @default(autoincrement())
-  lookupCode       String    @unique
-  name             String
-  address          String
-  city             String
-  state            String
-  zipCode          String
-  phone            String?
-  email            String?
-  contactName      String?
-  customerId       Int
-  customer         Customer  @relation(fields: [customerId], references: [id])
-  accountType      String    // "SHIP_TO" | "BILL_TO" | "BOTH"
-  status           Int       @default(1)
-  ordersShipTo     Order[]  @relation("ShipToAccount")
-  ordersBillTo     Order[]  @relation("BillToAccount")
-  created_at       DateTime  @default(now())
-  created_by       Int?      // Reference to User
-  modified_at      DateTime  @updatedAt
-  modified_by      Int?      // Reference to User
+  id           Int      @id @default(autoincrement())
+  lookupCode   String   @unique
+  name         String
+  address      String
+  city         String
+  state        String
+  zipCode      String
+  phone        String?
+  email        String?
+  contactName  String?
+  customerId   Int
+  accountType  String
+  status       Int      @default(1)
+  created_at   DateTime @default(now())
+  created_by   Int?
+  modified_at  DateTime @updatedAt
+  modified_by  Int?
+  customer     Customer @relation(fields: [customerId], references: [id])
+  ordersBillTo Order[]  @relation("BillToAccount")
+  ordersShipTo Order[]  @relation("ShipToAccount")
 
   @@map("accounts")
 }
 
 model Order {
-  id                    Int             @id @default(autoincrement())
-  lookupCode           String          @unique
-  orderNumber          String          @unique
-  status               Int             @default(1)
+  id                   Int            @id @default(autoincrement())
+  lookupCode           String         @unique
+  orderNumber          String         @unique
+  status               Int            @default(1)
   orderTypeId          Int
-  orderType            OrderType       @relation(fields: [orderTypeId], references: [id])
   customerId           Int
-  customer             Customer        @relation(fields: [customerId], references: [id])
   shipToAccountId      Int
-  shipToAccount        Account         @relation("ShipToAccount", fields: [shipToAccountId], references: [id])
   billToAccountId      Int
-  billToAccount        Account         @relation("BillToAccount", fields: [billToAccountId], references: [id])
   carrierId            Int
-  carrier              Carrier         @relation(fields: [carrierId], references: [id])
   carrierServiceId     Int
-  carrierService       CarrierService  @relation(fields: [carrierServiceId], references: [id])
   warehouseId          Int?
-  warehouse            Warehouse?      @relation(fields: [warehouseId], references: [id])
   expectedDeliveryDate DateTime
+  created_at           DateTime       @default(now())
+  created_by           Int?
+  modified_at          DateTime       @updatedAt
+  modified_by          Int?
   items                OrderItem[]
-  created_at           DateTime        @default(now())
-  created_by           Int?            // Reference to User
-  modified_at          DateTime        @updatedAt
-  modified_by          Int?            // Reference to User
+  billToAccount        Account        @relation("BillToAccount", fields: [billToAccountId], references: [id])
+  carrier              Carrier        @relation(fields: [carrierId], references: [id])
+  carrierService       CarrierService @relation(fields: [carrierServiceId], references: [id])
+  customer             Customer       @relation(fields: [customerId], references: [id])
+  orderType            OrderType      @relation(fields: [orderTypeId], references: [id])
+  shipToAccount        Account        @relation("ShipToAccount", fields: [shipToAccountId], references: [id])
+  warehouse            Warehouse?     @relation(fields: [warehouseId], references: [id])
 
   @@map("orders")
 }
@@ -195,52 +193,52 @@ model Order {
 model OrderItem {
   id          Int      @id @default(autoincrement())
   orderId     Int
-  order       Order    @relation(fields: [orderId], references: [id])
   materialId  Int
-  material    Material @relation(fields: [materialId], references: [id])
   quantity    Int
   status      Int      @default(1)
   created_at  DateTime @default(now())
-  created_by  Int?     // Reference to User
+  created_by  Int?
   modified_at DateTime @updatedAt
-  modified_by Int?     // Reference to User
+  modified_by Int?
+  material    Material @relation(fields: [materialId], references: [id])
+  order       Order    @relation(fields: [orderId], references: [id])
 
   @@map("order_items")
 }
 
 model Material {
   id                Int         @id @default(autoincrement())
-  lookupCode       String      @unique
-  code             String      @unique
-  description      String
-  uom              String      // Unit of Measure
+  lookupCode        String      @unique
+  code              String      @unique
+  description       String
+  uom               String
   availableQuantity Int
-  status           Int         @default(1)
-  orderItems       OrderItem[]
-  projectId        Int
-  project          Project     @relation(fields: [projectId], references: [id])
-  created_at       DateTime    @default(now())
-  created_by       Int?        // Reference to User
-  modified_at      DateTime    @updatedAt
-  modified_by      Int?        // Reference to User
+  status            Int         @default(1)
+  projectId         Int
+  created_at        DateTime    @default(now())
+  created_by        Int?
+  modified_at       DateTime    @updatedAt
+  modified_by       Int?
+  project           Project     @relation(fields: [projectId], references: [id])
+  orderItems        OrderItem[]
 
   @@map("materials")
 }
 
 model Project {
-  id          Int         @id @default(autoincrement())
-  lookupCode  String      @unique
+  id          Int        @id @default(autoincrement())
+  lookupCode  String     @unique
   name        String
   description String?
   customerId  Int
-  customer    Customer    @relation(fields: [customerId], references: [id])
-  isDefault   Boolean     @default(false)
+  isDefault   Boolean    @default(false)
   status      Int        @default(1)
+  created_at  DateTime   @default(now())
+  created_by  Int?
+  modified_at DateTime   @updatedAt
+  modified_by Int?
   materials   Material[]
-  created_at  DateTime    @default(now())
-  created_by  Int?       // Reference to User
-  modified_at DateTime    @updatedAt
-  modified_by Int?       // Reference to User
+  customer    Customer   @relation(fields: [customerId], references: [id])
 
   @@map("projects")
 }
@@ -250,12 +248,12 @@ model Carrier {
   lookupCode  String           @unique
   name        String
   status      Int              @default(1)
+  created_at  DateTime         @default(now())
+  created_by  Int?
+  modified_at DateTime         @updatedAt
+  modified_by Int?
   services    CarrierService[]
   orders      Order[]
-  created_at  DateTime         @default(now())
-  created_by  Int?             // Reference to User
-  modified_at DateTime         @updatedAt
-  modified_by Int?             // Reference to User
 
   @@map("carriers")
 }

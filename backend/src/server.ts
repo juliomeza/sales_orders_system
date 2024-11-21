@@ -9,6 +9,7 @@ import materialsRoutes from './routes/materialsRoutes';
 import carriersRoutes from './routes/carriersRoutes';
 import warehousesRoutes from './routes/warehousesRoutes';
 import shipToRoutes from './routes/shipToRoutes';
+import customersRoutes from './routes/customersRoutes';
 
 export const createServer = () => {
   const app = express();
@@ -30,6 +31,7 @@ export const createServer = () => {
   app.use('/api/carriers', carriersRoutes);
   app.use('/api/warehouses', warehousesRoutes);
   app.use('/api/ship-to', shipToRoutes);
+  app.use('/api/customers', customersRoutes);
 
   // Root route
   app.get('/', (req, res) => {

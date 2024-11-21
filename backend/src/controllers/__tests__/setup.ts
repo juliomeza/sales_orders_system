@@ -1,3 +1,4 @@
+// backend/src/controllers/__tests__/setup.ts
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 

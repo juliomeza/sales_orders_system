@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../../shared/api/apiClient';
 
-interface Customer {
-  id: number;
+interface CustomerData {
   lookupCode: string;
   name: string;
   address: string;
@@ -13,6 +12,23 @@ interface Customer {
   phone?: string;
   email?: string;
   status: number;
+}
+
+interface Project {
+  lookupCode: string;
+  name: string;
+  description?: string;
+  isDefault: boolean;
+}
+
+interface User {
+  email: string;
+  role: string;
+  status: number;
+}
+
+interface Customer extends CustomerData {
+  id: number;
   projects: Array<{
     id: number;
     name: string;
@@ -23,16 +39,15 @@ interface Customer {
   };
 }
 
-interface Project {
-  lookupCode: string;
-  name: string;
-  description?: string;
-  isDefault: boolean;
-}
-
 interface CustomerResponse {
   customers: Customer[];
   total: number;
+}
+
+interface CreateCustomerData {
+  customer: CustomerData;
+  projects: Project[];
+  users: User[];
 }
 
 export const useCustomers = (searchTerm: string = '') => {
@@ -60,11 +75,7 @@ export const useCustomers = (searchTerm: string = '') => {
     loadCustomers();
   }, [searchTerm]);
 
-  const handleCreateCustomer = async (data: {
-    customer: Omit<Customer, 'id' | '_count'>;
-    projects: Project[];
-    users: any[];
-  }) => {
+  const handleCreateCustomer = async (data: CreateCustomerData) => {
     try {
       const response = await apiClient.post<Customer>('/customers', data);
       setCustomers(prev => [...prev, response]);
@@ -78,7 +89,7 @@ export const useCustomers = (searchTerm: string = '') => {
   const handleUpdateCustomer = async (data: {
     customer: Customer;
     projects: Project[];
-    users: any[];
+    users: User[];
   }) => {
     try {
       const response = await apiClient.put<Customer>(`/customers/${data.customer.id}`, data);
@@ -102,3 +113,5 @@ export const useCustomers = (searchTerm: string = '') => {
     handleUpdateCustomer
   };
 };
+
+export type { CustomerData, Project, User, Customer };

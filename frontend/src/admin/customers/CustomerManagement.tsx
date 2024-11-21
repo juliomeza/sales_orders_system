@@ -10,7 +10,7 @@ import {
 import CustomersTable from './CustomersTable';
 import CustomerDialog from './CustomerDialog';
 import CustomerDeleteDialog from './CustomerDeleteDialog';
-import { useCustomers } from './useCustomers';
+import { useCustomers } from './hooks/useCustomers';
 import { useCustomerTable } from './hooks/useCustomerTable';
 
 const CustomerManagement: React.FC = () => {

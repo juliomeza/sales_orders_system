@@ -15,7 +15,7 @@ import {
 import CustomerBasicInfo from './CustomerBasicInfo';
 import CustomerProjects from './CustomerProjects';
 import CustomerUsers from './CustomerUsers';
-import { useCustomerForm } from './useCustomerForm';
+import { useCustomerForm } from './hooks/useCustomerForm';
 import { Customer } from './types';
 
 interface CustomerDialogProps {

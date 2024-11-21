@@ -1,7 +1,7 @@
 // frontend/src/admin/customers/useCustomers.ts
 import { useState, useCallback } from 'react';
-import { apiClient } from '../../shared/api/apiClient';
-import { Customer, CreateCustomerData } from './types';
+import { apiClient } from '../../../shared/api/apiClient';
+import { Customer, CreateCustomerData } from '../types';
 
 export const useCustomers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);

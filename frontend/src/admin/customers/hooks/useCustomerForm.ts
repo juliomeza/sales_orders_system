@@ -1,6 +1,6 @@
 // frontend/src/admin/customers/useCustomerForm.ts
 import { useState } from 'react';
-import { Customer, Project, User } from './types';
+import { Customer, Project, User } from '../types';
 
 interface CustomerFormData {
   customer: Omit<Customer, 'id' | '_count'>;

@@ -24,6 +24,7 @@ import {
   Search as SearchIcon
 } from '@mui/icons-material';
 import CustomerDialog from './CustomerDialog';
+import CustomerDeleteDialog from './CustomerDeleteDialog';
 import { useCustomers } from './useCustomers';
 import { Customer } from './types';
 
@@ -31,6 +32,8 @@ const CustomerManagement: React.FC = () => {
   const { customers, loadCustomers, handleCreateCustomer, handleUpdateCustomer, handleDeleteCustomer } = useCustomers();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -57,9 +60,20 @@ const CustomerManagement: React.FC = () => {
     loadCustomers();
   };
 
-  const handleDelete = async (customer: Customer) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      await handleDeleteCustomer(customer.id);
+  const handleOpenDeleteDialog = (customer: Customer) => {
+    setCustomerToDelete(customer);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setCustomerToDelete(null);
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (customerToDelete) {
+      await handleDeleteCustomer(customerToDelete.id);
+      handleCloseDeleteDialog();
       loadCustomers();
     }
   };
@@ -161,7 +175,7 @@ const CustomerManagement: React.FC = () => {
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => handleDelete(customer)}
+                        onClick={() => handleOpenDeleteDialog(customer)}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -179,6 +193,13 @@ const CustomerManagement: React.FC = () => {
         customer={selectedCustomer}
         onClose={handleCloseDialog}
         onSubmit={handleSubmit}
+      />
+
+      <CustomerDeleteDialog 
+        open={isDeleteDialogOpen}
+        customerName={customerToDelete?.name || ''}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCloseDeleteDialog}
       />
     </Box>
   );

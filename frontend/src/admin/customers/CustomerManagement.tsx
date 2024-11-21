@@ -1,15 +1,10 @@
-// frontend/src/admin/customers/CustomerManagement.tsx
+// src/admin/customers/CustomerManagement.tsx
 import React, { useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography
-} from '@mui/material';
-import CustomersTable from './CustomersTable';
-import CustomerDialog from './CustomerDialog';
-import CustomerDeleteDialog from './CustomerDeleteDialog';
+import { Box, Card, CardContent } from '@mui/material';
+import CustomersTable from './components/table/CustomersTable';
+import { CustomerDialog } from './components/dialog/CustomerDialog';
+import { CustomerDeleteDialog } from './components/dialog/CustomerDialogDelete';
+import { CustomerManagementHeader } from './components/header/CustomerManagementHeader';
 import { useCustomers } from './hooks/useCustomers';
 import { useCustomerTable } from './hooks/useCustomerTable';
 
@@ -58,16 +53,7 @@ const CustomerManagement: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Customer Management</Typography>
-        <Button
-          variant="contained"
-          onClick={handleOpenCreateDialog}
-          sx={{ borderRadius: 1 }}
-        >
-          New Customer
-        </Button>
-      </Box>
+      <CustomerManagementHeader onCreateNew={handleOpenCreateDialog} />
 
       <Card>
         <CardContent>

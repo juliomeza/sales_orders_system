@@ -1,4 +1,4 @@
-// frontend/src/admin/customers/components/CustomerTableRow.tsx
+// frontend/src/admin/customers/components/table/CustomerTableRow.tsx
 import React from 'react';
 import {
   TableRow,
@@ -11,7 +11,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { Customer } from '../types';
+import { Customer } from '../../types';
 
 interface CustomerTableRowProps {
   customer: Customer;

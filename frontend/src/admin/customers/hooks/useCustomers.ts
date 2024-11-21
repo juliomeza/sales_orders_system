@@ -1,4 +1,4 @@
-// frontend/src/admin/customers/useCustomers.ts
+// frontend/src/admin/customers/hooks/useCustomers.ts
 import { useState, useCallback } from 'react';
 import { apiClient } from '../../../shared/api/apiClient';
 import { Customer, CreateCustomerData } from '../types';

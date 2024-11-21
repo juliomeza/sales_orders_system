@@ -1,4 +1,4 @@
-// frontend/src/admin/customers/CustomerDeleteDialog.tsx
+// src/admin/customers/components/dialog/CustomerDialogDelete.tsx
 import React from 'react';
 import {
   Dialog,
@@ -18,7 +18,7 @@ interface CustomerDeleteDialogProps {
   onCancel: () => void;
 }
 
-const CustomerDeleteDialog: React.FC<CustomerDeleteDialogProps> = ({
+export const CustomerDeleteDialog: React.FC<CustomerDeleteDialogProps> = ({
   open,
   customerName,
   onConfirm,
@@ -62,5 +62,3 @@ const CustomerDeleteDialog: React.FC<CustomerDeleteDialogProps> = ({
     </Dialog>
   );
 };
-
-export default CustomerDeleteDialog;

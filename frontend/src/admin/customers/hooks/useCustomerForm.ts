@@ -1,4 +1,4 @@
-// frontend/src/admin/customers/useCustomerForm.ts
+// frontend/src/admin/customers/hooks/useCustomerForm.ts
 import { useState } from 'react';
 import { Customer, Project, User } from '../types';
 

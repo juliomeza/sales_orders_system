@@ -1,4 +1,4 @@
-// frontend/src/admin/customers/CustomersTable.tsx
+// frontend/src/admin/customers/components/table/CustomersTable.tsx
 import React from 'react';
 import {
   Paper,
@@ -6,10 +6,10 @@ import {
   TableBody,
   TableContainer,
 } from '@mui/material';
-import { Customer } from './types';
-import CustomerTableHeader from './components/CustomerTableHeader';
-import CustomerTableRow from './components/CustomerTableRow';
-import CustomerSearchBar from './components/CustomerSearchBar';
+import { Customer } from '../../types';
+import CustomerTableHeader from './CustomerTableHeader';
+import CustomerTableRow from './CustomerTableRow';
+import CustomerSearchBar from './CustomerSearchBar';
 
 interface CustomersTableProps {
   customers: Customer[];

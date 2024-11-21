@@ -5,9 +5,9 @@ import CustomerBasicInfo from './CustomerBasicInfo';
 import CustomerProjects from './CustomerProjects';
 import CustomerUsers from './CustomerUsers';
 import { useCustomers } from './useCustomers';
-import type { CustomerData, Project, User } from './useCustomers';
+import { Customer, Project, User } from './types';
 
-const initialCustomerState: CustomerData = {
+const initialCustomerState: Omit<Customer, 'id' | '_count'> = {
   lookupCode: '',
   name: '',
   address: '',
@@ -112,7 +112,7 @@ const CustomerCreationFlow: React.FC = () => {
     }
   };
 
-  const handleCustomerChange = (customer: CustomerData) => {
+  const handleCustomerChange = (customer: Omit<Customer, 'id' | '_count'>) => {
     setFormData(prev => ({ ...prev, customer }));
   };
 

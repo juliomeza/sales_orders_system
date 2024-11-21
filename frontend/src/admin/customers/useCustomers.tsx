@@ -1,105 +1,46 @@
-// frontend/src/admin/customers/useCustomers.tsx
-import { useState, useEffect } from 'react';
+// frontend/src/admin/customers/useCustomers.ts
+import { useState, useCallback } from 'react';
 import { apiClient } from '../../shared/api/apiClient';
+import { Customer, CreateCustomerData } from './types';
 
-interface CustomerData {
-  lookupCode: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  phone?: string;
-  email?: string;
-  status: number;
-}
-
-interface Project {
-  lookupCode: string;
-  name: string;
-  description?: string;
-  isDefault: boolean;
-}
-
-interface User {
-  email: string;
-  role: string;
-  status: number;
-}
-
-interface Customer extends CustomerData {
-  id: number;
-  projects: Array<{
-    id: number;
-    name: string;
-    isDefault: boolean;
-  }>;
-  _count: {
-    users: number;
-  };
-}
-
-interface CustomerResponse {
-  customers: Customer[];
-  total: number;
-}
-
-interface CreateCustomerData {
-  customer: CustomerData;
-  projects: Project[];
-  users: User[];
-}
-
-export const useCustomers = (searchTerm: string = '') => {
+export const useCustomers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadCustomers = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await apiClient.get<CustomerResponse>('/customers', {
-          params: { search: searchTerm }
-        });
-        setCustomers(response.customers);
-      } catch (err) {
-        console.error('Error loading customers:', err);
-        setError('Error loading customers');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadCustomers();
-  }, [searchTerm]);
+  const loadCustomers = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.get<{ customers: Customer[] }>('/customers');
+      setCustomers(response.customers);
+    } catch (err) {
+      setError('Error loading customers');
+      console.error('Error loading customers:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const handleCreateCustomer = async (data: CreateCustomerData) => {
     try {
       const response = await apiClient.post<Customer>('/customers', data);
-      setCustomers(prev => [...prev, response]);
+      await loadCustomers();
       return response;
     } catch (err) {
+      setError('Error creating customer');
       console.error('Error creating customer:', err);
       throw err;
     }
   };
 
-  const handleUpdateCustomer = async (data: {
-    customer: Customer;
-    projects: Project[];
-    users: User[];
-  }) => {
+  const handleUpdateCustomer = async (customerId: number, data: CreateCustomerData) => {
     try {
-      const response = await apiClient.put<Customer>(`/customers/${data.customer.id}`, data);
-      setCustomers(prev => 
-        prev.map(customer => 
-          customer.id === response.id ? response : customer
-        )
-      );
+      const response = await apiClient.put<Customer>(`/customers/${customerId}`, data);
+      await loadCustomers();
       return response;
     } catch (err) {
+      setError('Error updating customer');
       console.error('Error updating customer:', err);
       throw err;
     }
@@ -108,8 +49,9 @@ export const useCustomers = (searchTerm: string = '') => {
   const handleDeleteCustomer = async (customerId: number) => {
     try {
       await apiClient.delete(`/customers/${customerId}`);
-      setCustomers(prev => prev.filter(customer => customer.id !== customerId));
+      await loadCustomers();
     } catch (err) {
+      setError('Error deleting customer');
       console.error('Error deleting customer:', err);
       throw err;
     }
@@ -119,10 +61,9 @@ export const useCustomers = (searchTerm: string = '') => {
     customers,
     isLoading,
     error,
+    loadCustomers,
     handleCreateCustomer,
     handleUpdateCustomer,
-    handleDeleteCustomer
+    handleDeleteCustomer,
   };
 };
-
-export type { CustomerData, Project, User, Customer };

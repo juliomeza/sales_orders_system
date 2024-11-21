@@ -105,12 +105,23 @@ export const useCustomers = (searchTerm: string = '') => {
     }
   };
 
+  const handleDeleteCustomer = async (customerId: number) => {
+    try {
+      await apiClient.delete(`/customers/${customerId}`);
+      setCustomers(prev => prev.filter(customer => customer.id !== customerId));
+    } catch (err) {
+      console.error('Error deleting customer:', err);
+      throw err;
+    }
+  };
+
   return {
     customers,
     isLoading,
     error,
     handleCreateCustomer,
-    handleUpdateCustomer
+    handleUpdateCustomer,
+    handleDeleteCustomer
   };
 };
 

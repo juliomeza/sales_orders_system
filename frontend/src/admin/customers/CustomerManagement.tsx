@@ -1,6 +1,6 @@
 // frontend/src/admin/customers/CustomerManagement.tsx
 import React, { useState } from 'react';
-import { Box, Paper, Typography, TextField, InputAdornment, Button, Tab, Tabs } from '@mui/material';
+import { Box, Paper, Typography, TextField, InputAdornment, Button, Tab, Tabs, Snackbar, Alert } from '@mui/material';
 import { Search as SearchIcon, Add as AddIcon } from '@mui/icons-material';
 import CustomersTable from './CustomersTable';
 import CustomerDialog from './CustomerDialog';
@@ -55,6 +55,15 @@ const CustomerManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [tabValue, setTabValue] = useState(0);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
   
   const {
     customers,
@@ -62,6 +71,7 @@ const CustomerManagement = () => {
     error,
     handleCreateCustomer,
     handleUpdateCustomer,
+    handleDeleteCustomer
   } = useCustomers(searchTerm);
 
   const handleOpenDialog = (customer: Customer | null = null) => {
@@ -70,12 +80,35 @@ const CustomerManagement = () => {
   };
 
   const handleSubmit = async (data: any) => {
-    if (selectedCustomer) {
-      await handleUpdateCustomer(data);
-    } else {
-      await handleCreateCustomer(data);
+    try {
+      if (selectedCustomer) {
+        await handleUpdateCustomer(data);
+        showSnackbar('Customer updated successfully', 'success');
+      } else {
+        await handleCreateCustomer(data);
+        showSnackbar('Customer created successfully', 'success');
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      showSnackbar('Error saving customer', 'error');
     }
-    setIsDialogOpen(false);
+  };
+
+  const handleDelete = async (customer: Customer) => {
+    try {
+      await handleDeleteCustomer(customer.id);
+      showSnackbar('Customer deleted successfully', 'success');
+    } catch (error) {
+      showSnackbar('Error deleting customer', 'error');
+    }
+  };
+
+  const showSnackbar = (message: string, severity: 'success' | 'error') => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    });
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -130,7 +163,7 @@ const CustomerManagement = () => {
             isLoading={isLoading}
             error={error}
             onEdit={handleOpenDialog}
-            onView={(customer) => console.log('View customer', customer)}
+            onDelete={handleDelete}
           />
         </TabPanel>
 
@@ -145,6 +178,21 @@ const CustomerManagement = () => {
         onClose={() => setIsDialogOpen(false)}
         onSubmit={handleSubmit}
       />
+
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={6000} 
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+      >
+        <Alert 
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

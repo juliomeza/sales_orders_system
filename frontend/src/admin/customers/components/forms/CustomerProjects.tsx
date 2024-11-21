@@ -1,5 +1,5 @@
-// frontend/src/admin/customers/CustomerProjects.tsx
-import React, { useState } from 'react';
+// src/admin/customers/components/forms/CustomerProjects.tsx
+import React from 'react';
 import {
   Box,
   Button,
@@ -17,14 +17,8 @@ import {
   Alert
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-
-interface Project {
-  id?: number;
-  lookupCode: string;
-  name: string;
-  description?: string;
-  isDefault: boolean;
-}
+import { useCustomerProjects } from '../../hooks/useCustomerProjects';
+import { Project } from '../../types';
 
 interface CustomerProjectsProps {
   projects: Project[];
@@ -35,37 +29,13 @@ const CustomerProjects: React.FC<CustomerProjectsProps> = ({
   projects,
   onChange
 }) => {
-  const [newProject, setNewProject] = useState<Project>({
-    lookupCode: '',
-    name: '',
-    description: '',
-    isDefault: false
-  });
-
-  const handleAddProject = () => {
-    if (!newProject.lookupCode || !newProject.name) return;
-    
-    onChange([...projects, newProject]);
-    setNewProject({
-      lookupCode: '',
-      name: '',
-      description: '',
-      isDefault: false
-    });
-  };
-
-  const handleRemoveProject = (index: number) => {
-    const updatedProjects = projects.filter((_, i) => i !== index);
-    onChange(updatedProjects);
-  };
-
-  const handleDefaultChange = (index: number) => {
-    const updatedProjects = projects.map((project, i) => ({
-      ...project,
-      isDefault: i === index
-    }));
-    onChange(updatedProjects);
-  };
+  const {
+    newProject,
+    handleAddProject,
+    handleRemoveProject,
+    handleDefaultChange,
+    setNewProject
+  } = useCustomerProjects({ initialProjects: projects, onChange });
 
   return (
     <Box>

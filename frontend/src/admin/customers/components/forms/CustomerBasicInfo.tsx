@@ -1,4 +1,4 @@
-// frontend/src/admin/customers/CustomerBasicInfo.tsx
+// src/admin/customers/components/forms/CustomerBasicInfo.tsx
 import React from 'react';
 import {
   Grid,
@@ -9,43 +9,28 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-
-interface CustomerData {
-  lookupCode: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  phone?: string;
-  email?: string;
-  status: number;
-}
+import { useCustomerBasicInfo } from '../../hooks/useCustomerBasicInfo';
+import { Customer } from '../../types';
 
 interface CustomerBasicInfoProps {
-  data: CustomerData;
-  onChange: (data: CustomerData) => void;
+  data: Partial<Customer>;
+  onChange: (data: Partial<Customer>) => void;
 }
 
 const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
   data,
-  onChange,
+  onChange
 }) => {
-  const handleChange = (field: keyof CustomerData) => (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    onChange({
-      ...data,
-      [field]: event.target.value,
-    });
-  };
+  const {
+    formData,
+    handleChange,
+    handleStatusChange
+  } = useCustomerBasicInfo(data);
 
-  const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onChange({
-      ...data,
-      status: event.target.checked ? 1 : 2,
-    });
-  };
+  // Propagar cambios al padre
+  React.useEffect(() => {
+    onChange(formData);
+  }, [formData, onChange]);
 
   return (
     <Box>
@@ -64,7 +49,7 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
             required
             fullWidth
             label="Customer Code"
-            value={data.lookupCode}
+            value={formData.lookupCode}
             onChange={handleChange('lookupCode')}
             inputProps={{ maxLength: 20 }}
             helperText="Unique identifier for the customer"
@@ -80,7 +65,7 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
             required
             fullWidth
             label="Customer Name"
-            value={data.name}
+            value={formData.name}
             onChange={handleChange('name')}
             inputProps={{ maxLength: 100 }}
             sx={{
@@ -97,7 +82,7 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
             required
             fullWidth
             label="Address"
-            value={data.address}
+            value={formData.address}
             onChange={handleChange('address')}
             inputProps={{ maxLength: 200 }}
             sx={{
@@ -114,7 +99,7 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
             required
             fullWidth
             label="City"
-            value={data.city}
+            value={formData.city}
             onChange={handleChange('city')}
             inputProps={{ maxLength: 100 }}
             sx={{
@@ -129,7 +114,7 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
             required
             fullWidth
             label="State"
-            value={data.state}
+            value={formData.state}
             onChange={handleChange('state')}
             inputProps={{ maxLength: 2 }}
             helperText="2-letter state code"
@@ -145,7 +130,7 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
             required
             fullWidth
             label="ZIP Code"
-            value={data.zipCode}
+            value={formData.zipCode}
             onChange={handleChange('zipCode')}
             inputProps={{ maxLength: 10 }}
             sx={{
@@ -161,7 +146,7 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
           <TextField
             fullWidth
             label="Phone"
-            value={data.phone || ''}
+            value={formData.phone || ''}
             onChange={handleChange('phone')}
             inputProps={{ maxLength: 20 }}
             sx={{
@@ -176,7 +161,7 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
             fullWidth
             label="Email"
             type="email"
-            value={data.email || ''}
+            value={formData.email || ''}
             onChange={handleChange('email')}
             inputProps={{ maxLength: 100 }}
             sx={{
@@ -192,14 +177,14 @@ const CustomerBasicInfo: React.FC<CustomerBasicInfoProps> = ({
           <FormControlLabel
             control={
               <Switch
-                checked={data.status === 1}
+                checked={formData.status === 1}
                 onChange={handleStatusChange}
                 color="primary"
               />
             }
             label={
-              <Box component="span" sx={{ color: data.status === 1 ? 'success.main' : 'text.secondary' }}>
-                {data.status === 1 ? 'Active' : 'Inactive'}
+              <Box component="span" sx={{ color: formData.status === 1 ? 'success.main' : 'text.secondary' }}>
+                {formData.status === 1 ? 'Active' : 'Inactive'}
               </Box>
             }
           />

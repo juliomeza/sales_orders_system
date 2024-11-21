@@ -1,9 +1,9 @@
 // src/admin/customers/components/dialog/CustomerDialogContent.tsx
 import React from 'react';
 import { DialogContent, Alert } from '@mui/material';
-import CustomerBasicInfo from '../../CustomerBasicInfo';
-import CustomerProjects from '../../CustomerProjects';
-import CustomerUsers from '../../CustomerUsers';
+import CustomerBasicInfo from '../forms/CustomerBasicInfo';
+import CustomerProjects from '../forms/CustomerProjects';
+import CustomerUsers from '../forms/CustomerUsers';
 
 interface CustomerDialogContentProps {
   activeStep: number;

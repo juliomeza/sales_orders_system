@@ -1,5 +1,5 @@
-// frontend/src/admin/customers/CustomerUsers.tsx
-import React, { useState } from 'react';
+// src/admin/customers/components/forms/CustomerUsers.tsx
+import React from 'react';
 import {
   Box,
   Button,
@@ -17,12 +17,8 @@ import {
   Chip
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-
-interface User {
-  email: string;
-  role: string;
-  status: number;
-}
+import { useCustomerUsers } from '../../hooks/useCustomerUsers';
+import { User } from '../../types';
 
 interface CustomerUsersProps {
   users: User[];
@@ -33,31 +29,13 @@ const CustomerUsers: React.FC<CustomerUsersProps> = ({
   users,
   onChange
 }) => {
-  const [newUser, setNewUser] = useState<User>({
-    email: '',
-    role: 'CLIENT',
-    status: 1
-  });
-
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const handleAddUser = () => {
-    if (!validateEmail(newUser.email)) return;
-    
-    onChange([...users, newUser]);
-    setNewUser({
-      email: '',
-      role: 'CLIENT',
-      status: 1
-    });
-  };
-
-  const handleRemoveUser = (index: number) => {
-    const updatedUsers = users.filter((_, i) => i !== index);
-    onChange(updatedUsers);
-  };
+  const {
+    newUser,
+    handleAddUser,
+    handleRemoveUser,
+    setNewUser,
+    validateEmail
+  } = useCustomerUsers({ initialUsers: users, onChange });
 
   return (
     <Box>

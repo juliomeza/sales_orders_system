@@ -1,10 +1,11 @@
 // src/admin/customers/CustomerManagement.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Card, CardContent } from '@mui/material';
 import CustomersTable from './components/tables/CustomersTable';
 import { CustomerDialog } from './components/dialog/CustomerDialog';
 import { CustomerDeleteDialog } from './components/dialog/CustomerDialogDelete';
 import { CustomerManagementHeader } from './components/header/CustomerManagementHeader';
+import SuccessNotification from './components/notifications/SuccessNotification';
 import { useCustomers } from './hooks/useCustomers';
 import { useCustomerTable } from './hooks/useCustomerTable';
 
@@ -29,26 +30,66 @@ const CustomerManagement: React.FC = () => {
     handleCloseDialogs
   } = useCustomerTable();
 
+  const [notification, setNotification] = useState({
+    open: false,
+    message: ''
+  });
+
   useEffect(() => {
     loadCustomers();
   }, [loadCustomers]);
 
   const handleSubmit = async (data: any) => {
-    if (selectedCustomer) {
-      await handleUpdateCustomer(selectedCustomer.id, data);
-    } else {
-      await handleCreateCustomer(data);
+    try {
+      if (selectedCustomer) {
+        await handleUpdateCustomer(selectedCustomer.id, data);
+        setNotification({
+          open: true,
+          message: 'Customer updated successfully'
+        });
+      } else {
+        await handleCreateCustomer(data);
+        setNotification({
+          open: true,
+          message: 'Customer created successfully'
+        });
+      }
+      handleCloseDialogs();
+      loadCustomers();
+    } catch (error) {
+      console.error('Error:', error);
+      setNotification({
+        open: true,
+        message: 'An error occurred while saving the customer'
+      });
     }
-    handleCloseDialogs();
-    loadCustomers();
   };
 
   const handleConfirmDelete = async () => {
-    if (selectedCustomer) {
-      await handleDeleteCustomer(selectedCustomer.id);
-      handleCloseDialogs();
-      loadCustomers();
+    try {
+      if (selectedCustomer) {
+        await handleDeleteCustomer(selectedCustomer.id);
+        setNotification({
+          open: true,
+          message: 'Customer deleted successfully'
+        });
+        handleCloseDialogs();
+        loadCustomers();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setNotification({
+        open: true,
+        message: 'An error occurred while deleting the customer'
+      });
     }
+  };
+
+  const handleCloseNotification = () => {
+    setNotification({
+      ...notification,
+      open: false
+    });
   };
 
   return (
@@ -79,6 +120,12 @@ const CustomerManagement: React.FC = () => {
         customerName={selectedCustomer?.name || ''}
         onConfirm={handleConfirmDelete}
         onCancel={handleCloseDialogs}
+      />
+
+      <SuccessNotification
+        open={notification.open}
+        message={notification.message}
+        onClose={handleCloseNotification}
       />
     </Box>
   );

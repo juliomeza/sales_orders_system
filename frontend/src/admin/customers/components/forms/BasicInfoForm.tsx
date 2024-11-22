@@ -30,10 +30,6 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         Basic Information
       </Typography>
 
-      <Alert severity="info" sx={{ mb: 3 }}>
-        Fields marked with * are required
-      </Alert>
-
       <Grid container spacing={3}>
         {/* Customer Code and Name */}
         <Grid item xs={12} sm={6}>

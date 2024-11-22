@@ -1,7 +1,7 @@
 // src/admin/customers/components/dialog/CustomerDialogContent.tsx
 import React from 'react';
 import { DialogContent, Alert } from '@mui/material';
-import CustomerBasicInfo from '../forms/CustomerBasicInfo';
+import CustomerBasicInfo from '../forms/BasicInfoForm';
 import CustomerProjects from '../forms/CustomerProjects';
 import CustomerUsers from '../forms/CustomerUsers';
 

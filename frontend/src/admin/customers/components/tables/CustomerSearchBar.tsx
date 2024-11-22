@@ -1,4 +1,4 @@
-// frontend/src/admin/customers/components/table/CustomerSearchBar.tsx
+// frontend/src/admin/customers/components/tables/CustomerSearchBar.tsx
 import React from 'react';
 import {
   TextField,

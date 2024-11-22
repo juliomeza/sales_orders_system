@@ -1,4 +1,4 @@
-// frontend/src/admin/customers/components/table/CustomersTable.tsx
+// frontend/src/admin/customers/components/tables/CustomersTable.tsx
 import React from 'react';
 import {
   Paper,

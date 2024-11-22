@@ -1,7 +1,7 @@
 // src/admin/customers/CustomerManagement.tsx
 import React, { useEffect } from 'react';
 import { Box, Card, CardContent } from '@mui/material';
-import CustomersTable from './components/table/CustomersTable';
+import CustomersTable from './components/tables/CustomersTable';
 import { CustomerDialog } from './components/dialog/CustomerDialog';
 import { CustomerDeleteDialog } from './components/dialog/CustomerDialogDelete';
 import { CustomerManagementHeader } from './components/header/CustomerManagementHeader';

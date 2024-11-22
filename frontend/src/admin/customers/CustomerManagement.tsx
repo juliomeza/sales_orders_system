@@ -46,19 +46,20 @@ const CustomerManagement: React.FC = () => {
     try {
       if (selectedCustomer) {
         await handleUpdateCustomer(selectedCustomer.id, data);
+        handleCloseDialogs(); // Cerramos el diálogo primero
         setNotification({
           open: true,
           message: 'Customer updated successfully'
         });
       } else {
         await handleCreateCustomer(data);
+        handleCloseDialogs(); // Cerramos el diálogo primero
         setNotification({
           open: true,
           message: 'Customer created successfully'
         });
       }
-      handleCloseDialogs();
-      loadCustomers();
+      await loadCustomers(); // Recargamos los datos después de cerrar
     } catch (error) {
       console.error('Error:', error);
       setNotification({
@@ -70,7 +71,6 @@ const CustomerManagement: React.FC = () => {
 
   const handleUpdatePartial = async (customerId: number, data: Partial<CreateCustomerData>) => {
     try {
-      // Extraer solo los campos permitidos para la actualización del customer
       if (data.customer) {
         const { 
           lookupCode, 
@@ -98,15 +98,14 @@ const CustomerManagement: React.FC = () => {
           }
         };
   
-        console.log('Sending update data:', updateData);
-        
         await handleUpdateCustomer(customerId, updateData);
+        handleCloseDialogs(); // Cerramos el diálogo después de actualizar
         setNotification({
           open: true,
           message: 'Changes saved successfully'
         });
         
-        await loadCustomers();
+        await loadCustomers(); // Recargamos los datos después de cerrar
       }
     } catch (error) {
       console.error('Update error details:', error);

@@ -16,6 +16,7 @@ interface User {
   email: string;
   status: number;
   id?: number;
+  password?: string;
 }
 
 interface CustomerInput {
@@ -105,21 +106,23 @@ export const customersController = {
           });
         }
 
-        // Create users
+        // Create users with individual passwords
         if (users?.length > 0) {
-          const hashedPassword = await bcrypt.hash('ChangeMe123!', 10);
-          await tx.user.createMany({
-            data: users.map((user: User) => ({
-              email: user.email,
-              status: user.status,
-              lookupCode: generateUserLookupCode(user.email),
-              password: hashedPassword,
-              customerId: createdCustomer.id,
-              role: 'CLIENT',
-              created_by: req.user?.userId,
-              modified_by: req.user?.userId
-            }))
-          });
+          for (const user of users) {
+            const hashedPassword = await bcrypt.hash(user.password || 'ChangeMe123!', 10);
+            await tx.user.create({
+              data: {
+                email: user.email,
+                status: user.status,
+                lookupCode: generateUserLookupCode(user.email),
+                password: hashedPassword,
+                customerId: createdCustomer.id,
+                role: 'CLIENT',
+                created_by: req.user?.userId,
+                modified_by: req.user?.userId
+              }
+            });
+          }
         }
 
         return createdCustomer;
@@ -197,7 +200,6 @@ export const customersController = {
 
         // Update users
         if (users) {
-          // Only update user status, don't delete/recreate
           for (const user of users) {
             if (user.id) {
               await tx.user.update({
@@ -208,7 +210,7 @@ export const customersController = {
                 }
               });
             } else {
-              const hashedPassword = await bcrypt.hash('ChangeMe123!', 10);
+              const hashedPassword = await bcrypt.hash(user.password || 'ChangeMe123!', 10);
               await tx.user.create({
                 data: {
                   email: user.email,

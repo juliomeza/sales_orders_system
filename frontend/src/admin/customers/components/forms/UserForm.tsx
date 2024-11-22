@@ -25,17 +25,17 @@ const UserForm: React.FC<UserFormProps> = ({
     handleAddUser,
     handleRemoveUser,
     setNewUser,
-    validateEmail
+    getFieldError
   } = useCustomerUsers({ initialUsers: users, onChange });
 
-  const handleEmailChange = (email: string) => {
+  const errors = getFieldError();
+
+  const handleFieldChange = (field: 'email' | 'password' | 'confirmPassword', value: string) => {
     setNewUser(prev => ({
       ...prev,
-      email
+      [field]: value
     }));
   };
-
-  const isEmailValid = newUser.email === '' || validateEmail(newUser.email);
 
   return (
     <Box>
@@ -50,14 +50,15 @@ const UserForm: React.FC<UserFormProps> = ({
       <Box sx={{ mb: 3 }}>
         <UserFormInputs
           email={newUser.email}
-          onChange={handleEmailChange}
-          error={!isEmailValid}
-          helperText={!isEmailValid ? 'Invalid email format' : undefined}
+          password={newUser.password}
+          confirmPassword={newUser.confirmPassword}
+          onChange={handleFieldChange}
+          error={errors}
         />
         <Button
           variant="contained"
           onClick={handleAddUser}
-          disabled={!validateEmail(newUser.email)}
+          disabled={Object.keys(errors).length > 0}
           sx={{ mt: 2 }}
         >
           Add User

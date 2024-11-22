@@ -1,17 +1,17 @@
 // src/admin/customers/hooks/useCustomerUsers.ts
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from '../types';
 
 interface UseCustomerUsersProps {
-  initialUsers?: User[];
+  initialUsers: User[];
   onChange: (users: User[]) => void;
 }
 
 export const useCustomerUsers = ({ 
-  initialUsers = [], 
+  initialUsers, 
   onChange 
 }: UseCustomerUsersProps) => {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState<User[]>(initialUsers);
   const [newUser, setNewUser] = useState<User & { password: string; confirmPassword: string }>({
     email: '',
     role: 'CLIENT',
@@ -20,19 +20,16 @@ export const useCustomerUsers = ({
     confirmPassword: ''
   });
 
+  useEffect(() => {
+    setUsers(initialUsers);
+  }, [initialUsers]);
+
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const validatePassword = (password: string) => {
-    return password.length >= 8; // Add more validation rules as needed
-  };
-
-  const validateForm = () => {
-    if (!validateEmail(newUser.email)) return false;
-    if (!validatePassword(newUser.password)) return false;
-    if (newUser.password !== newUser.confirmPassword) return false;
-    return true;
+    return password.length >= 8;
   };
 
   const getFieldError = () => {
@@ -54,12 +51,14 @@ export const useCustomerUsers = ({
   };
 
   const handleAddUser = () => {
-    if (!validateForm()) return;
+    if (!validateEmail(newUser.email) || !newUser.password || newUser.password !== newUser.confirmPassword) {
+      return;
+    }
     
     const userToAdd = {
       email: newUser.email,
-      role: newUser.role,
-      status: newUser.status,
+      role: 'CLIENT',
+      status: 1,
       password: newUser.password
     };
     
@@ -87,7 +86,6 @@ export const useCustomerUsers = ({
     handleAddUser,
     handleRemoveUser,
     setNewUser,
-    validateForm,
     getFieldError
   };
 };

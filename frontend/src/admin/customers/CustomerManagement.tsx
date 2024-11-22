@@ -1,6 +1,6 @@
 // src/admin/customers/CustomerManagement.tsx
 import React, { useEffect, useState } from 'react';
-import { Box, Card, CardContent } from '@mui/material';
+import { Box, Card, CardContent, CircularProgress } from '@mui/material';
 import CustomersTable from './components/tables/CustomersTable';
 import { CustomerDialog } from './components/dialog/CustomerDialog';
 import { CustomerDeleteDialog } from './components/dialog/CustomerDialogDelete';
@@ -8,10 +8,13 @@ import { CustomerManagementHeader } from './components/header/CustomerManagement
 import SuccessNotification from './components/notifications/SuccessNotification';
 import { useCustomers } from './hooks/useCustomers';
 import { useCustomerTable } from './hooks/useCustomerTable';
+import { CreateCustomerData } from './types';
 
 const CustomerManagement: React.FC = () => {
   const { 
     customers, 
+    isLoading,
+    error,
     loadCustomers, 
     handleCreateCustomer, 
     handleUpdateCustomer, 
@@ -39,7 +42,7 @@ const CustomerManagement: React.FC = () => {
     loadCustomers();
   }, [loadCustomers]);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: CreateCustomerData) => {
     try {
       if (selectedCustomer) {
         await handleUpdateCustomer(selectedCustomer.id, data);
@@ -61,6 +64,36 @@ const CustomerManagement: React.FC = () => {
       setNotification({
         open: true,
         message: 'An error occurred while saving the customer'
+      });
+    }
+  };
+
+  const handleUpdatePartial = async (customerId: number, data: Partial<CreateCustomerData>) => {
+    try {
+      // Si tenemos el cliente seleccionado, usamos sus datos actuales como base
+      const currentCustomer = customers.find(c => c.id === customerId);
+      if (!currentCustomer) throw new Error('Customer not found');
+
+      const completeData: CreateCustomerData = {
+        customer: currentCustomer,
+        projects: currentCustomer.projects || [],
+        users: currentCustomer.users || [],
+        ...data // Sobrescribimos con los datos actualizados
+      };
+
+      await handleUpdateCustomer(customerId, completeData);
+      
+      setNotification({
+        open: true,
+        message: 'Changes saved successfully'
+      });
+      
+      await loadCustomers();
+    } catch (error) {
+      console.error('Error:', error);
+      setNotification({
+        open: true,
+        message: 'An error occurred while saving changes'
       });
     }
   };
@@ -92,6 +125,33 @@ const CustomerManagement: React.FC = () => {
     });
   };
 
+  if (isLoading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Card>
+          <CardContent>
+            <Box color="error.main">
+              Error loading customers: {error}
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <CustomerManagementHeader onCreateNew={handleOpenCreateDialog} />
@@ -113,6 +173,7 @@ const CustomerManagement: React.FC = () => {
         customer={selectedCustomer}
         onClose={handleCloseDialogs}
         onSubmit={handleSubmit}
+        onUpdate={handleUpdatePartial}
       />
 
       <CustomerDeleteDialog 

@@ -1,39 +1,94 @@
 // src/admin/customers/hooks/useCustomerDialog.ts
-import { useState } from 'react';
-import { Customer } from '../types';
+import { useState, useEffect } from 'react';
+import { Customer, CustomerFormData, CreateCustomerData } from '../types';
+
+const initialFormState: CustomerFormData = {
+  customer: {
+    lookupCode: '',
+    name: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    phone: '',
+    email: '',
+    status: 1
+  },
+  projects: [],
+  users: []
+};
 
 export const useCustomerDialog = (
   customer: Customer | null,
   onClose: () => void,
-  onSubmit: (data: any) => Promise<void>
+  onSubmit: (data: CreateCustomerData) => Promise<void>,
+  onUpdate?: (customerId: number, data: Partial<CreateCustomerData>) => Promise<void>
 ) => {
   const [activeStep, setActiveStep] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
-  const [formData, setFormData] = useState(() => ({
-    customer: customer ? {
-      lookupCode: customer.lookupCode,
-      name: customer.name,
-      address: customer.address,
-      city: customer.city,
-      state: customer.state,
-      zipCode: customer.zipCode,
-      phone: customer.phone || '',
-      email: customer.email || '',
-      status: customer.status
-    } : {
-      lookupCode: '',
-      name: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      phone: '',
-      email: '',
-      status: 1
-    },
-    projects: customer?.projects || [],
-    users: customer?.users || []
-  }));
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState<CustomerFormData>(() => 
+    customer ? {
+      customer: {
+        lookupCode: customer.lookupCode,
+        name: customer.name,
+        address: customer.address,
+        city: customer.city,
+        state: customer.state,
+        zipCode: customer.zipCode,
+        phone: customer.phone || '',
+        email: customer.email || '',
+        status: customer.status
+      },
+      projects: customer.projects?.map(project => ({
+        id: project.id,
+        lookupCode: project.lookupCode,
+        name: project.name,
+        description: project.description || '',
+        isDefault: project.isDefault
+      })) || [],
+      users: customer.users?.map(user => ({
+        id: user.id,
+        email: user.email,
+        role: user.role || 'CLIENT',
+        status: user.status
+      })) || []
+    } : initialFormState
+  );
+
+  // Effect to update form data when customer changes
+  useEffect(() => {
+    if (customer) {
+      setFormData({
+        customer: {
+          lookupCode: customer.lookupCode,
+          name: customer.name,
+          address: customer.address,
+          city: customer.city,
+          state: customer.state,
+          zipCode: customer.zipCode,
+          phone: customer.phone || '',
+          email: customer.email || '',
+          status: customer.status
+        },
+        projects: customer.projects?.map(project => ({
+          id: project.id,
+          lookupCode: project.lookupCode,
+          name: project.name,
+          description: project.description || '',
+          isDefault: project.isDefault
+        })) || [],
+        users: customer.users?.map(user => ({
+          id: user.id,
+          email: user.email,
+          role: user.role || 'CLIENT',
+          status: user.status
+        })) || []
+      });
+    } else {
+      setFormData(initialFormState);
+    }
+  }, [customer]);
 
   const validateStep = (step: number): string[] => {
     const errors: string[] = [];
@@ -82,6 +137,7 @@ export const useCustomerDialog = (
   const handleClose = () => {
     setActiveStep(0);
     setShowErrors(false);
+    setFormData(initialFormState);
     onClose();
   };
 
@@ -103,15 +159,59 @@ export const useCustomerDialog = (
     }
   };
 
-  const handleCustomerChange = (customerData: any) => {
-    setFormData(prev => ({ ...prev, customer: customerData }));
+  const handleSaveStep = async () => {
+    if (!customer?.id || !onUpdate) return;
+
+    const errors = validateStep(activeStep);
+    if (errors.length > 0) {
+      setShowErrors(true);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      let dataToUpdate: Partial<CreateCustomerData> = {};
+
+      switch (activeStep) {
+        case 0:
+          dataToUpdate = {
+            customer: formData.customer
+          };
+          break;
+        case 1:
+          dataToUpdate = {
+            projects: formData.projects
+          };
+          break;
+        case 2:
+          dataToUpdate = {
+            users: formData.users
+          };
+          break;
+      }
+
+      await onUpdate(customer.id, dataToUpdate);
+      setShowErrors(false);
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      setShowErrors(true);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleProjectsChange = (projects: any[]) => {
+  const handleCustomerChange = (customerData: Partial<CustomerFormData['customer']>) => {
+    setFormData(prev => ({
+      ...prev,
+      customer: { ...prev.customer, ...customerData }
+    }));
+  };
+
+  const handleProjectsChange = (projects: CustomerFormData['projects']) => {
     setFormData(prev => ({ ...prev, projects }));
   };
 
-  const handleUsersChange = (users: any[]) => {
+  const handleUsersChange = (users: CustomerFormData['users']) => {
     setFormData(prev => ({ ...prev, users }));
   };
 
@@ -119,13 +219,16 @@ export const useCustomerDialog = (
     activeStep,
     formData,
     showErrors,
+    isSaving,
     handleNext,
     handleBack,
     handleClose,
     handleSubmit,
+    handleSaveStep,
     handleCustomerChange,
     handleProjectsChange,
     handleUsersChange,
-    validateStep
+    validateStep,
+    isEditMode: !!customer
   };
 };

@@ -12,27 +12,32 @@ interface CustomerDialogProps {
   customer: Customer | null;
   onClose: () => void;
   onSubmit: (data: CreateCustomerData) => Promise<void>;
+  onUpdate?: (customerId: number, data: Partial<CreateCustomerData>) => Promise<void>;
 }
 
 export const CustomerDialog: React.FC<CustomerDialogProps> = ({
   open,
   customer,
   onClose,
-  onSubmit
+  onSubmit,
+  onUpdate
 }) => {
   const {
     activeStep,
     formData,
     showErrors,
+    isSaving,
     handleNext,
     handleBack,
     handleClose,
     handleSubmit,
+    handleSaveStep,
     handleCustomerChange,
     handleProjectsChange,
     handleUsersChange,
-    validateStep
-  } = useCustomerDialog(customer, onClose, onSubmit);
+    validateStep,
+    isEditMode
+  } = useCustomerDialog(customer, onClose, onSubmit, onUpdate);
 
   const errors = validateStep(activeStep);
 
@@ -51,7 +56,7 @@ export const CustomerDialog: React.FC<CustomerDialogProps> = ({
         color: 'primary.contrastText',
         py: 2
       }}>
-        {customer ? 'Edit Customer' : 'Create New Customer'}
+        {isEditMode ? 'Edit Customer' : 'Create New Customer'}
       </DialogTitle>
 
       <CustomerDialogStepper activeStep={activeStep} />
@@ -68,14 +73,14 @@ export const CustomerDialog: React.FC<CustomerDialogProps> = ({
       
       <CustomerDialogActions
         activeStep={activeStep}
-        isEditMode={!!customer}
+        isEditMode={isEditMode}
+        isSaving={isSaving}
         onBack={handleBack}
         onNext={handleNext}
         onClose={handleClose}
         onSubmit={handleSubmit}
+        onSaveStep={isEditMode ? handleSaveStep : undefined}
       />
     </Dialog>
   );
 };
-
-export default CustomerDialog;

@@ -30,6 +30,7 @@ export interface User {
   email: string;
   role: string;
   status: number;
+  password?: string;
 }
 
 export interface CreateCustomerData {

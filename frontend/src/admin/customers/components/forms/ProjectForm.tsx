@@ -61,7 +61,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       </Box>
 
       <ProjectsTable
-        projects={projects}
+        projects={projects.map(project => ({
+          ...project,
+          lookupCode: project.lookupCode || '',
+          name: project.name || '',
+          description: project.description || '',
+          isDefault: project.isDefault || false
+        }))}
         onDelete={handleRemoveProject}
         onDefaultChange={handleDefaultChange}
       />

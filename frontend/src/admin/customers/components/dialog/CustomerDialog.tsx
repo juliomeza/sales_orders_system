@@ -5,13 +5,13 @@ import { CustomerDialogStepper } from './CustomerDialogStepper';
 import { CustomerDialogContent } from './CustomerDialogContent';
 import { CustomerDialogActions } from './CustomerDialogActions';
 import { useCustomerDialog } from '../../hooks/useCustomerDialog';
-import { Customer } from '../../types';
+import { Customer, CustomerFormData, CreateCustomerData } from '../../types';
 
 interface CustomerDialogProps {
   open: boolean;
   customer: Customer | null;
   onClose: () => void;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: CreateCustomerData) => Promise<void>;
 }
 
 export const CustomerDialog: React.FC<CustomerDialogProps> = ({

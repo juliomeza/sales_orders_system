@@ -1,18 +1,19 @@
 // src/admin/customers/components/dialog/CustomerDialogContent.tsx
 import React from 'react';
 import { DialogContent, Alert } from '@mui/material';
-import CustomerBasicInfo from '../forms/BasicInfoForm';
-import CustomerProjects from '../forms/CustomerProjects';
-import CustomerUsers from '../forms/CustomerUsers';
+import BasicInfoForm from '../forms/BasicInfoForm';
+import ProjectForm from '../forms/ProjectForm';
+import UserForm from '../forms/UserForm';
+import { CustomerFormData } from '../../types';
 
 interface CustomerDialogContentProps {
   activeStep: number;
-  formData: any;
+  formData: CustomerFormData;
   showErrors: boolean;
   errors: string[];
-  onCustomerChange: (data: any) => void;
-  onProjectsChange: (data: any[]) => void;
-  onUsersChange: (data: any[]) => void;
+  onCustomerChange: (data: Partial<CustomerFormData['customer']>) => void;
+  onProjectsChange: (projects: CustomerFormData['projects']) => void;
+  onUsersChange: (users: CustomerFormData['users']) => void;
 }
 
 export const CustomerDialogContent: React.FC<CustomerDialogContentProps> = ({
@@ -28,21 +29,21 @@ export const CustomerDialogContent: React.FC<CustomerDialogContentProps> = ({
     switch (step) {
       case 0:
         return (
-          <CustomerBasicInfo
+          <BasicInfoForm
             data={formData.customer}
             onChange={onCustomerChange}
           />
         );
       case 1:
         return (
-          <CustomerProjects
+          <ProjectForm
             projects={formData.projects}
             onChange={onProjectsChange}
           />
         );
       case 2:
         return (
-          <CustomerUsers
+          <UserForm
             users={formData.users}
             onChange={onUsersChange}
           />

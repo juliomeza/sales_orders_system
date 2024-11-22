@@ -1,4 +1,21 @@
 // frontend/src/admin/customers/types.ts
+// src/admin/customers/types.ts
+export interface CustomerUpdateData {
+  customer: {
+    lookupCode: string;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    phone?: string;
+    email?: string;
+    status: number;
+  };
+  projects?: Project[];
+  users?: User[];
+}
+
 export interface Customer {
   id: number;
   lookupCode: string;

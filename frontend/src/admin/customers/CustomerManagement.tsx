@@ -70,30 +70,49 @@ const CustomerManagement: React.FC = () => {
 
   const handleUpdatePartial = async (customerId: number, data: Partial<CreateCustomerData>) => {
     try {
-      // Si tenemos el cliente seleccionado, usamos sus datos actuales como base
-      const currentCustomer = customers.find(c => c.id === customerId);
-      if (!currentCustomer) throw new Error('Customer not found');
-
-      const completeData: CreateCustomerData = {
-        customer: currentCustomer,
-        projects: currentCustomer.projects || [],
-        users: currentCustomer.users || [],
-        ...data // Sobrescribimos con los datos actualizados
-      };
-
-      await handleUpdateCustomer(customerId, completeData);
-      
-      setNotification({
-        open: true,
-        message: 'Changes saved successfully'
-      });
-      
-      await loadCustomers();
+      // Extraer solo los campos permitidos para la actualización del customer
+      if (data.customer) {
+        const { 
+          lookupCode, 
+          name, 
+          address, 
+          city, 
+          state, 
+          zipCode, 
+          phone, 
+          email, 
+          status 
+        } = data.customer;
+  
+        const updateData = {
+          customer: {
+            lookupCode,
+            name,
+            address,
+            city,
+            state,
+            zipCode,
+            phone: phone || '',
+            email: email || '',
+            status
+          }
+        };
+  
+        console.log('Sending update data:', updateData);
+        
+        await handleUpdateCustomer(customerId, updateData);
+        setNotification({
+          open: true,
+          message: 'Changes saved successfully'
+        });
+        
+        await loadCustomers();
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Update error details:', error);
       setNotification({
         open: true,
-        message: 'An error occurred while saving changes'
+        message: error instanceof Error ? error.message : 'An error occurred while saving changes'
       });
     }
   };

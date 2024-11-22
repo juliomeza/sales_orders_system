@@ -15,8 +15,8 @@ export const useCustomers = () => {
       const response = await apiClient.get<{ customers: Customer[] }>('/customers');
       setCustomers(response.customers);
     } catch (err) {
-      setError('Error loading customers');
       console.error('Error loading customers:', err);
+      setError('Error loading customers');
     } finally {
       setIsLoading(false);
     }
@@ -28,20 +28,24 @@ export const useCustomers = () => {
       await loadCustomers();
       return response;
     } catch (err) {
-      setError('Error creating customer');
       console.error('Error creating customer:', err);
+      setError('Error creating customer');
       throw err;
     }
   };
 
-  const handleUpdateCustomer = async (customerId: number, data: CreateCustomerData) => {
+  const handleUpdateCustomer = async (customerId: number, data: Partial<CreateCustomerData>) => {
     try {
+      console.log('Updating customer with data:', data); // Log data being sent
       const response = await apiClient.put<Customer>(`/customers/${customerId}`, data);
+      console.log('Update response:', response); // Log response
       await loadCustomers();
       return response;
     } catch (err) {
-      setError('Error updating customer');
       console.error('Error updating customer:', err);
+      const axiosError = err as any;
+      console.error('Server response:', axiosError.response?.data); // Log server error details
+      setError('Error updating customer');
       throw err;
     }
   };
@@ -51,8 +55,8 @@ export const useCustomers = () => {
       await apiClient.delete(`/customers/${customerId}`);
       await loadCustomers();
     } catch (err) {
-      setError('Error deleting customer');
       console.error('Error deleting customer:', err);
+      setError('Error deleting customer');
       throw err;
     }
   };

@@ -1,3 +1,4 @@
+// frontend/src/admin/customers/components/dialog/ResetPasswordDialog.tsx
 import React, { useState } from 'react';
 import {
   Dialog,

@@ -17,6 +17,7 @@ interface User {
   id?: number;
   email: string;
   status: number;
+  password?: string;
 }
 
 interface CustomerInput {
@@ -277,6 +278,28 @@ export const customersController = {
               }
             }
           });
+        }
+
+        // Actualizar users
+        if (req.body.users) {
+          await tx.user.deleteMany({
+            where: { customerId: Number(id) }
+          });
+        
+          if (req.body.users.length > 0) {
+            await tx.user.createMany({
+              data: await Promise.all(req.body.users.map(async user => ({
+                email: user.email,
+                status: user.status || 1,
+                lookupCode: user.email.split('@')[0].toUpperCase(),
+                password: user.password ? await bcrypt.hash(user.password, 10) : await bcrypt.hash('ChangeMe123!', 10),
+                customerId: Number(id),
+                role: 'CLIENT',
+                created_by: req.user?.userId || null,
+                modified_by: req.user?.userId || null
+              })))
+            });
+          }
         }
   
         return customerUpdate;

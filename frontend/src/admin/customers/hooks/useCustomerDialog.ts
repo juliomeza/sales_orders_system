@@ -193,11 +193,17 @@ export const useCustomerDialog = (
             })).filter(p => p.lookupCode && p.name) // Solo proyectos con datos válidos
           };
           break;
-        case 2:
-          dataToUpdate = {
-            users: formData.users
-          };
-          break;
+          case 2:
+            dataToUpdate = {
+              customer: formData.customer, // Include customer data
+              users: formData.users.map(user => ({
+                email: user.email,
+                role: user.role || 'CLIENT',
+                status: user.status || 1,
+                password: user.password // Include password for new users
+              }))
+            };
+            break;
       }
 
       await onUpdate(customer.id, dataToUpdate);

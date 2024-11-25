@@ -61,7 +61,9 @@ export const customersController = {
           projects: {
             select: {
               id: true,
+              lookupCode: true,
               name: true,
+              description: true,
               isDefault: true
             }
           },
@@ -148,7 +150,16 @@ export const customersController = {
       const customer = await prisma.customer.findUnique({
         where: { id: Number(id) },
         include: {
-          projects: true,
+          projects: {
+            select: {
+              id: true,
+              lookupCode: true,  // Asegurarnos de incluir lookupCode
+              name: true,
+              description: true,
+              isDefault: true,
+              status: true
+            }
+          },
           users: {
             select: {
               id: true,
@@ -159,76 +170,104 @@ export const customersController = {
           }
         }
       });
-
+  
       if (!customer) {
         return res.status(404).json({ error: 'Customer not found' });
       }
+  
+      // Log para depuración
+      console.log('Customer projects from DB:', JSON.stringify(customer.projects, null, 2));
 
-      res.json(customer);
-    } catch (error) {
-      console.error('Get customer error:', error);
-      res.status(500).json({ error: 'Error retrieving customer' });
-    }
-  },
+    res.json(customer);
+  } catch (error) {
+    console.error('Get customer error:', error);
+    res.status(500).json({ error: 'Error retrieving customer' });
+  }
+},
 
   // Update customer
   update: async (req: Request<{id: string}, {}, CustomerUpdateInput>, res: Response) => {
     try {
       const { id } = req.params;
-      const { customer } = req.body;
+      const { customer, projects } = req.body;
   
-      console.log('Received update data:', { id, customer });
+      // Log para depuración
+      console.log('Update project data received:', projects);
   
       // Verificar que el customer existe
       const existingCustomer = await prisma.customer.findUnique({
-        where: { id: Number(id) }
+        where: { id: Number(id) },
+        include: { projects: true }
       });
   
       if (!existingCustomer) {
         return res.status(404).json({ error: 'Customer not found' });
       }
   
-      // Verificar lookupCode duplicado
-      if (customer.lookupCode !== existingCustomer.lookupCode) {
-        const duplicateLookupCode = await prisma.customer.findUnique({
-          where: { lookupCode: customer.lookupCode }
+      // Iniciar transacción para actualizar customer y proyectos
+      const updatedCustomer = await prisma.$transaction(async (tx) => {
+        // Actualizar customer base
+        const customerUpdate = await tx.customer.update({
+          where: { id: Number(id) },
+          data: {
+            lookupCode: customer.lookupCode,
+            name: customer.name,
+            address: customer.address,
+            city: customer.city,
+            state: customer.state,
+            zipCode: customer.zipCode,
+            phone: customer.phone || null,
+            email: customer.email || null,
+            status: customer.status,
+            modified_by: req.user?.userId || null,
+            modified_at: new Date()
+          },
+          include: {
+            projects: true
+          }
         });
   
-        if (duplicateLookupCode) {
-          return res.status(400).json({ 
-            error: 'Lookup code already exists',
-            field: 'lookupCode'
+        // Si se proporcionaron proyectos, actualízalos
+        if (projects) {
+          // Eliminar proyectos existentes
+          await tx.project.deleteMany({
+            where: { customerId: Number(id) }
+          });
+  
+          // Crear nuevos proyectos
+          if (projects.length > 0) {
+            await tx.project.createMany({
+              data: projects.map(project => ({
+                lookupCode: project.lookupCode,
+                name: project.name,
+                description: project.description || '',
+                isDefault: project.isDefault,
+                customerId: Number(id),
+                status: 1,
+                created_by: req.user?.userId || null,
+                modified_by: req.user?.userId || null
+              }))
+            });
+          }
+  
+          // Obtener customer actualizado con los nuevos proyectos
+          return await tx.customer.findUnique({
+            where: { id: Number(id) },
+            include: {
+              projects: true,
+              users: {
+                select: {
+                  id: true,
+                  email: true,
+                  role: true,
+                  status: true
+                }
+              }
+            }
           });
         }
-      }
   
-      // Actualizar solo los campos del customer
-      const updatedCustomer = await prisma.customer.update({
-        where: { id: Number(id) },
-        data: {
-          lookupCode: customer.lookupCode,
-          name: customer.name,
-          address: customer.address,
-          city: customer.city,
-          state: customer.state,
-          zipCode: customer.zipCode,
-          phone: customer.phone || null,
-          email: customer.email || null,
-          status: customer.status,
-          modified_by: req.user?.userId || null,
-          modified_at: new Date()
-        },
-        include: {
-          projects: true,
-          users: {
-            select: {
-              id: true,
-              email: true,
-              role: true,
-              status: true
-            }
-          }
-        }
+        return customerUpdate;
       });
   
       res.json(updatedCustomer);

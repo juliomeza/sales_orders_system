@@ -42,10 +42,10 @@ export const useCustomerDialog = (
       },
       projects: customer.projects?.map(project => ({
         id: project.id,
-        lookupCode: project.lookupCode,
-        name: project.name,
-        description: project.description || '',
-        isDefault: project.isDefault
+        lookupCode: project.lookupCode || '', // Aseguramos valor por defecto
+        name: project.name || '',             // Aseguramos valor por defecto
+        description: project.description || '', // Aseguramos valor por defecto
+        isDefault: Boolean(project.isDefault)  // Convertimos a booleano
       })) || [],
       users: customer.users?.map(user => ({
         id: user.id,
@@ -59,6 +59,8 @@ export const useCustomerDialog = (
   // Effect to update form data when customer changes
   useEffect(() => {
     if (customer) {
+      console.log('1. Raw customer data:', customer);
+      console.log('2. Customer projects:', customer.projects);
       setFormData({
         customer: {
           lookupCode: customer.lookupCode,
@@ -71,13 +73,16 @@ export const useCustomerDialog = (
           email: customer.email || '',
           status: customer.status
         },
-        projects: customer.projects?.map(project => ({
-          id: project.id,
-          lookupCode: project.lookupCode,
-          name: project.name,
-          description: project.description || '',
-          isDefault: project.isDefault
-        })) || [],
+        projects: (customer.projects || []).map(project => {
+          console.log('3. Mapping project:', project);
+          return {
+            id: project.id,
+            lookupCode: project.lookupCode || '',  // Aseguramos valor por defecto
+            name: project.name || '',              // Aseguramos valor por defecto
+            description: project.description || '', // Aseguramos valor por defecto
+            isDefault: Boolean(project.isDefault)   // Convertimos a booleano
+          };
+        }),
         users: customer.users?.map(user => ({
           id: user.id,
           email: user.email,
@@ -180,7 +185,13 @@ export const useCustomerDialog = (
           break;
         case 1:
           dataToUpdate = {
-            projects: formData.projects
+            projects: formData.projects.map(project => ({
+              ...project,
+              lookupCode: project.lookupCode || '',  // Aseguramos valor por defecto
+              name: project.name || '',              // Aseguramos valor por defecto
+              description: project.description || '', // Aseguramos valor por defecto
+              isDefault: Boolean(project.isDefault)   // Convertimos a booleano
+            }))
           };
           break;
         case 2:
@@ -208,7 +219,14 @@ export const useCustomerDialog = (
   };
 
   const handleProjectsChange = (projects: CustomerFormData['projects']) => {
-    setFormData(prev => ({ ...prev, projects }));
+    const updatedProjects = projects.map(project => ({
+      ...project,
+      lookupCode: project.lookupCode || '',  // Aseguramos valor por defecto
+      name: project.name || '',              // Aseguramos valor por defecto
+      description: project.description || '', // Aseguramos valor por defecto
+      isDefault: Boolean(project.isDefault)   // Convertimos a booleano
+    }));
+    setFormData(prev => ({ ...prev, projects: updatedProjects }));
   };
 
   const handleUsersChange = (users: CustomerFormData['users']) => {

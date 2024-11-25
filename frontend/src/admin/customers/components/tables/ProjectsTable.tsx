@@ -26,6 +26,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
   onDelete,
   onDefaultChange
 }) => {
+  console.log('4. Projects received in table:', projects);
   return (
     <TableContainer component={Paper} variant="outlined">
       <Table>
@@ -39,30 +40,36 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {projects.map((project, index) => (
-            <TableRow key={project.lookupCode}>
-              <TableCell>{project.lookupCode}</TableCell>
-              <TableCell>{project.name}</TableCell>
-              <TableCell>{project.description}</TableCell>
-              <TableCell>
-                <Switch
-                  checked={project.isDefault}
-                  onChange={() => onDefaultChange(index)}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell align="right">
-                <IconButton
-                  onClick={() => onDelete(index)}
-                  size="small"
-                  color="error"
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-          {projects.length === 0 && (
+          {projects && projects.length > 0 ? (
+            projects.map((project, index) => {
+              // Debug log para ver qué datos llegan
+              console.log('Project data:', project);
+              
+              return (
+                <TableRow key={project.id || index}>
+                  <TableCell>{project.lookupCode}</TableCell>
+                  <TableCell>{project.name}</TableCell>
+                  <TableCell>{project.description}</TableCell>
+                  <TableCell>
+                    <Switch
+                      checked={Boolean(project.isDefault)}
+                      onChange={() => onDefaultChange(index)}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      onClick={() => onDelete(index)}
+                      size="small"
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          ) : (
             <TableRow>
               <TableCell colSpan={5} align="center">
                 <Typography variant="body2" color="text.secondary">

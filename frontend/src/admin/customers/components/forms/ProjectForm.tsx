@@ -20,6 +20,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   projects,
   onChange
 }) => {
+  // Debug para ver los proyectos recibidos
+  console.log('Projects received in form:', projects);
+
   const {
     newProject,
     handleAddProject,
@@ -61,13 +64,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       </Box>
 
       <ProjectsTable
-        projects={projects.map(project => ({
-          ...project,
-          lookupCode: project.lookupCode || '',
-          name: project.name || '',
-          description: project.description || '',
-          isDefault: project.isDefault || false
-        }))}
+        projects={projects}
         onDelete={handleRemoveProject}
         onDefaultChange={handleDefaultChange}
       />

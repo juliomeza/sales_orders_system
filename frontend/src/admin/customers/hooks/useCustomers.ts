@@ -36,9 +36,7 @@ export const useCustomers = () => {
 
   const handleUpdateCustomer = async (customerId: number, data: Partial<CreateCustomerData>) => {
     try {
-      console.log('Updating customer with data:', data); // Log data being sent
       const response = await apiClient.put<Customer>(`/customers/${customerId}`, data);
-      console.log('Update response:', response); // Log response
       await loadCustomers();
       return response;
     } catch (err) {

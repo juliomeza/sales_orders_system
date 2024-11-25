@@ -67,6 +67,14 @@ export const customersController = {
               isDefault: true
             }
           },
+          users: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              status: true
+            }
+          },
           _count: {
             select: {
               users: true
@@ -146,14 +154,13 @@ export const customersController = {
   getById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      
       const customer = await prisma.customer.findUnique({
         where: { id: Number(id) },
         include: {
           projects: {
             select: {
               id: true,
-              lookupCode: true,  // Asegurarnos de incluir lookupCode
+              lookupCode: true,
               name: true,
               description: true,
               isDefault: true,
@@ -165,7 +172,8 @@ export const customersController = {
               id: true,
               email: true,
               role: true,
-              status: true
+              status: true,
+              customerId: true
             }
           }
         }
@@ -175,29 +183,33 @@ export const customersController = {
         return res.status(404).json({ error: 'Customer not found' });
       }
   
-      // Log para depuración
-      console.log('Customer projects from DB:', JSON.stringify(customer.projects, null, 2));
-
-    res.json(customer);
-  } catch (error) {
-    console.error('Get customer error:', error);
-    res.status(500).json({ error: 'Error retrieving customer' });
-  }
-},
+      res.json(customer);
+    } catch (error) {
+      console.error('Get customer error:', error);
+      res.status(500).json({ error: 'Error retrieving customer' });
+    }
+  },
 
   // Update customer
   update: async (req: Request<{id: string}, {}, CustomerUpdateInput>, res: Response) => {
     try {
       const { id } = req.params;
       const { customer, projects } = req.body;
-  
-      // Log para depuración
-      console.log('Update project data received:', projects);
-  
+    
       // Verificar que el customer existe
       const existingCustomer = await prisma.customer.findUnique({
         where: { id: Number(id) },
-        include: { projects: true }
+        include: { 
+          projects: true,
+          users: {  // Agregar esto
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              status: true
+            }
+          }
+        }
       });
   
       if (!existingCustomer) {

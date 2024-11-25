@@ -71,41 +71,14 @@ const CustomerManagement: React.FC = () => {
 
   const handleUpdatePartial = async (customerId: number, data: Partial<CreateCustomerData>) => {
     try {
-      if (data.customer) {
-        const { 
-          lookupCode, 
-          name, 
-          address, 
-          city, 
-          state, 
-          zipCode, 
-          phone, 
-          email, 
-          status 
-        } = data.customer;
-  
-        const updateData = {
-          customer: {
-            lookupCode,
-            name,
-            address,
-            city,
-            state,
-            zipCode,
-            phone: phone || '',
-            email: email || '',
-            status
-          }
-        };
-  
-        await handleUpdateCustomer(customerId, updateData);
-        handleCloseDialogs(); // Cerramos el diálogo después de actualizar
+      if (data.customer || data.projects) { // Modificar esta condición para incluir projects
+        await handleUpdateCustomer(customerId, data);
+        handleCloseDialogs();
         setNotification({
           open: true,
           message: 'Changes saved successfully'
         });
-        
-        await loadCustomers(); // Recargamos los datos después de cerrar
+        await loadCustomers();
       }
     } catch (error) {
       console.error('Update error details:', error);

@@ -59,8 +59,8 @@ export const useCustomerDialog = (
   // Effect to update form data when customer changes
   useEffect(() => {
     if (customer) {
-      console.log('1. Raw customer data:', customer);
-      console.log('2. Customer projects:', customer.projects);
+      console.log('Customer in dialog:', customer);
+      console.log('Customer users:', customer.users);
       setFormData({
         customer: {
           lookupCode: customer.lookupCode,
@@ -74,7 +74,6 @@ export const useCustomerDialog = (
           status: customer.status
         },
         projects: (customer.projects || []).map(project => {
-          console.log('3. Mapping project:', project);
           return {
             id: project.id,
             lookupCode: project.lookupCode || '',  // Aseguramos valor por defecto
@@ -185,13 +184,13 @@ export const useCustomerDialog = (
           break;
         case 1:
           dataToUpdate = {
+            customer: formData.customer, // Mantener los datos del cliente
             projects: formData.projects.map(project => ({
-              ...project,
-              lookupCode: project.lookupCode || '',  // Aseguramos valor por defecto
-              name: project.name || '',              // Aseguramos valor por defecto
-              description: project.description || '', // Aseguramos valor por defecto
-              isDefault: Boolean(project.isDefault)   // Convertimos a booleano
-            }))
+              lookupCode: project.lookupCode || '',
+              name: project.name || '',
+              description: project.description || '',
+              isDefault: Boolean(project.isDefault)
+            })).filter(p => p.lookupCode && p.name) // Solo proyectos con datos válidos
           };
           break;
         case 2:

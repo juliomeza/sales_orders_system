@@ -20,9 +20,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
   projects,
   onChange
 }) => {
-  // Debug para ver los proyectos recibidos
-  console.log('Projects received in form:', projects);
-
   const {
     newProject,
     handleAddProject,

@@ -26,7 +26,6 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
   onDelete,
   onDefaultChange
 }) => {
-  console.log('4. Projects received in table:', projects);
   return (
     <TableContainer component={Paper} variant="outlined">
       <Table>
@@ -41,10 +40,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
         </TableHead>
         <TableBody>
           {projects && projects.length > 0 ? (
-            projects.map((project, index) => {
-              // Debug log para ver qué datos llegan
-              console.log('Project data:', project);
-              
+            projects.map((project, index) => {  
               return (
                 <TableRow key={project.id || index}>
                   <TableCell>{project.lookupCode}</TableCell>

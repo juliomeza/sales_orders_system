@@ -21,6 +21,8 @@ const UserForm: React.FC<UserFormProps> = ({
   users,
   onChange
 }) => {
+  console.log('Users data in UserForm:', users); // Agregar este log
+  
   const {
     newUser,
     handleAddUser,

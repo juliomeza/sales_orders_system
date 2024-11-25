@@ -10,19 +10,22 @@ import {
   Paper,
   IconButton,
   Chip,
-  Typography
+  Typography,
+  Tooltip
 } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, Key as KeyIcon } from '@mui/icons-material';
 import { User } from '../../types';
 
 interface UsersTableProps {
   users: User[];
   onDelete: (index: number) => void;
+  onResetPassword: (index: number) => void;
 }
 
 export const UsersTable: React.FC<UsersTableProps> = ({
   users,
-  onDelete
+  onDelete,
+  onResetPassword
 }) => {
   return (
     <TableContainer component={Paper} variant="outlined">
@@ -56,13 +59,24 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                   />
                 </TableCell>
                 <TableCell align="right">
-                  <IconButton
-                    onClick={() => onDelete(index)}
-                    size="small"
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  <Tooltip title="Reset Password">
+                    <IconButton
+                      onClick={() => onResetPassword(index)}
+                      size="small"
+                      color="primary"
+                    >
+                      <KeyIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete User">
+                    <IconButton
+                      onClick={() => onDelete(index)}
+                      size="small"
+                      color="error"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))

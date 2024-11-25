@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { UserFormInputs } from '../form-fields/UserFormInputs';
 import { UsersTable } from '../tables/UsersTable';
+import { ResetPasswordDialog } from '../dialog/ResetPasswordDialog';
 import { useCustomerUsers } from '../../hooks/useCustomerUsers';
 import { User } from '../../types';
 
@@ -21,12 +22,16 @@ const UserForm: React.FC<UserFormProps> = ({
   users,
   onChange
 }) => {
-  console.log('Users data in UserForm:', users); // Agregar este log
+  console.log('Users data in UserForm:', users);
   
   const {
     newUser,
+    resetPasswordUser,
     handleAddUser,
     handleRemoveUser,
+    openResetPassword,
+    closeResetPassword,
+    handleResetPassword,
     setNewUser,
     getFieldError
   } = useCustomerUsers({ initialUsers: users, onChange });
@@ -79,7 +84,17 @@ const UserForm: React.FC<UserFormProps> = ({
           status: user.status || 1
         }))}
         onDelete={handleRemoveUser}
+        onResetPassword={openResetPassword}
       />
+
+      {resetPasswordUser && (
+        <ResetPasswordDialog
+          open={true}
+          userEmail={resetPasswordUser.email}
+          onClose={closeResetPassword}
+          onConfirm={handleResetPassword}
+        />
+      )}
     </Box>
   );
 };

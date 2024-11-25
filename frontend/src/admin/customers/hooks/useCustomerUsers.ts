@@ -7,10 +7,7 @@ interface UseCustomerUsersProps {
   onChange: (users: User[]) => void;
 }
 
-export const useCustomerUsers = ({ 
-  initialUsers, 
-  onChange 
-}: UseCustomerUsersProps) => {
+export const useCustomerUsers = ({ initialUsers, onChange }: UseCustomerUsersProps) => {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [newUser, setNewUser] = useState<User & { password: string; confirmPassword: string }>({
     email: '',
@@ -19,6 +16,7 @@ export const useCustomerUsers = ({
     password: '',
     confirmPassword: ''
   });
+  const [resetPasswordUser, setResetPasswordUser] = useState<{index: number; email: string} | null>(null);
 
   useEffect(() => {
     setUsers(initialUsers);
@@ -80,11 +78,42 @@ export const useCustomerUsers = ({
     onChange(updatedUsers);
   };
 
+  const openResetPassword = (index: number) => {
+    const user = users[index];
+    setResetPasswordUser({ index, email: user.email });
+  };
+
+  const closeResetPassword = () => {
+    setResetPasswordUser(null);
+  };
+
+  const handleResetPassword = (password: string) => {
+    if (!resetPasswordUser) return;
+
+    const updatedUsers = users.map((user, i) => {
+      if (i === resetPasswordUser.index) {
+        return {
+          ...user,
+          password
+        };
+      }
+      return user;
+    });
+
+    setUsers(updatedUsers);
+    onChange(updatedUsers);
+    closeResetPassword();
+  };
+
   return {
     users,
     newUser,
+    resetPasswordUser,
     handleAddUser,
     handleRemoveUser,
+    openResetPassword,
+    closeResetPassword,
+    handleResetPassword,
     setNewUser,
     getFieldError
   };

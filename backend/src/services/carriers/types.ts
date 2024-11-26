@@ -1,4 +1,4 @@
-// src/services/carriers/types.ts
+// backend/src/services/carriers/types.ts
 export interface CreateCarrierDTO {
     lookupCode: string;
     name: string;

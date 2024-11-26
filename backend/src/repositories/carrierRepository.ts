@@ -1,4 +1,4 @@
-// src/repositories/carrierRepository.ts
+// backend/src/repositories/carrierRepository.ts
 import { PrismaClient } from '@prisma/client';
 import { Carrier, CarrierService } from '../domain/carrier';
 import { CarrierFilters, CreateCarrierDTO, CreateCarrierServiceDTO, UpdateCarrierDTO, UpdateCarrierServiceDTO } from '../services/carriers/types';

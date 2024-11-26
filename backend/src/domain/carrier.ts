@@ -1,4 +1,4 @@
-// src/domain/carrier.ts
+// backend/src/domain/carrier.ts
 export interface Carrier {
     id: number;
     lookupCode: string;

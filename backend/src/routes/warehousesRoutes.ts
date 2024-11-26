@@ -1,13 +1,7 @@
 // backend/src/routes/warehousesRoutes.ts
 import express from 'express';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
-
-import { warehousesController } from '../controllers/warehouses/warehouse.controller';
-import { warehouseListController } from '../controllers/warehouses/warehouse-list.controller';
-import { warehouseCreateController } from '../controllers/warehouses/warehouse-create.controller';
-import { warehouseUpdateController } from '../controllers/warehouses/warehouse-update.controller';
-import { warehouseDeleteController } from '../controllers/warehouses/warehouse-delete.controller';
-import { warehouseStatsController } from '../controllers/warehouses/warehouse-stats.controller';
+import { warehouseController } from '../controllers/warehouseController';
 
 const router = express.Router();
 
@@ -15,13 +9,13 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Public routes (authenticated users)
-router.get('/', warehouseListController.list);
-router.get('/stats', warehouseStatsController.getStats);
-router.get('/:id', warehousesController.getById);
+router.get('/', warehouseController.list);
+router.get('/stats', warehouseController.getStats);
+router.get('/:id', warehouseController.getById);
 
 // Admin only routes
-router.post('/', requireAdmin, warehouseCreateController.create);
-router.put('/:id', requireAdmin, warehouseUpdateController.update);
-router.delete('/:id', requireAdmin, warehouseDeleteController.delete);
+router.post('/', requireAdmin, warehouseController.create);
+router.put('/:id', requireAdmin, warehouseController.update);
+router.delete('/:id', requireAdmin, warehouseController.delete);
 
 export default router;

@@ -9,4 +9,5 @@ export interface ValidationResult {
     data?: T;
     error?: string;
     errors?: string[];
+    message?: string;
   }

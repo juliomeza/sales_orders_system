@@ -1,4 +1,4 @@
-// src/repositories/customerRepository.ts
+// backend/src/repositories/customerRepository.ts
 import { PrismaClient, Prisma } from '@prisma/client';
 import { CustomerDomain, ProjectDomain, UserDomain } from '../domain/customer';
 

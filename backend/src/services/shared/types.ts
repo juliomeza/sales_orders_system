@@ -1,4 +1,4 @@
-// src/services/shared/types.ts
+// backend/src/services/shared/types.ts
 export interface ValidationResult {
     isValid: boolean;
     errors: string[];

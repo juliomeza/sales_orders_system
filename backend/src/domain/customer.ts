@@ -1,4 +1,4 @@
-// src/domain/customer.ts
+// backend/src/domain/customer.ts
 export interface CustomerDomain {
     id: number;
     lookupCode: string;

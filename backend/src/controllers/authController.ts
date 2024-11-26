@@ -1,148 +1,87 @@
 // backend/src/controllers/authController.ts
 import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
+import { AuthService } from '../services/auth/authService';
+import { UserRepository } from '../repositories/userRepository';
 import prisma from '../config/database';
-import { generateToken } from '../utils/jwt';
-import { Prisma } from '@prisma/client';
 
-export const authController = {
-  // Login user
-  login: async (req: Request, res: Response) => {
-    try {
-      const { email, password } = req.body;
+const JWT_SECRET = process.env.JWT_SECRET!;
 
-      if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
-      }
+export class AuthController {
+  private authService: AuthService;
 
-      const user = await prisma.user.findUnique({ 
-        where: { email },
-        include: {
-          customer: true
-        }
-      });
+  constructor(authService?: AuthService) {
+    this.authService = authService || new AuthService(
+      new UserRepository(prisma),
+      JWT_SECRET
+    );
 
-      if (!user) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
-
-      const token = generateToken(user);
-      const { password: _, ...userWithoutPassword } = user;
-      
-      res.json({
-        token,
-        user: userWithoutPassword
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  // Register new user (admin only)
-  register: async (req: Request, res: Response) => {
-    try {
-      const { email, password, role, customerId } = req.body;
-
-      if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
-      }
-
-      const existingUser = await prisma.user.findUnique({ where: { email } });
-      if (existingUser) {
-        return res.status(409).json({ error: 'User already exists' });
-      }
-
-      const lookupCode = email.split('@')[0].toUpperCase();
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const userData: Prisma.UserCreateInput = {
-        email,
-        lookupCode,
-        password: hashedPassword,
-        role: role || 'CLIENT',
-        status: 1,
-        customer: customerId ? {
-          connect: { id: customerId }
-        } : undefined,
-        creator: req.user?.userId ? {
-          connect: { id: req.user.userId }
-        } : undefined,
-        modifier: req.user?.userId ? {
-          connect: { id: req.user.userId }
-        } : undefined
-      };
-
-      const user = await prisma.user.create({
-        data: userData,
-        include: {
-          customer: true
-        }
-      });
-
-      // Remove sensitive data before sending response
-      const { password: _, ...userWithoutPassword } = user;
-      res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      console.error('Registration error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  // Refresh token
-  refreshToken: async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Invalid token' });
-      }
-
-      const user = await prisma.user.findUnique({
-        where: { id: req.user.userId },
-        include: {
-          customer: true
-        }
-      });
-
-      if (!user) {
-        return res.status(401).json({ error: 'User not found' });
-      }
-
-      const token = generateToken(user);
-      res.json({ token });
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  // Get current user info
-  getCurrentUser: async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Not authenticated' });
-      }
-
-      const user = await prisma.user.findUnique({
-        where: { id: req.user.userId },
-        include: {
-          customer: true
-        }
-      });
-
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error('Get current user error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    // Bind de los métodos para mantener el contexto
+    this.login = this.login.bind(this);
+    this.register = this.register.bind(this);
+    this.getCurrentUser = this.getCurrentUser.bind(this);
+    this.refreshToken = this.refreshToken.bind(this);
   }
-};
+
+  async login(req: Request, res: Response) {
+    const result = await this.authService.login(req.body);
+    
+    if (!result.success) {
+      return res.status(401).json({ error: result.error });
+    }
+
+    res.json(result.data);
+  }
+
+  async register(req: Request, res: Response) {
+    const result = await this.authService.register(req.body);
+    
+    if (!result.success) {
+      if (result.error === 'User already exists') {
+        return res.status(409).json({ error: result.error });
+      }
+      if (result.errors) {
+        return res.status(400).json({ 
+          error: 'Validation failed',
+          details: result.errors
+        });
+      }
+      return res.status(500).json({ error: result.error });
+    }
+
+    res.status(201).json(result.data);
+  }
+
+  async getCurrentUser(req: Request, res: Response) {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const result = await this.authService.getCurrentUser(req.user.userId);
+    
+    if (!result.success) {
+      if (result.error === 'User not found') {
+        return res.status(404).json({ error: result.error });
+      }
+      return res.status(500).json({ error: result.error });
+    }
+
+    res.json(result.data);
+  }
+
+  async refreshToken(req: Request, res: Response) {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const result = await this.authService.refreshToken(req.user.userId);
+    
+    if (!result.success) {
+      return res.status(401).json({ error: result.error });
+    }
+
+    res.json({ token: result.data });
+  }
+}
+
+// Exportar instancia por defecto para mantener compatibilidad
+export const authController = new AuthController();

@@ -1,4 +1,4 @@
-// src/services/customers/types.ts
+// backend/src/services/customers/types.ts
 import { CustomerDomain, ProjectDomain, UserDomain } from '../../domain/customer';
 
 export interface CreateCustomerDTO {

@@ -1,4 +1,4 @@
-// src/services/customers/customerService.ts
+// backend/src/services/customers/customerService.ts
 import { CustomerRepository } from '../../repositories/customerRepository';
 import { ValidationService, ValidationRule } from '../shared/validationService';
 import { ServiceResult } from '../shared/types';

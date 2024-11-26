@@ -1,15 +1,11 @@
 // backend/src/routes/orderRoutes.ts
 import express from 'express';
+import { ordersController } from '../controllers/ordersController';
 import { authenticateToken } from '../middleware/authMiddleware';
-import { orderListController } from '../controllers/orders/order-list.controller';
-import { orderCreateController } from '../controllers/orders/order-create.controller';
-import { orderUpdateController } from '../controllers/orders/order-update.controller';
-import { orderDeleteController } from '../controllers/orders/order-delete.controller';
-import { orderStatsController } from '../controllers/orders/order-stats.controller';
-import { ordersController } from '../controllers/orders/order.controller';
 
 const router = express.Router();
 
+// Middleware para verificar que el usuario es un cliente
 const requireClient = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (req.user?.role !== 'CLIENT') {
     return res.status(403).json({ error: 'Access denied. Client access only.' });
@@ -17,16 +13,16 @@ const requireClient = (req: express.Request, res: express.Response, next: expres
   next();
 };
 
-// Protect all routes
+// Proteger todas las rutas
 router.use(authenticateToken);
 router.use(requireClient);
 
-// CRUD routes
-router.post('/', orderCreateController.create);
-router.get('/', orderListController.list);
-router.get('/stats', orderStatsController.getStats);
+// Rutas CRUD
+router.post('/', ordersController.create);
+router.get('/', ordersController.list);
+router.get('/stats', ordersController.getStats);
 router.get('/:id', ordersController.getById);
-router.put('/:id', orderUpdateController.update);
-router.delete('/:id', orderDeleteController.delete);
+router.put('/:id', ordersController.update);
+router.delete('/:id', ordersController.delete);
 
 export default router;

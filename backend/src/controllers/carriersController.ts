@@ -1,115 +1,91 @@
 // backend/src/controllers/carriersController.ts
 import { Request, Response } from 'express';
-import prisma from '../config/database';
-import { Prisma } from '@prisma/client';
+import { CarrierServiceImpl } from '../services/carriers/carrierService';
 
-export const carriersController = {
-  // Get list of all carriers
-  list: async (req: Request, res: Response) => {
+export class CarriersController {
+  constructor(private carrierService: CarrierServiceImpl) {}
+
+  getCarriers = async (req: Request, res: Response) => {
     try {
-      const carriers = await prisma.carrier.findMany({
-        where: {
-          status: 1 // Solo carriers activos
-        },
-        select: {
-          id: true,
-          name: true,
-          lookupCode: true,
-          status: true,
-          services: {
-            where: {
-              status: 1 // Solo servicios activos
-            },
-            select: {
-              id: true,
-              name: true,
-              lookupCode: true,
-              description: true,
-              status: true
-            }
-          },
-          _count: {
-            select: {
-              orders: true
-            }
-          }
-        },
-        orderBy: {
-          name: 'asc'
-        }
-      });
-
-      console.log('Carriers with services:', JSON.stringify(carriers, null, 2)); // Para debugging
-
+      const carriers = await this.carrierService.getAllCarriers();
+      // Cambiar esta parte
       res.json({
-        carriers,
+        carriers: carriers, // Enviar los carriers directamente en la propiedad carriers
         total: carriers.length
       });
     } catch (error) {
-      console.error('List carriers error:', error);
-      res.status(500).json({ error: 'Error listing carriers' });
+      console.error('Error getting carriers:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Error retrieving carriers' 
+      });
     }
-  },
+  };
 
-  // Get carrier services
-  getServices: async (req: Request, res: Response) => {
+  getCarrierById = async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-
-      const carrier = await prisma.carrier.findUnique({
-        where: { 
-          id: Number(id),
-        },
-        select: {
-          id: true,
-          name: true,
-          lookupCode: true,
-          status: true,
-          services: {
-            where: {
-              status: 1
-            },
-            select: {
-              id: true,
-              name: true,
-              lookupCode: true,
-              description: true,
-              status: true
-            }
-          }
-        }
-      });
-
-      if (!carrier) {
-        return res.status(404).json({ error: 'Carrier not found' });
-      }
-
-      // Get service usage statistics
-      const serviceStats = await Promise.all(
-        carrier.services.map(async (service) => {
-          const orderCount = await prisma.order.count({
-            where: {
-              carrierServiceId: service.id
-            }
-          });
-
-          return {
-            ...service,
-            orderCount
-          };
-        })
-      );
-
+      const id = Number(req.params.id);
+      const carrier = await this.carrierService.getCarrierById(id);
       res.json({
-        id: carrier.id,
-        name: carrier.name,
-        lookupCode: carrier.lookupCode,
-        services: serviceStats
+        success: true,
+        data: carrier
       });
-
     } catch (error) {
-      console.error('Get carrier services error:', error);
-      res.status(500).json({ error: 'Error retrieving carrier services' });
+      console.error('Error getting carrier:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Error retrieving carrier' 
+      });
     }
-  }
-};
+  };
+
+  createCarrier = async (req: Request, res: Response) => {
+    try {
+      const carrier = await this.carrierService.createCarrier(req.body);
+      res.status(201).json({
+        success: true,
+        data: carrier
+      });
+    } catch (error: any) {
+      console.error('Error creating carrier:', error);
+      res.status(400).json({ 
+        success: false, 
+        error: error.message || 'Error creating carrier' 
+      });
+    }
+  };
+
+  updateCarrier = async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const carrier = await this.carrierService.updateCarrier(id, req.body);
+      res.json({
+        success: true,
+        data: carrier
+      });
+    } catch (error: any) {
+      console.error('Error updating carrier:', error);
+      res.status(400).json({ 
+        success: false, 
+        error: error.message || 'Error updating carrier' 
+      });
+    }
+  };
+
+  getCarrierServices = async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const carrier = await this.carrierService.getCarrierById(id);
+      res.json({
+        success: true,
+        data: carrier.services
+      });
+    } catch (error) {
+      console.error('Error getting carrier services:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Error retrieving carrier services' 
+      });
+    }
+  };
+}

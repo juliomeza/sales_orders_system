@@ -1,15 +1,21 @@
 // backend/src/routes/carriersRoutes.ts
-import express from 'express';
-import { carriersController } from '../controllers/carriersController';
+import { Router } from 'express';
+import prisma from '../config/database';
+import { CarrierRepository } from '../repositories/carrierRepository';
+import { CarrierServiceImpl } from '../services/carriers/carrierService';
+import { CarriersController } from '../controllers/carriersController';
 import { authenticateToken } from '../middleware/authMiddleware';
 
-const router = express.Router();
+const router = Router();
 
-// Protect all routes with authentication
-router.use(authenticateToken);
+const carrierRepository = new CarrierRepository(prisma);
+const carrierService = new CarrierServiceImpl(carrierRepository);
+const carriersController = new CarriersController(carrierService);
 
-// Routes
-router.get('/', carriersController.list);
-router.get('/:id/services', carriersController.getServices);
+router.get('/', authenticateToken, carriersController.getCarriers);
+router.get('/:id', authenticateToken, carriersController.getCarrierById);
+router.post('/', authenticateToken, carriersController.createCarrier);
+router.put('/:id', authenticateToken, carriersController.updateCarrier);
+router.get('/:id/services', authenticateToken, carriersController.getCarrierServices);
 
 export default router;

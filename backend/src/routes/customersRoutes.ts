@@ -3,7 +3,7 @@ import express from 'express';
 import { CustomersController } from '../controllers/customersController';
 import { CustomerService } from '../services/customers/customerService';
 import { CustomerRepository } from '../repositories/customerRepository';
-import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 import prisma from '../config/database';
 
 const router = express.Router();

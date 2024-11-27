@@ -4,7 +4,7 @@ import prisma from '../config/database';
 import { CarrierRepository } from '../repositories/carrierRepository';
 import { CarrierServiceImpl } from '../services/carriers/carrierService';
 import { CarriersController } from '../controllers/carriersController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 

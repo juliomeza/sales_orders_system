@@ -3,7 +3,7 @@ import express from 'express';
 import { ShipToController } from '../controllers/shipToController';
 import { ShipToService } from '../services/shipTo/shipToService';
 import { ShipToRepository } from '../repositories/shipToRepository';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 
 const router = express.Router();

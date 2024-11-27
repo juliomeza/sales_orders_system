@@ -11,7 +11,7 @@ import {
   import { MaterialRepository } from '../../repositories/materialRepository';
   import { ServiceResult } from '../shared/types';
   import { MaterialValidationService } from './materialValidationService';
-  import { MaterialErrorMessages } from '../shared/errorMessages';
+  import { MaterialErrorMessages } from './errorMessages';
   
   export class MaterialService {
     constructor(private materialRepository: MaterialRepository) {}

@@ -1,7 +1,7 @@
 // backend/src/routes/orderRoutes.ts
 import express from 'express';
 import { ordersController } from '../controllers/ordersController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 

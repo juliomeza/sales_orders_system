@@ -1,4 +1,4 @@
-// backend/src/services/shared/errorMessages.ts
+// backend/src/services/materials/errorMessages.ts
 export const MaterialErrorMessages = {
     NOT_FOUND: 'Material not found',
     LIST_ERROR: 'Error listing materials',

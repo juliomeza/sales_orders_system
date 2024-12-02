@@ -31,6 +31,7 @@ export const ERROR_MESSAGES = {
       UPDATE_ERROR: 'Error updating record',
       DELETE_ERROR: 'Error deleting record',
       LIST_ERROR: 'Error retrieving records',
+      SEARCH_ERROR: 'Error searching records',
       LOGIN_ERROR: 'Error during login',
       TOKEN_REFRESH_ERROR: 'Error refreshing token'
     }

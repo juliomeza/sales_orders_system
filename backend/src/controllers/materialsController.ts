@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import { MaterialService } from '../services/materials/materialService';
 import { MaterialRepository } from '../repositories/materialRepository';
 import prisma from '../config/database';
+import { ERROR_MESSAGES, STATUS, ROLES } from '../shared/constants';
+import { MaterialFilters, MaterialSearchFilters } from '../domain/material';
 
 export class MaterialsController {
   private materialService: MaterialService;
@@ -12,7 +14,6 @@ export class MaterialsController {
       new MaterialRepository(prisma)
     );
 
-    // Bind de los métodos para mantener el contexto
     this.list = this.list.bind(this);
     this.search = this.search.bind(this);
     this.getById = this.getById.bind(this);
@@ -20,98 +21,164 @@ export class MaterialsController {
   }
 
   async list(req: Request, res: Response) {
-    const { 
-      search = '', 
-      uom,
-      status,
-      page = '1', 
-      limit = '20',
-      projectId 
-    } = req.query;
+    try {
+      if (!req.user) {
+        return res.status(401).json({ 
+          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+        });
+      }
 
-    const customerId = req.user?.customerId;
-    const isAdmin = req.user?.role === 'ADMIN';
+      const { 
+        search = '', 
+        uom,
+        status,
+        page = '1', 
+        limit = '20',
+        projectId 
+      } = req.query;
 
-    const filters = {
-      search: String(search),
-      uom: uom ? String(uom) : undefined,
-      status: status ? Number(status) : undefined,
-      projectId: projectId ? Number(projectId) : undefined,
-      customerId: !isAdmin && customerId ? Number(customerId) : undefined,
-      page: Number(page),
-      limit: Number(limit)
-    };
+      const customerId = req.user.customerId;
+      const isAdmin = req.user.role === ROLES.ADMIN;
 
-    const result = await this.materialService.listMaterials(filters);
+      const filters: MaterialFilters = {
+        search: String(search),
+        uom: uom ? String(uom) : undefined,
+        status: status ? Number(status) : undefined,
+        projectId: projectId ? Number(projectId) : undefined,
+        customerId: !isAdmin && customerId ? Number(customerId) : undefined,
+        page: Number(page),
+        limit: Number(limit)
+      };
 
-    if (!result.success) {
-      return res.status(500).json({ error: result.error });
+      const result = await this.materialService.listMaterials(filters);
+
+      if (!result.success) {
+        return res.status(500).json({ 
+          error: ERROR_MESSAGES.OPERATION.LIST_ERROR,
+          details: result.errors 
+        });
+      }
+
+      res.json(result.data);
+    } catch (error) {
+      console.error('List materials error:', error);
+      res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
+      });
     }
-
-    res.json(result.data);
   }
 
   async search(req: Request, res: Response) {
-    const { 
-      query = '',
-      uom,
-      minQuantity,
-      maxQuantity,
-      projectId,
-      page = '1',
-      limit = '20'
-    } = req.query;
+    try {
+      if (!req.user) {
+        return res.status(401).json({ 
+          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+        });
+      }
 
-    const customerId = req.user?.customerId;
-    const isAdmin = req.user?.role === 'ADMIN';
+      const { 
+        query = '',
+        uom,
+        minQuantity,
+        maxQuantity,
+        projectId,
+        page = '1',
+        limit = '20'
+      } = req.query;
 
-    const filters = {
-      search: String(query),
-      uom: uom ? String(uom) : undefined,
-      minQuantity: minQuantity ? Number(minQuantity) : undefined,
-      maxQuantity: maxQuantity ? Number(maxQuantity) : undefined,
-      projectId: projectId ? Number(projectId) : undefined,
-      customerId: !isAdmin && customerId ? Number(customerId) : undefined,
-      page: Number(page),
-      limit: Number(limit)
-    };
+      const customerId = req.user.customerId;
+      const isAdmin = req.user.role === ROLES.ADMIN;
 
-    const result = await this.materialService.searchMaterials(filters);
+      const filters: MaterialSearchFilters = {
+        search: String(query),
+        uom: uom ? String(uom) : undefined,
+        minQuantity: minQuantity ? Number(minQuantity) : undefined,
+        maxQuantity: maxQuantity ? Number(maxQuantity) : undefined,
+        projectId: projectId ? Number(projectId) : undefined,
+        customerId: !isAdmin && customerId ? Number(customerId) : undefined,
+        page: Number(page),
+        limit: Number(limit)
+      };
 
-    if (!result.success) {
-      return res.status(500).json({ error: result.error });
+      const result = await this.materialService.searchMaterials(filters);
+
+      if (!result.success) {
+        return res.status(500).json({ 
+          error: ERROR_MESSAGES.OPERATION.SEARCH_ERROR,
+          details: result.errors 
+        });
+      }
+
+      res.json(result.data);
+    } catch (error) {
+      console.error('Search materials error:', error);
+      res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.SEARCH_ERROR 
+      });
     }
-
-    res.json(result.data);
   }
 
   async getById(req: Request, res: Response) {
-    const { id } = req.params;
-    const customerId = req.user?.customerId;
-    const isAdmin = req.user?.role === 'ADMIN';
-
-    const result = await this.materialService.getMaterialById(
-      Number(id),
-      !isAdmin && customerId ? Number(customerId) : undefined
-    );
-
-    if (!result.success) {
-      if (result.error === 'Material not found') {
-        return res.status(404).json({ error: result.error });
+    try {
+      if (!req.user) {
+        return res.status(401).json({ 
+          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+        });
       }
-      return res.status(500).json({ error: result.error });
-    }
 
-    res.json(result.data);
+      const { id } = req.params;
+      const customerId = req.user.customerId;
+      const isAdmin = req.user.role === ROLES.ADMIN;
+
+      const result = await this.materialService.getMaterialById(
+        Number(id),
+        !isAdmin && customerId ? Number(customerId) : undefined
+      );
+
+      if (!result.success) {
+        if (result.error === ERROR_MESSAGES.NOT_FOUND.MATERIAL) {
+          return res.status(404).json({ 
+            error: ERROR_MESSAGES.NOT_FOUND.MATERIAL 
+          });
+        }
+        return res.status(500).json({ 
+          error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
+        });
+      }
+
+      res.json(result.data);
+    } catch (error) {
+      console.error('Get material error:', error);
+      res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
+      });
+    }
   }
 
   async getUoms(_req: Request, res: Response) {
-    const result = await this.materialService.getUniqueUoms();
+    try {
+      if (!_req.user) {
+        return res.status(401).json({ 
+          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+        });
+      }
 
-    if (!result.success) {
-      return res.status(500).json({ error: result.error });
+      const result = await this.materialService.getUniqueUoms();
+
+      if (!result.success) {
+        return res.status(500).json({ 
+          error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
+        });
+      }
+
+      res.json(result.data);
+    } catch (error) {
+      console.error('Get UOMs error:', error);
+      res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
+      });
     }
-
-    res.json(result.data);
   }
 }
+
+export const materialsController = new MaterialsController();

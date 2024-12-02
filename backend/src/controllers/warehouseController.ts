@@ -1,9 +1,10 @@
 // backend/src/controllers/warehouseController.ts
 import { Request, Response } from 'express';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { WarehouseService } from '../services/warehouses/warehouseService';
 import { WarehouseRepository } from '../repositories/warehouseRepository';
 import prisma from '../config/database';
-import { WarehouseFilters } from '../services/warehouses/types';
+import { ERROR_MESSAGES } from '../shared/constants';
 
 export class WarehouseController {
   private warehouseService: WarehouseService;
@@ -13,7 +14,6 @@ export class WarehouseController {
       new WarehouseRepository(prisma)
     );
 
-    // Bind methods to maintain correct context
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
@@ -24,7 +24,9 @@ export class WarehouseController {
 
   async create(req: Request, res: Response) {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ 
+        error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+      });
     }
 
     const result = await this.warehouseService.createWarehouse(
@@ -35,11 +37,13 @@ export class WarehouseController {
     if (!result.success) {
       if (result.errors) {
         return res.status(400).json({ 
-          error: 'Validation failed', 
+          error: ERROR_MESSAGES.VALIDATION.FAILED, 
           details: result.errors 
         });
       }
-      return res.status(500).json({ error: result.error });
+      return res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
+      });
     }
 
     res.status(201).json(result.data);
@@ -47,7 +51,9 @@ export class WarehouseController {
 
   async update(req: Request, res: Response) {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ 
+        error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+      });
     }
 
     const { id } = req.params;
@@ -59,16 +65,20 @@ export class WarehouseController {
     );
 
     if (!result.success) {
-      if (result.error === 'Warehouse not found') {
-        return res.status(404).json({ error: result.error });
+      if (result.error === ERROR_MESSAGES.NOT_FOUND.WAREHOUSE) {
+        return res.status(404).json({ 
+          error: ERROR_MESSAGES.NOT_FOUND.WAREHOUSE 
+        });
       }
       if (result.errors) {
         return res.status(400).json({ 
-          error: 'Validation failed', 
+          error: ERROR_MESSAGES.VALIDATION.FAILED, 
           details: result.errors 
         });
       }
-      return res.status(500).json({ error: result.error });
+      return res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
+      });
     }
 
     res.json(result.data);
@@ -76,7 +86,9 @@ export class WarehouseController {
 
   async delete(req: Request, res: Response) {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ 
+        error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+      });
     }
 
     const { id } = req.params;
@@ -84,13 +96,16 @@ export class WarehouseController {
     const result = await this.warehouseService.deleteWarehouse(Number(id));
 
     if (!result.success) {
-      if (result.error === 'Warehouse not found') {
-        return res.status(404).json({ error: result.error });
+      if (result.error === ERROR_MESSAGES.NOT_FOUND.WAREHOUSE) {
+        return res.status(404).json({ 
+          error: ERROR_MESSAGES.NOT_FOUND.WAREHOUSE 
+        });
       }
-      return res.status(500).json({ error: result.error });
+      return res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.DELETE_ERROR 
+      });
     }
 
-    // If there's a message, it means it was a soft delete
     if (result.message) {
       return res.json({ 
         message: result.message,
@@ -99,13 +114,14 @@ export class WarehouseController {
       });
     }
 
-    // Hard delete
     res.status(204).send();
   }
 
   async getById(req: Request, res: Response) {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ 
+        error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+      });
     }
   
     const { id } = req.params;
@@ -117,10 +133,14 @@ export class WarehouseController {
     );
   
     if (!result.success) {
-      if (result.error === 'Warehouse not found') {
-        return res.status(404).json({ error: result.error });
+      if (result.error === ERROR_MESSAGES.NOT_FOUND.WAREHOUSE) {
+        return res.status(404).json({ 
+          error: ERROR_MESSAGES.NOT_FOUND.WAREHOUSE 
+        });
       }
-      return res.status(500).json({ error: result.error });
+      return res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
+      });
     }
   
     res.json(result.data);
@@ -128,10 +148,12 @@ export class WarehouseController {
 
   async list(req: Request, res: Response) {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ 
+        error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+      });
     }
   
-    const filters: WarehouseFilters = {
+    const filters = {
       search: req.query.search as string,
       status: req.query.status ? Number(req.query.status) : undefined,
       city: req.query.city as string,
@@ -146,11 +168,13 @@ export class WarehouseController {
     if (!result.success) {
       if (result.errors) {
         return res.status(400).json({ 
-          error: 'Invalid filters', 
+          error: ERROR_MESSAGES.VALIDATION.FAILED, 
           details: result.errors 
         });
       }
-      return res.status(500).json({ error: result.error });
+      return res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
+      });
     }
   
     res.json(result.data);
@@ -158,18 +182,21 @@ export class WarehouseController {
 
   async getStats(req: Request, res: Response) {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ 
+        error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
+      });
     }
 
     const result = await this.warehouseService.getWarehouseStats();
 
     if (!result.success) {
-      return res.status(500).json({ error: result.error });
+      return res.status(500).json({ 
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
+      });
     }
 
     res.json(result.data);
   }
 }
 
-// Export default instance for compatibility
 export const warehouseController = new WarehouseController();

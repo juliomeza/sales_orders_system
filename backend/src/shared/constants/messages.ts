@@ -23,7 +23,8 @@ export const ERROR_MESSAGES = {
       ORDER: 'Order not found',
       MATERIAL: 'Material not found',
       WAREHOUSE: 'Warehouse not found',
-      CUSTOMER: 'Customer not found'
+      CUSTOMER: 'Customer not found',
+      CARRIER: 'Carrier not found'
     },
     OPERATION: {
       CREATE_ERROR: 'Error creating record',

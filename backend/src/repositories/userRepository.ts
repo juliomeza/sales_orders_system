@@ -1,6 +1,7 @@
 // backend/src/repositories/userRepository.ts
 import { PrismaClient } from '@prisma/client';
 import { UserDomain } from '../domain/user';
+import { CreateUserDTO } from '../services/auth/types';
 import bcrypt from 'bcryptjs';
 
 export class UserRepository {
@@ -38,12 +39,7 @@ export class UserRepository {
     return user as UserDomain | null;
   }
 
-  async create(data: {
-    email: string;
-    password: string;
-    role: string;
-    customerId?: number;
-  }): Promise<UserDomain> {
+  async create(data: CreateUserDTO): Promise<UserDomain> {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const lookupCode = data.email.split('@')[0].toUpperCase();
 
@@ -52,9 +48,9 @@ export class UserRepository {
         email: data.email,
         lookupCode,
         password: hashedPassword,
-        role: data.role || 'CLIENT',
+        role: data.role,
         customerId: data.customerId || null,
-        status: 1,
+        status: data.status,
         created_by: null,
         modified_by: null
       },

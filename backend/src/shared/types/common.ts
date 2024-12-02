@@ -39,3 +39,11 @@ export interface BaseEntity extends AuditFields {
   lookupCode: string;
   status: Status;
 }
+
+export interface ServiceResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  errors?: string[];
+  message?: string;
+}

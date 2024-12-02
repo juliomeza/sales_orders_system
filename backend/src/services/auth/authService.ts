@@ -1,9 +1,10 @@
 // backend/src/services/auth/authService.ts
 import { UserRepository } from '../../repositories/userRepository';
-import { ServiceResult } from '../shared/types';
+import { ServiceResult } from '../../shared/types/common';
 import { ValidationService } from '../shared/validationService';
-import { LoginDTO, RegisterDTO, AuthResponse } from './types';
+import { LoginDTO, RegisterDTO, AuthResponse, CreateUserDTO } from './types';
 import { UserDomain, UserTokenData } from '../../domain/user';
+import { ERROR_MESSAGES, ROLES, STATUS } from '../../shared/constants';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -36,19 +37,19 @@ export class AuthService {
     return ValidationService.validate([
       {
         condition: !!data.email,
-        message: 'Email is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD
       },
       {
         condition: !!data.password,
-        message: 'Password is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD
       },
       {
         condition: data.password?.length >= 8,
-        message: 'Password must be at least 8 characters long'
+        message: ERROR_MESSAGES.VALIDATION.INVALID_PASSWORD
       },
       {
         condition: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email),
-        message: 'Invalid email format'
+        message: ERROR_MESSAGES.VALIDATION.INVALID_EMAIL
       }
     ]);
   }
@@ -60,7 +61,7 @@ export class AuthService {
       if (!user) {
         return {
           success: false,
-          error: 'Invalid credentials'
+          error: ERROR_MESSAGES.AUTHENTICATION.INVALID_CREDENTIALS
         };
       }
 
@@ -68,7 +69,14 @@ export class AuthService {
       if (!isValidPassword) {
         return {
           success: false,
-          error: 'Invalid credentials'
+          error: ERROR_MESSAGES.AUTHENTICATION.INVALID_CREDENTIALS
+        };
+      }
+
+      if (user.status !== STATUS.ACTIVE) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.AUTHENTICATION.ACCOUNT_INACTIVE
         };
       }
 
@@ -84,7 +92,7 @@ export class AuthService {
     } catch (error) {
       return {
         success: false,
-        error: 'Login error'
+        error: ERROR_MESSAGES.OPERATION.LOGIN_ERROR
       };
     }
   }
@@ -103,16 +111,17 @@ export class AuthService {
       if (existingUser) {
         return {
           success: false,
-          error: 'User already exists'
+          error: ERROR_MESSAGES.AUTHENTICATION.USER_EXISTS
         };
       }
 
       const user = await this.userRepository.create({
         email: data.email,
         password: data.password,
-        role: data.role || 'CLIENT',
-        customerId: data.customerId
-      });
+        role: data.role || ROLES.CLIENT,
+        customerId: data.customerId,
+        status: STATUS.ACTIVE
+      } as CreateUserDTO); 
 
       const token = this.generateToken(user);
 
@@ -126,7 +135,7 @@ export class AuthService {
     } catch (error) {
       return {
         success: false,
-        error: 'Registration error'
+        error: ERROR_MESSAGES.OPERATION.CREATE_ERROR
       };
     }
   }
@@ -138,7 +147,14 @@ export class AuthService {
       if (!user) {
         return {
           success: false,
-          error: 'User not found'
+          error: ERROR_MESSAGES.NOT_FOUND.USER
+        };
+      }
+
+      if (user.status !== STATUS.ACTIVE) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.AUTHENTICATION.ACCOUNT_INACTIVE
         };
       }
 
@@ -149,7 +165,7 @@ export class AuthService {
     } catch (error) {
       return {
         success: false,
-        error: 'Error retrieving user'
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR
       };
     }
   }
@@ -161,7 +177,14 @@ export class AuthService {
       if (!user) {
         return {
           success: false,
-          error: 'User not found'
+          error: ERROR_MESSAGES.NOT_FOUND.USER
+        };
+      }
+
+      if (user.status !== STATUS.ACTIVE) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.AUTHENTICATION.ACCOUNT_INACTIVE
         };
       }
 
@@ -174,7 +197,7 @@ export class AuthService {
     } catch (error) {
       return {
         success: false,
-        error: 'Error refreshing token'
+        error: ERROR_MESSAGES.OPERATION.TOKEN_REFRESH_ERROR
       };
     }
   }

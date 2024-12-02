@@ -4,14 +4,19 @@ export const ERROR_MESSAGES = {
       REQUIRED: 'Authentication required',
       INVALID_CREDENTIALS: 'Invalid credentials',
       INVALID_TOKEN: 'Invalid or expired token',
-      ACCESS_DENIED: 'Access denied'
+      ACCESS_DENIED: 'Access denied',
+      USER_EXISTS: 'User already exists',
+      ACCOUNT_INACTIVE: 'Account is inactive'
     },
     VALIDATION: {
       REQUIRED_FIELD: 'This field is required',
       INVALID_STATUS: 'Invalid status value',
       INVALID_ROLE: 'Invalid role',
       INVALID_TYPE: 'Invalid type',
-      INVALID_QUANTITY: 'Quantity must be greater than zero'
+      INVALID_QUANTITY: 'Quantity must be greater than zero',
+      FAILED: 'Validation failed',
+      INVALID_PASSWORD: 'Password must be at least 8 characters long',
+      INVALID_EMAIL: 'Invalid email format'
     },
     NOT_FOUND: {
       USER: 'User not found',
@@ -24,6 +29,8 @@ export const ERROR_MESSAGES = {
       CREATE_ERROR: 'Error creating record',
       UPDATE_ERROR: 'Error updating record',
       DELETE_ERROR: 'Error deleting record',
-      LIST_ERROR: 'Error retrieving records'
+      LIST_ERROR: 'Error retrieving records',
+      LOGIN_ERROR: 'Error during login',
+      TOKEN_REFRESH_ERROR: 'Error refreshing token'
     }
   } as const;

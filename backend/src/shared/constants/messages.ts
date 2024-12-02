@@ -16,7 +16,10 @@ export const ERROR_MESSAGES = {
       INVALID_QUANTITY: 'Quantity must be greater than zero',
       FAILED: 'Validation failed',
       INVALID_PASSWORD: 'Password must be at least 8 characters long',
-      INVALID_EMAIL: 'Invalid email format'
+      INVALID_EMAIL: 'Invalid email format',
+      INVALID_CODE: 'Invalid code format',
+      INVALID_NAME: 'Invalid name format',
+      CODE_EXISTS: 'Code already exists'
     },
     NOT_FOUND: {
       USER: 'User not found',
@@ -24,7 +27,8 @@ export const ERROR_MESSAGES = {
       MATERIAL: 'Material not found',
       WAREHOUSE: 'Warehouse not found',
       CUSTOMER: 'Customer not found',
-      CARRIER: 'Carrier not found'
+      CARRIER: 'Carrier not found',
+      CARRIER_SERVICE: 'Carrier service not found'
     },
     OPERATION: {
       CREATE_ERROR: 'Error creating record',

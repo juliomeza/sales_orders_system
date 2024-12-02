@@ -7,6 +7,8 @@ export type Role = typeof ROLES[keyof typeof ROLES];
 export type AccountType = typeof ACCOUNT_TYPES[keyof typeof ACCOUNT_TYPES];
 export type UOMType = typeof UOM_TYPES[keyof typeof UOM_TYPES];
 
+export type BaseStatus = 1 | 2;
+
 export interface PaginationParams {
   page?: number;
   limit?: number;

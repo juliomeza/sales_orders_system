@@ -41,5 +41,10 @@ export const ERROR_MESSAGES = {
       SEARCH_ERROR: 'Error searching records',
       LOGIN_ERROR: 'Error during login',
       TOKEN_REFRESH_ERROR: 'Error refreshing token'
+    },
+    CUSTOMER: {
+      INVALID_PROJECT: 'Invalid project configuration',
+      INVALID_USER: 'Invalid user configuration',
+      DEFAULT_PROJECT_REQUIRED: 'One project must be set as default'
     }
   } as const;

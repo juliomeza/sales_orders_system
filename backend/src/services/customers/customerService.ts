@@ -4,7 +4,7 @@ import { ValidationService } from '../shared/validationService';
 import { ServiceResult } from '../../shared/types';
 import { CreateCustomerDTO, UpdateCustomerDTO } from './types';
 import { CustomerDomain } from '../../domain/customer';
-import { ERROR_MESSAGES, STATUS, ROLES } from '../../shared/constants';
+import { ERROR_MESSAGES, STATUS, ROLES, AUTH_CONSTANTS } from '../../shared/constants';
 import bcrypt from 'bcryptjs';
 
 export class CustomerService {
@@ -61,7 +61,7 @@ export class CustomerService {
       const usersWithHashedPasswords = await Promise.all(
         data.users.map(async user => ({
           ...user,
-          password: await bcrypt.hash(user.password || 'ChangeMe123!', 10),
+          password: await bcrypt.hash(user.password || AUTH_CONSTANTS.DEFAULT_PASSWORD, 10),
           status: STATUS.ACTIVE,
           role: user.role || ROLES.CLIENT
         }))
@@ -118,7 +118,7 @@ export class CustomerService {
         usersWithHashedPasswords = await Promise.all(
           data.users.map(async user => ({
             ...user,
-            password: await bcrypt.hash(user.password || 'ChangeMe123!', 10),
+            password: await bcrypt.hash(user.password || AUTH_CONSTANTS.DEFAULT_PASSWORD, 10),
             status: STATUS.ACTIVE,
             role: user.role || ROLES.CLIENT
           }))
@@ -210,7 +210,7 @@ export class CustomerService {
       },
       {
         condition: data.projects.some(p => p.isDefault),
-        message: 'One project must be set as default'
+        message: ERROR_MESSAGES.CUSTOMER.DEFAULT_PROJECT_REQUIRED
       },
       {
         condition: data.users.length > 0,
@@ -250,7 +250,7 @@ export class CustomerService {
       });
       rules.push({
         condition: data.projects.some(p => p.isDefault),
-        message: 'One project must be set as default'
+        message: ERROR_MESSAGES.CUSTOMER.DEFAULT_PROJECT_REQUIRED
       });
     }
 

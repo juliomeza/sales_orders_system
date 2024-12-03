@@ -3,3 +3,4 @@ export * from './status';
 export * from './roles';
 export * from './entities';
 export * from './messages';
+export * from './auth';

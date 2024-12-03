@@ -1,4 +1,6 @@
 // backend/src/domain/customer.ts
+import { Status } from '../shared/types/common';
+
 export interface CustomerDomain {
     id: number;
     lookupCode: string;

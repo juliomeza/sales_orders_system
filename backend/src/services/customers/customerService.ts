@@ -1,9 +1,10 @@
 // backend/src/services/customers/customerService.ts
 import { CustomerRepository } from '../../repositories/customerRepository';
-import { ValidationService, ValidationRule } from '../shared/validationService';
-import { ServiceResult } from '../shared/types';
+import { ValidationService } from '../shared/validationService';
+import { ServiceResult } from '../../shared/types';
 import { CreateCustomerDTO, UpdateCustomerDTO } from './types';
 import { CustomerDomain } from '../../domain/customer';
+import { ERROR_MESSAGES, STATUS, ROLES } from '../../shared/constants';
 import bcrypt from 'bcryptjs';
 
 export class CustomerService {
@@ -17,9 +18,10 @@ export class CustomerService {
         data: customers as CustomerDomain[]
       };
     } catch (error) {
+      console.error('Get all customers error:', error);
       return {
         success: false,
-        error: 'Error retrieving customers'
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR
       };
     }
   }
@@ -30,7 +32,7 @@ export class CustomerService {
       if (!customer) {
         return {
           success: false,
-          error: 'Customer not found'
+          error: ERROR_MESSAGES.NOT_FOUND.CUSTOMER
         };
       }
       return {
@@ -38,9 +40,10 @@ export class CustomerService {
         data: customer as CustomerDomain
       };
     } catch (error) {
+      console.error('Get customer by id error:', error);
       return {
         success: false,
-        error: 'Error retrieving customer'
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR
       };
     }
   }
@@ -58,18 +61,24 @@ export class CustomerService {
       const usersWithHashedPasswords = await Promise.all(
         data.users.map(async user => ({
           ...user,
-          password: await bcrypt.hash(user.password || 'ChangeMe123!', 10)
+          password: await bcrypt.hash(user.password || 'ChangeMe123!', 10),
+          status: STATUS.ACTIVE,
+          role: user.role || ROLES.CLIENT
         }))
       );
 
       const customer = await this.customerRepository.create(
         {
           ...data.customer,
-          id: 0, // Será ignorado por Prisma pero satisface el tipo
+          id: 0,
+          status: STATUS.ACTIVE,
           phone: data.customer.phone || null,
           email: data.customer.email || null
         },
-        data.projects,
+        data.projects.map(project => ({
+          ...project,
+          status: STATUS.ACTIVE
+        })),
         usersWithHashedPasswords
       );
 
@@ -78,9 +87,10 @@ export class CustomerService {
         data: customer as CustomerDomain
       };
     } catch (error) {
+      console.error('Create customer error:', error);
       return {
         success: false,
-        error: 'Error creating customer'
+        error: ERROR_MESSAGES.OPERATION.CREATE_ERROR
       };
     }
   }
@@ -95,12 +105,22 @@ export class CustomerService {
     }
 
     try {
+      const existingCustomer = await this.customerRepository.findById(id);
+      if (!existingCustomer) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.NOT_FOUND.CUSTOMER
+        };
+      }
+
       let usersWithHashedPasswords;
       if (data.users) {
         usersWithHashedPasswords = await Promise.all(
           data.users.map(async user => ({
             ...user,
-            password: await bcrypt.hash(user.password || 'ChangeMe123!', 10)
+            password: await bcrypt.hash(user.password || 'ChangeMe123!', 10),
+            status: STATUS.ACTIVE,
+            role: user.role || ROLES.CLIENT
           }))
         );
       }
@@ -108,45 +128,52 @@ export class CustomerService {
       const customerData = data.customer ? {
         ...data.customer,
         phone: data.customer.phone || null,
-        email: data.customer.email || null
+        email: data.customer.email || null,
+        status: data.customer.status || STATUS.ACTIVE
       } : {};
 
       const customer = await this.customerRepository.update(
         id,
         customerData,
-        data.projects,
+        data.projects?.map(project => ({
+          ...project,
+          status: STATUS.ACTIVE
+        })),
         usersWithHashedPasswords
       );
-
-      if (!customer) {
-        return {
-          success: false,
-          error: 'Customer not found'
-        };
-      }
 
       return {
         success: true,
         data: customer as CustomerDomain
       };
     } catch (error) {
+      console.error('Update customer error:', error);
       return {
         success: false,
-        error: 'Error updating customer'
+        error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR
       };
     }
   }
 
   async deleteCustomer(id: number): Promise<ServiceResult<void>> {
     try {
+      const existingCustomer = await this.customerRepository.findById(id);
+      if (!existingCustomer) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.NOT_FOUND.CUSTOMER
+        };
+      }
+
       await this.customerRepository.delete(id);
       return {
         success: true
       };
     } catch (error) {
+      console.error('Delete customer error:', error);
       return {
         success: false,
-        error: 'Error deleting customer'
+        error: ERROR_MESSAGES.OPERATION.DELETE_ERROR
       };
     }
   }
@@ -155,31 +182,31 @@ export class CustomerService {
     return ValidationService.validate([
       {
         condition: !!data.customer.lookupCode,
-        message: 'Customer Code is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Customer Code')
       },
       {
         condition: !!data.customer.name,
-        message: 'Customer Name is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Customer Name')
       },
       {
         condition: !!data.customer.address,
-        message: 'Address is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Address')
       },
       {
         condition: !!data.customer.city,
-        message: 'City is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('City')
       },
       {
         condition: !!data.customer.state,
-        message: 'State is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('State')
       },
       {
         condition: !!data.customer.zipCode,
-        message: 'ZIP Code is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('ZIP Code')
       },
       {
         condition: data.projects.length > 0,
-        message: 'At least one project is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Projects')
       },
       {
         condition: data.projects.some(p => p.isDefault),
@@ -187,25 +214,31 @@ export class CustomerService {
       },
       {
         condition: data.users.length > 0,
-        message: 'At least one user is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Users')
       }
     ]);
   }
 
   private validateUpdateData(data: UpdateCustomerDTO) {
-    const rules: ValidationRule[] = [];
+    const rules = [];
 
     if (data.customer) {
       if (data.customer.lookupCode !== undefined) {
         rules.push({
           condition: !!data.customer.lookupCode,
-          message: 'Customer Code cannot be empty'
+          message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Customer Code')
         });
       }
       if (data.customer.name !== undefined) {
         rules.push({
           condition: !!data.customer.name,
-          message: 'Customer Name cannot be empty'
+          message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Customer Name')
+        });
+      }
+      if (data.customer.status !== undefined) {
+        rules.push({
+          condition: Object.values(STATUS).includes(data.customer.status),
+          message: ERROR_MESSAGES.VALIDATION.INVALID_STATUS
         });
       }
     }
@@ -213,7 +246,7 @@ export class CustomerService {
     if (data.projects) {
       rules.push({
         condition: data.projects.length > 0,
-        message: 'At least one project is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Projects')
       });
       rules.push({
         condition: data.projects.some(p => p.isDefault),
@@ -224,7 +257,13 @@ export class CustomerService {
     if (data.users) {
       rules.push({
         condition: data.users.length > 0,
-        message: 'At least one user is required'
+        message: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('Users')
+      });
+      rules.push({
+        condition: data.users.every(user => 
+          !user.role || Object.values(ROLES).includes(user.role as keyof typeof ROLES)
+        ),
+        message: ERROR_MESSAGES.VALIDATION.INVALID_ROLE
       });
     }
 

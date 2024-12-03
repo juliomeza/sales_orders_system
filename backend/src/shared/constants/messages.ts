@@ -19,7 +19,10 @@ export const ERROR_MESSAGES = {
       INVALID_EMAIL: 'Invalid email format',
       INVALID_CODE: 'Invalid code format',
       INVALID_NAME: 'Invalid name format',
-      CODE_EXISTS: 'Code already exists'
+      CODE_EXISTS: 'Code already exists',
+      LOOKUP_CODE_EXISTS: 'Lookup code already exists',
+      REQUIRED_FIELD_WITH_NAME: (field: string) => `${field} is required`,
+      MAX_LENGTH_EXCEEDED: (field: string, max: number) => `${field} length cannot exceed ${max} characters`
     },
     NOT_FOUND: {
       USER: 'User not found',

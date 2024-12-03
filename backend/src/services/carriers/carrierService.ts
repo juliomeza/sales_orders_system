@@ -1,106 +1,260 @@
 // backend/src/services/carriers/carrierService.ts
+import { ServiceResult } from '../../shared/types';
+import { ERROR_MESSAGES, STATUS } from '../../shared/constants';
 import { Carrier, CarrierService as ICarrierService } from '../../domain/carrier';
 import { CarrierRepository } from '../../repositories/carrierRepository';
+import { validateCarrier, validateCarrierService } from './validation';
 import { 
   CarrierFilters, 
   CreateCarrierDTO, 
   CreateCarrierServiceDTO, 
   UpdateCarrierDTO, 
-  UpdateCarrierServiceDTO 
+  UpdateCarrierServiceDTO,
+  CarrierResult,
+  CarrierServiceResult,
+  CarriersListResult
 } from './types';
-import { ValidationError } from '../shared/errors';
 
 export class CarrierServiceImpl {
   constructor(private carrierRepository: CarrierRepository) {}
   
-  async getAllCarriers(filters?: CarrierFilters): Promise<Carrier[]> {
+  async getAllCarriers(filters?: CarrierFilters): Promise<CarriersListResult> {
     try {
       const carriers = await this.carrierRepository.findAll(filters);
-      return carriers;
+      return {
+        success: true,
+        data: {
+          carriers,
+          total: carriers.length
+        }
+      };
     } catch (error) {
       console.error('Error in getAllCarriers:', error);
-      throw new Error('Error retrieving carriers');
+      return {
+        success: false,
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR
+      };
     }
   }
 
-  async getCarrierById(id: number): Promise<Carrier> {
-    const carrier = await this.carrierRepository.findById(id);
-    if (!carrier) {
-      throw new ValidationError('Carrier not found');
+  async getCarrierById(id: number): Promise<CarrierResult> {
+    try {
+      const carrier = await this.carrierRepository.findById(id);
+      if (!carrier) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.NOT_FOUND.CARRIER
+        };
+      }
+      return {
+        success: true,
+        data: carrier
+      };
+    } catch (error) {
+      console.error('Error in getCarrierById:', error);
+      return {
+        success: false,
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR
+      };
     }
-    return carrier;
   }
 
-  async createCarrier(data: CreateCarrierDTO): Promise<Carrier> {
-    const existing = await this.carrierRepository.findByLookupCode(data.lookupCode);
-    if (existing) {
-      throw new ValidationError('Carrier lookup code already exists');
-    }
+  async createCarrier(data: CreateCarrierDTO): Promise<CarrierResult> {
+    try {
+      // Validate carrier data
+      const validationErrors = validateCarrier(data);
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          errors: validationErrors
+        };
+      }
 
-    const carrierData = {
-      ...data,
-      status: data.status ?? 1
-    };
-
-    return this.carrierRepository.create(carrierData);
-  }
-
-  async updateCarrier(id: number, data: UpdateCarrierDTO): Promise<Carrier> {
-    const carrier = await this.carrierRepository.findById(id);
-    if (!carrier) {
-      throw new ValidationError('Carrier not found');
-    }
-
-    if (data.lookupCode && data.lookupCode !== carrier.lookupCode) {
+      // Check for existing carrier
       const existing = await this.carrierRepository.findByLookupCode(data.lookupCode);
       if (existing) {
-        throw new ValidationError('Carrier lookup code already exists');
+        return {
+          success: false,
+          error: ERROR_MESSAGES.VALIDATION.LOOKUP_CODE_EXISTS
+        };
       }
-    }
 
-    return this.carrierRepository.update(id, data);
+      const carrierData = {
+        ...data,
+        status: data.status ?? STATUS.ACTIVE
+      };
+
+      const carrier = await this.carrierRepository.create(carrierData);
+      return {
+        success: true,
+        data: carrier
+      };
+    } catch (error) {
+      console.error('Error in createCarrier:', error);
+      return {
+        success: false,
+        error: ERROR_MESSAGES.OPERATION.CREATE_ERROR
+      };
+    }
   }
 
-  async getServiceById(id: number): Promise<ICarrierService> {
-    const service = await this.carrierRepository.findServiceById(id);
-    if (!service) {
-      throw new ValidationError('Carrier service not found');
+  async updateCarrier(id: number, data: UpdateCarrierDTO): Promise<CarrierResult> {
+    try {
+      // Validate carrier existence
+      const carrier = await this.carrierRepository.findById(id);
+      if (!carrier) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.NOT_FOUND.CARRIER
+        };
+      }
+
+      // Validate update data
+      const validationErrors = validateCarrier(data, true);
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          errors: validationErrors
+        };
+      }
+
+      // Check lookup code uniqueness if it's being updated
+      if (data.lookupCode && data.lookupCode !== carrier.lookupCode) {
+        const existing = await this.carrierRepository.findByLookupCode(data.lookupCode);
+        if (existing) {
+          return {
+            success: false,
+            error: ERROR_MESSAGES.VALIDATION.LOOKUP_CODE_EXISTS
+          };
+        }
+      }
+
+      const updatedCarrier = await this.carrierRepository.update(id, data);
+      return {
+        success: true,
+        data: updatedCarrier
+      };
+    } catch (error) {
+      console.error('Error in updateCarrier:', error);
+      return {
+        success: false,
+        error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR
+      };
     }
-    return service;
   }
 
-  async createCarrierService(data: CreateCarrierServiceDTO): Promise<ICarrierService> {
-    const carrier = await this.carrierRepository.findById(data.carrierId);
-    if (!carrier) {
-      throw new ValidationError('Carrier not found');
+  async getServiceById(id: number): Promise<CarrierServiceResult> {
+    try {
+      const service = await this.carrierRepository.findServiceById(id);
+      if (!service) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.NOT_FOUND.CARRIER_SERVICE
+        };
+      }
+      return {
+        success: true,
+        data: service
+      };
+    } catch (error) {
+      console.error('Error in getServiceById:', error);
+      return {
+        success: false,
+        error: ERROR_MESSAGES.OPERATION.LIST_ERROR
+      };
     }
-
-    const existing = await this.carrierRepository.findServiceByLookupCode(data.lookupCode);
-    if (existing) {
-      throw new ValidationError('Carrier service lookup code already exists');
-    }
-
-    const serviceData = {
-      ...data,
-      status: data.status ?? 1
-    };
-
-    return this.carrierRepository.createService(serviceData);
   }
 
-  async updateCarrierService(id: number, data: UpdateCarrierServiceDTO): Promise<ICarrierService> {
-    const service = await this.carrierRepository.findServiceById(id);
-    if (!service) {
-      throw new ValidationError('Carrier service not found');
-    }
+  async createCarrierService(data: CreateCarrierServiceDTO): Promise<CarrierServiceResult> {
+    try {
+      // Validate service data
+      const validationErrors = validateCarrierService(data);
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          errors: validationErrors
+        };
+      }
 
-    if (data.lookupCode && data.lookupCode !== service.lookupCode) {
+      // Validate carrier existence
+      const carrier = await this.carrierRepository.findById(data.carrierId);
+      if (!carrier) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.NOT_FOUND.CARRIER
+        };
+      }
+
+      // Check for existing service
       const existing = await this.carrierRepository.findServiceByLookupCode(data.lookupCode);
       if (existing) {
-        throw new ValidationError('Carrier service lookup code already exists');
+        return {
+          success: false,
+          error: ERROR_MESSAGES.VALIDATION.LOOKUP_CODE_EXISTS
+        };
       }
-    }
 
-    return this.carrierRepository.updateService(id, data);
+      const serviceData = {
+        ...data,
+        status: data.status ?? STATUS.ACTIVE
+      };
+
+      const service = await this.carrierRepository.createService(serviceData);
+      return {
+        success: true,
+        data: service
+      };
+    } catch (error) {
+      console.error('Error in createCarrierService:', error);
+      return {
+        success: false,
+        error: ERROR_MESSAGES.OPERATION.CREATE_ERROR
+      };
+    }
+  }
+
+  async updateCarrierService(id: number, data: UpdateCarrierServiceDTO): Promise<CarrierServiceResult> {
+    try {
+      // Validate service existence
+      const service = await this.carrierRepository.findServiceById(id);
+      if (!service) {
+        return {
+          success: false,
+          error: ERROR_MESSAGES.NOT_FOUND.CARRIER_SERVICE
+        };
+      }
+
+      // Validate update data
+      const validationErrors = validateCarrierService(data, true);
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          errors: validationErrors
+        };
+      }
+
+      // Check lookup code uniqueness if it's being updated
+      if (data.lookupCode && data.lookupCode !== service.lookupCode) {
+        const existing = await this.carrierRepository.findServiceByLookupCode(data.lookupCode);
+        if (existing) {
+          return {
+            success: false,
+            error: ERROR_MESSAGES.VALIDATION.LOOKUP_CODE_EXISTS
+          };
+        }
+      }
+
+      const updatedService = await this.carrierRepository.updateService(id, data);
+      return {
+        success: true,
+        data: updatedService
+      };
+    } catch (error) {
+      console.error('Error in updateCarrierService:', error);
+      return {
+        success: false,
+        error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR
+      };
+    }
   }
 }

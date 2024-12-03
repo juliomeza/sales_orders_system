@@ -8,7 +8,7 @@ export interface Carrier {
     created_by: number | null;
     modified_at: Date;
     modified_by: number | null;
-    services?: CarrierService[];
+    services: CarrierService[];
   }
   
   export interface CarrierService {

@@ -4,6 +4,7 @@ import { CarrierServiceImpl } from '../services/carriers/carrierService';
 import { ERROR_MESSAGES } from '../shared/constants';
 import { ServiceResult } from '../shared/types';
 import { Carrier } from '../domain/carrier';
+import { CarrierResult, CarriersListResult } from '../services/carriers/types';
 
 export class CarriersController {
   constructor(private carrierService: CarrierServiceImpl) {}
@@ -16,11 +17,14 @@ export class CarriersController {
         });
       }
 
-      const carriers = await this.carrierService.getAllCarriers();
-      res.json({
-        carriers,
-        total: carriers.length
-      });
+      const result = await this.carrierService.getAllCarriers();
+      if (!result.success) {
+        return res.status(500).json({ 
+          error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
+        });
+      }
+
+      res.json(result.data);
     } catch (error) {
       console.error('Error getting carriers:', error);
       res.status(500).json({ 
@@ -38,17 +42,22 @@ export class CarriersController {
       }
 
       const id = Number(req.params.id);
-      const carrier = await this.carrierService.getCarrierById(id);
+      const result = await this.carrierService.getCarrierById(id);
       
-      if (!carrier) {
-        return res.status(404).json({
-          error: ERROR_MESSAGES.NOT_FOUND.CARRIER
+      if (!result.success) {
+        if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
+          return res.status(404).json({
+            error: result.error
+          });
+        }
+        return res.status(500).json({ 
+          error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
       }
 
       res.json({
         success: true,
-        data: carrier
+        data: result.data
       });
     } catch (error) {
       console.error('Error getting carrier:', error);
@@ -66,19 +75,25 @@ export class CarriersController {
         });
       }
 
-      const carrier = await this.carrierService.createCarrier(req.body);
-      res.status(201).json({
-        success: true,
-        data: carrier
-      });
-    } catch (error: any) {
-      console.error('Error creating carrier:', error);
-      if (error.name === 'ValidationError') {
-        return res.status(400).json({ 
-          error: ERROR_MESSAGES.VALIDATION.FAILED,
-          details: [error.message]
+      const result = await this.carrierService.createCarrier(req.body);
+      if (!result.success) {
+        if (result.errors) {
+          return res.status(400).json({
+            error: ERROR_MESSAGES.VALIDATION.FAILED,
+            details: result.errors
+          });
+        }
+        return res.status(500).json({ 
+          error: result.error || ERROR_MESSAGES.OPERATION.CREATE_ERROR 
         });
       }
+
+      res.status(201).json({
+        success: true,
+        data: result.data
+      });
+    } catch (error) {
+      console.error('Error creating carrier:', error);
       res.status(500).json({ 
         error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
       });
@@ -94,19 +109,26 @@ export class CarriersController {
       }
 
       const id = Number(req.params.id);
-      const carrier = await this.carrierService.updateCarrier(id, req.body);
-      res.json({
-        success: true,
-        data: carrier
-      });
-    } catch (error: any) {
-      console.error('Error updating carrier:', error);
-      if (error.name === 'ValidationError') {
-        return res.status(400).json({ 
-          error: ERROR_MESSAGES.VALIDATION.FAILED,
-          details: [error.message]
+      const result = await this.carrierService.updateCarrier(id, req.body);
+      
+      if (!result.success) {
+        if (result.errors) {
+          return res.status(400).json({
+            error: ERROR_MESSAGES.VALIDATION.FAILED,
+            details: result.errors
+          });
+        }
+        return res.status(500).json({ 
+          error: result.error || ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
         });
       }
+
+      res.json({
+        success: true,
+        data: result.data
+      });
+    } catch (error) {
+      console.error('Error updating carrier:', error);
       res.status(500).json({ 
         error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
       });
@@ -122,17 +144,22 @@ export class CarriersController {
       }
 
       const id = Number(req.params.id);
-      const carrier = await this.carrierService.getCarrierById(id);
+      const result = await this.carrierService.getCarrierById(id);
       
-      if (!carrier) {
-        return res.status(404).json({
-          error: ERROR_MESSAGES.NOT_FOUND.CARRIER
+      if (!result.success || !result.data) {
+        if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
+          return res.status(404).json({
+            error: result.error
+          });
+        }
+        return res.status(500).json({ 
+          error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
       }
 
       res.json({
         success: true,
-        data: carrier.services
+        data: result.data.services
       });
     } catch (error) {
       console.error('Error getting carrier services:', error);

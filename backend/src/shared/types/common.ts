@@ -42,6 +42,11 @@ export interface BaseEntity extends AuditFields {
   status: Status;
 }
 
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
 export interface ServiceResult<T> {
   success: boolean;
   data?: T;

@@ -1,7 +1,7 @@
 // backend/src/services/warehouses/warehouseService.ts
 import { WarehouseRepository } from '../../repositories/warehouseRepository';
-import { ServiceResult } from '../shared/types';
-import { ValidationService } from '../shared/validationService';
+import { ServiceResult } from '../../shared/types';
+import { ValidationService } from '../../shared/validations';
 import { 
   CreateWarehouseDTO, 
   UpdateWarehouseDTO, 

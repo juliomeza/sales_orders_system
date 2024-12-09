@@ -9,7 +9,7 @@ import {
     PaginatedResponse
   } from '../../domain/material';
   import { MaterialRepository } from '../../repositories/materialRepository';
-  import { ServiceResult } from '../shared/types';
+  import { ServiceResult } from '../../shared/types';
   import { MaterialValidationService } from './materialValidationService';
   import { MaterialErrorMessages } from './errorMessages';
   

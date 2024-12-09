@@ -1,4 +1,4 @@
-// backend/src/services/shared/errors.ts
+// backend/src/shared/errors/ValidationError.ts
 export class ValidationError extends Error {
     constructor(message: string) {
       super(message);

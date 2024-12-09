@@ -1,7 +1,5 @@
 // backend/src/services/carriers/carrierService.ts
-import { ServiceResult } from '../../shared/types';
 import { ERROR_MESSAGES, STATUS } from '../../shared/constants';
-import { Carrier, CarrierService as ICarrierService } from '../../domain/carrier';
 import { CarrierRepository } from '../../repositories/carrierRepository';
 import { validateCarrier, validateCarrierService } from './validation';
 import { 

@@ -1,7 +1,7 @@
 // backend/src/services/orders/orderService.ts
 import { OrderRepository } from '../../repositories/orderRepository';
-import { ServiceResult } from '../shared/types';
-import { ValidationService } from '../shared/validationService';
+import { ServiceResult } from '../../shared/types';
+import { ValidationService } from '../../shared/validations';
 import { OrderDomain, OrderStatsDomain } from '../../domain/order';
 import { 
   CreateOrderDTO, 

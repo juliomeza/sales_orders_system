@@ -1,4 +1,4 @@
-// backend/src/utils/jwt.ts
+// backend/src/shared/utils/jwt.ts
 import jwt from 'jsonwebtoken';
 import { User } from '@prisma/client';
 

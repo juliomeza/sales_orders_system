@@ -1,5 +1,5 @@
-// backend/src/services/shared/validationService.ts
-import { ValidationResult } from './types';
+// backend/src/shared/validations/validationService.ts
+import { ValidationResult } from '../types';
 
 export interface ValidationRule {
     condition: boolean;

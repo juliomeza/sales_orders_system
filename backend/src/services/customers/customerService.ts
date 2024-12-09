@@ -1,6 +1,6 @@
 // backend/src/services/customers/customerService.ts
 import { CustomerRepository } from '../../repositories/customerRepository';
-import { ValidationService } from '../shared/validationService';
+import { ValidationService } from '../../shared/validations';
 import { ServiceResult } from '../../shared/types';
 import { CreateCustomerDTO, UpdateCustomerDTO } from './types';
 import { CustomerDomain } from '../../domain/customer';

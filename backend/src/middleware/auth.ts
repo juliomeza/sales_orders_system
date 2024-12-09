@@ -1,6 +1,6 @@
 // backend/src/middleware/auth.ts
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/jwt';
+import { verifyToken } from '../shared/utils/jwt';
 import { STATUS, ROLES, ERROR_MESSAGES } from '../shared/constants';
 import { Role, Status } from '../shared/types';
 

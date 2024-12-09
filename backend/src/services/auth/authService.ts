@@ -1,7 +1,7 @@
 // backend/src/services/auth/authService.ts
 import { UserRepository } from '../../repositories/userRepository';
-import { ServiceResult } from '../../shared/types/common';
-import { ValidationService } from '../shared/validationService';
+import { ServiceResult } from '../../shared/types';
+import { ValidationService } from '../../shared/validations';
 import { LoginDTO, RegisterDTO, AuthResponse, CreateUserDTO } from './types';
 import { UserDomain, UserTokenData } from '../../domain/user';
 import { ERROR_MESSAGES, ROLES, STATUS } from '../../shared/constants';

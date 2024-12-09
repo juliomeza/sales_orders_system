@@ -1,5 +1,5 @@
 // backend/src/services/materials/materialValidationService.ts
-import { ValidationService } from '../shared/validationService';
+import { ValidationService } from '../../shared/validations/validationService';
 import { MaterialFilters, MaterialSearchFilters } from '../../domain/material';
 
 export class MaterialValidationService {

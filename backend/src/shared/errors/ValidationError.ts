@@ -1,7 +1,13 @@
 // backend/src/shared/errors/ValidationError.ts
-export class ValidationError extends Error {
-    constructor(message: string) {
-      super(message);
-      this.name = 'ValidationError';
-    }
+import { BaseError } from './BaseError';
+
+export class ValidationError extends BaseError {
+  constructor(details: string | string[]) {
+    super(
+      'Validation failed',
+      'VALIDATION_ERROR',
+      400,
+      details
+    );
   }
+}

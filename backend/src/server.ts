@@ -1,9 +1,9 @@
 // backend/src/server.ts
 import express from 'express';
 import cors from 'cors';
-import { Prisma } from '@prisma/client';
-import Logger from './config/logger';
+import { errorHandler } from './middleware/error/errorHandler';
 import { httpLogger } from './middleware/logging/httpLogger';
+import Logger from './config/logger';
 import prisma from './config/database';
 
 // Import routes
@@ -21,7 +21,7 @@ export const createServer = () => {
   // Logging middleware
   app.use(httpLogger);
 
-  // Middleware
+  // Basic middleware
   app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true,
@@ -75,7 +75,7 @@ export const createServer = () => {
   });
 
   // Test database connection
-  app.get('/api/db-test', async (req, res) => {
+  app.get('/api/db-test', async (req, res, next) => {
     Logger.info('Database test requested');
     
     try {
@@ -105,40 +105,12 @@ export const createServer = () => {
         }
       });
     } catch (error) {
-      Logger.error('Database connection test failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      });
-
-      res.status(500).json({
-        message: 'Database connection failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      next(error); // Usar el nuevo error handler
     }
   });
 
-  // Prisma error handler
-  app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      Logger.error('Database error:', {
-        code: error.code,
-        meta: error.meta,
-        message: error.message,
-        url: req.url,
-        method: req.method
-      });
-      
-      return res.status(400).json({
-        error: 'Database operation failed',
-        code: error.code,
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
-    next(error);
-  });
-
-  // 404 handler - debe ir después de todas las rutas pero antes del error handler global
-  app.use((req: express.Request, res: express.Response) => {
+  // 404 handler - debe ir después de todas las rutas pero antes del error handler
+  app.use((req, res, next) => {
     Logger.warn('Route not found', {
       url: req.url,
       method: req.method,
@@ -146,27 +118,11 @@ export const createServer = () => {
       userAgent: req.get('user-agent')
     });
     
-    res.status(404).json({ 
-      error: 'Route not found',
-      path: req.originalUrl 
-    });
+    next(new Error('Route not found')); // Será manejado por el error handler global
   });
 
-  // Global error handler
-  app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    Logger.error('Unhandled error:', {
-      error: err.message,
-      stack: err.stack,
-      url: req.url,
-      method: req.method,
-      userId: req.user?.userId || 'anonymous'
-    });
-
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  });
+  // Global error handler - debe ser el último middleware
+  app.use(errorHandler);
 
   return app;
 };

@@ -4,3 +4,4 @@ export * from './roles';
 export * from './entities';
 export * from './messages';
 export * from './auth';
+export * from './logMessages';

@@ -3,9 +3,8 @@ import { Request, Response } from 'express';
 import { AuthService } from '../services/auth/authService';
 import { UserRepository } from '../repositories/userRepository';
 import prisma from '../config/database';
-import { ERROR_MESSAGES, STATUS } from '../shared/constants';
-import { ServiceResult } from '../shared/types';
-import { UserDomain } from '../domain/user';
+import { ERROR_MESSAGES } from '../shared/constants';
+import Logger from '../config/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 

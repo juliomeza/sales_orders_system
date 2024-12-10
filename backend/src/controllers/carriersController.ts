@@ -1,10 +1,8 @@
 // backend/src/controllers/carriersController.ts
 import { Request, Response } from 'express';
 import { CarrierServiceImpl } from '../services/carriers/carrierService';
-import { ERROR_MESSAGES } from '../shared/constants';
-import { ServiceResult } from '../shared/types';
-import { Carrier } from '../domain/carrier';
-import { CarrierResult, CarriersListResult } from '../services/carriers/types';
+import { ERROR_MESSAGES, LOG_MESSAGES  } from '../shared/constants';
+import Logger from '../config/logger';
 
 export class CarriersController {
   constructor(private carrierService: CarrierServiceImpl) {}
@@ -17,16 +15,36 @@ export class CarriersController {
         });
       }
 
+      Logger.debug(LOG_MESSAGES.CARRIERS.LIST.REQUEST, {
+        userId: req.user.userId,
+        filters: req.query
+      });
+
       const result = await this.carrierService.getAllCarriers();
+
       if (!result.success) {
+        Logger.error(LOG_MESSAGES.CARRIERS.LIST.FAILED, {
+          userId: req.user.userId,
+          error: result.error
+        });
+
         return res.status(500).json({ 
           error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
       }
 
+      Logger.info(LOG_MESSAGES.CARRIERS.LIST.SUCCESS, {
+        userId: req.user.userId,
+        count: result.data?.carriers?.length || 0
+      });
+
       res.json(result.data);
     } catch (error) {
-      console.error('Error getting carriers:', error);
+      Logger.error(LOG_MESSAGES.CARRIERS.LIST.FAILED, {
+        userId: req.user?.userId || 'anonymous',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       res.status(500).json({ 
         error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
       });
@@ -42,25 +60,52 @@ export class CarriersController {
       }
 
       const id = Number(req.params.id);
+      Logger.debug(LOG_MESSAGES.CARRIERS.GET.REQUEST, {
+        userId: req.user.userId,
+        carrierId: id
+      });
+
       const result = await this.carrierService.getCarrierById(id);
       
       if (!result.success) {
         if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
+          Logger.warn(LOG_MESSAGES.CARRIERS.GET.FAILED_NOT_FOUND, {
+            userId: req.user.userId,
+            carrierId: id
+          });
+
           return res.status(404).json({
             error: result.error
           });
         }
+
+        Logger.error(LOG_MESSAGES.CARRIERS.GET.FAILED, {
+          userId: req.user.userId,
+          carrierId: id,
+          error: result.error
+        });
+
         return res.status(500).json({ 
           error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
       }
+
+      Logger.info(LOG_MESSAGES.CARRIERS.GET.SUCCESS, {
+        userId: req.user.userId,
+        carrierId: id
+      });
 
       res.json({
         success: true,
         data: result.data
       });
     } catch (error) {
-      console.error('Error getting carrier:', error);
+      Logger.error(LOG_MESSAGES.CARRIERS.GET.FAILED, {
+        userId: req.user?.userId || 'anonymous',
+        carrierId: req.params.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       res.status(500).json({ 
         error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
       });
@@ -75,25 +120,62 @@ export class CarriersController {
         });
       }
 
+      Logger.info(LOG_MESSAGES.CARRIERS.CREATE.ATTEMPT, {
+        userId: req.user.userId,
+        carrierData: {
+          lookupCode: req.body.lookupCode,
+          name: req.body.name
+        }
+      });
+
       const result = await this.carrierService.createCarrier(req.body);
+
       if (!result.success) {
         if (result.errors) {
+          Logger.warn(LOG_MESSAGES.CARRIERS.CREATE.FAILED_VALIDATION, {
+            userId: req.user.userId,
+            errors: result.errors
+          });
+
           return res.status(400).json({
             error: ERROR_MESSAGES.VALIDATION.FAILED,
             details: result.errors
           });
         }
+
+        if (result.error === ERROR_MESSAGES.VALIDATION.LOOKUP_CODE_EXISTS) {
+          Logger.warn(LOG_MESSAGES.CARRIERS.CREATE.FAILED_EXISTS, {
+            userId: req.user.userId,
+            lookupCode: req.body.lookupCode
+          });
+        }
+
+        Logger.error(LOG_MESSAGES.CARRIERS.CREATE.FAILED, {
+          userId: req.user.userId,
+          error: result.error
+        });
+
         return res.status(500).json({ 
           error: result.error || ERROR_MESSAGES.OPERATION.CREATE_ERROR 
         });
       }
+
+      Logger.info(LOG_MESSAGES.CARRIERS.CREATE.SUCCESS, {
+        userId: req.user.userId,
+        carrierId: result.data?.id,
+        lookupCode: result.data?.lookupCode
+      });
 
       res.status(201).json({
         success: true,
         data: result.data
       });
     } catch (error) {
-      console.error('Error creating carrier:', error);
+      Logger.error(LOG_MESSAGES.CARRIERS.CREATE.FAILED, {
+        userId: req.user?.userId || 'anonymous',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       res.status(500).json({ 
         error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
       });
@@ -109,26 +191,62 @@ export class CarriersController {
       }
 
       const id = Number(req.params.id);
+      Logger.info(LOG_MESSAGES.CARRIERS.UPDATE.ATTEMPT, {
+        userId: req.user.userId,
+        carrierId: id,
+        updateData: req.body
+      });
+
       const result = await this.carrierService.updateCarrier(id, req.body);
       
       if (!result.success) {
         if (result.errors) {
+          Logger.warn(LOG_MESSAGES.CARRIERS.UPDATE.FAILED_VALIDATION, {
+            userId: req.user.userId,
+            carrierId: id,
+            errors: result.errors
+          });
+
           return res.status(400).json({
             error: ERROR_MESSAGES.VALIDATION.FAILED,
             details: result.errors
           });
         }
+
+        if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
+          Logger.warn(LOG_MESSAGES.CARRIERS.UPDATE.FAILED_NOT_FOUND, {
+            userId: req.user.userId,
+            carrierId: id
+          });
+        }
+
+        Logger.error(LOG_MESSAGES.CARRIERS.UPDATE.FAILED, {
+          userId: req.user.userId,
+          carrierId: id,
+          error: result.error
+        });
+
         return res.status(500).json({ 
           error: result.error || ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
         });
       }
+
+      Logger.info(LOG_MESSAGES.CARRIERS.UPDATE.SUCCESS, {
+        userId: req.user.userId,
+        carrierId: id
+      });
 
       res.json({
         success: true,
         data: result.data
       });
     } catch (error) {
-      console.error('Error updating carrier:', error);
+      Logger.error(LOG_MESSAGES.CARRIERS.UPDATE.FAILED, {
+        userId: req.user?.userId || 'anonymous',
+        carrierId: req.params.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       res.status(500).json({ 
         error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
       });
@@ -144,25 +262,53 @@ export class CarriersController {
       }
 
       const id = Number(req.params.id);
+      Logger.debug(LOG_MESSAGES.CARRIERS.SERVICES.REQUEST, {
+        userId: req.user.userId,
+        carrierId: id
+      });
+
       const result = await this.carrierService.getCarrierById(id);
       
       if (!result.success || !result.data) {
         if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
+          Logger.warn(LOG_MESSAGES.CARRIERS.SERVICES.FAILED_NOT_FOUND, {
+            userId: req.user.userId,
+            carrierId: id
+          });
+
           return res.status(404).json({
             error: result.error
           });
         }
+
+        Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.FAILED, {
+          userId: req.user.userId,
+          carrierId: id,
+          error: result.error
+        });
+
         return res.status(500).json({ 
           error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
       }
+
+      Logger.info(LOG_MESSAGES.CARRIERS.SERVICES.SUCCESS, {
+        userId: req.user.userId,
+        carrierId: id,
+        serviceCount: result.data.services.length
+      });
 
       res.json({
         success: true,
         data: result.data.services
       });
     } catch (error) {
-      console.error('Error getting carrier services:', error);
+      Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.FAILED, {
+        userId: req.user?.userId || 'anonymous',
+        carrierId: req.params.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       res.status(500).json({ 
         error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
       });

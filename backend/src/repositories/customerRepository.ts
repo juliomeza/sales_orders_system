@@ -123,22 +123,27 @@ export class CustomerRepository {
 
       // Actualizar proyectos si se proporcionaron
       if (projects !== undefined) {
-        await tx.project.deleteMany({
-          where: { customerId: id }
+        await tx.project.updateMany({
+          where: { customerId: id },
+          data: { 
+            isDefault: false,
+            modified_at: new Date(),
+            modified_by: null
+          }
         });
 
-        if (projects.length > 0) {
-          await tx.project.createMany({
-            data: projects.map(project => ({
-              lookupCode: project.lookupCode,
-              name: project.name,
-              description: project.description || null,
-              isDefault: project.isDefault,
-              status: 1,
+        const defaultProject = projects.find(p => p.isDefault);
+        if (defaultProject) {
+          await tx.project.updateMany({
+            where: { 
               customerId: id,
-              created_by: null,
+              lookupCode: defaultProject.lookupCode 
+            },
+            data: { 
+              isDefault: true,
+              modified_at: new Date(),
               modified_by: null
-            }))
+            }
           });
         }
       }

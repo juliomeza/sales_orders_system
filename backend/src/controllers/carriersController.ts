@@ -1,7 +1,9 @@
 // backend/src/controllers/carriersController.ts
 import { Request, Response } from 'express';
 import { CarrierServiceImpl } from '../services/carriers/carrierService';
-import { ERROR_MESSAGES, LOG_MESSAGES  } from '../shared/constants';
+import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
+import { ApiErrorCode } from '../shared/types/responses';
+import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 
 export class CarriersController {
@@ -10,6 +12,11 @@ export class CarriersController {
   getCarriers = async (req: Request, res: Response) => {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to carriers list', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+        
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -28,6 +35,7 @@ export class CarriersController {
           error: result.error
         });
 
+        // Mantener formato de respuesta original
         return res.status(500).json({ 
           error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
@@ -35,9 +43,10 @@ export class CarriersController {
 
       Logger.info(LOG_MESSAGES.CARRIERS.LIST.SUCCESS, {
         userId: req.user.userId,
-        count: result.data?.carriers?.length || 0
+        count: result.data?.carriers.length || 0
       });
 
+      // Mantener formato de respuesta original
       res.json(result.data);
     } catch (error) {
       Logger.error(LOG_MESSAGES.CARRIERS.LIST.FAILED, {
@@ -54,6 +63,11 @@ export class CarriersController {
   getCarrierById = async (req: Request, res: Response) => {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to carrier details', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -95,6 +109,7 @@ export class CarriersController {
         carrierId: id
       });
 
+      // Mantener formato de respuesta original
       res.json({
         success: true,
         data: result.data
@@ -115,6 +130,11 @@ export class CarriersController {
   createCarrier = async (req: Request, res: Response) => {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to create carrier', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -137,10 +157,15 @@ export class CarriersController {
             errors: result.errors
           });
 
-          return res.status(400).json({
-            error: ERROR_MESSAGES.VALIDATION.FAILED,
-            details: result.errors
-          });
+          // Usar nuevo formato para errores de validación
+          return res.status(400).json(
+            createErrorResponse(
+              ApiErrorCode.VALIDATION_ERROR,
+              ERROR_MESSAGES.VALIDATION.FAILED,
+              result.errors,
+              req
+            )
+          );
         }
 
         if (result.error === ERROR_MESSAGES.VALIDATION.LOOKUP_CODE_EXISTS) {
@@ -148,6 +173,16 @@ export class CarriersController {
             userId: req.user.userId,
             lookupCode: req.body.lookupCode
           });
+
+          // Usar nuevo formato para error de duplicado
+          return res.status(409).json(
+            createErrorResponse(
+              ApiErrorCode.CONFLICT,
+              result.error,
+              undefined,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.CARRIERS.CREATE.FAILED, {
@@ -166,6 +201,7 @@ export class CarriersController {
         lookupCode: result.data?.lookupCode
       });
 
+      // Mantener formato de respuesta original para éxito
       res.status(201).json({
         success: true,
         data: result.data
@@ -185,6 +221,11 @@ export class CarriersController {
   updateCarrier = async (req: Request, res: Response) => {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to update carrier', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -207,10 +248,15 @@ export class CarriersController {
             errors: result.errors
           });
 
-          return res.status(400).json({
-            error: ERROR_MESSAGES.VALIDATION.FAILED,
-            details: result.errors
-          });
+          // Usar nuevo formato para errores de validación
+          return res.status(400).json(
+            createErrorResponse(
+              ApiErrorCode.VALIDATION_ERROR,
+              ERROR_MESSAGES.VALIDATION.FAILED,
+              result.errors,
+              req
+            )
+          );
         }
 
         if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
@@ -218,6 +264,16 @@ export class CarriersController {
             userId: req.user.userId,
             carrierId: id
           });
+
+          // Usar nuevo formato para error not found
+          return res.status(404).json(
+            createErrorResponse(
+              ApiErrorCode.NOT_FOUND,
+              result.error,
+              undefined,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.CARRIERS.UPDATE.FAILED, {
@@ -236,6 +292,7 @@ export class CarriersController {
         carrierId: id
       });
 
+      // Mantener formato de respuesta original para éxito
       res.json({
         success: true,
         data: result.data
@@ -256,6 +313,11 @@ export class CarriersController {
   getCarrierServices = async (req: Request, res: Response) => {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to carrier services', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -276,9 +338,15 @@ export class CarriersController {
             carrierId: id
           });
 
-          return res.status(404).json({
-            error: result.error
-          });
+          // Usar nuevo formato para error not found
+          return res.status(404).json(
+            createErrorResponse(
+              ApiErrorCode.NOT_FOUND,
+              result.error,
+              undefined,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.FAILED, {
@@ -298,6 +366,7 @@ export class CarriersController {
         serviceCount: result.data.services.length
       });
 
+      // Mantener formato de respuesta original
       res.json({
         success: true,
         data: result.data.services

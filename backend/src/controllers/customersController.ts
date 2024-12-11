@@ -4,7 +4,9 @@ import { CustomerService } from '../services/customers/customerService';
 import { CreateCustomerDTO, UpdateCustomerDTO } from '../services/customers/types';
 import { CustomerRepository } from '../repositories/customerRepository';
 import prisma from '../config/database';
-import { ERROR_MESSAGES, LOG_MESSAGES  } from '../shared/constants';
+import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
+import { ApiErrorCode } from '../shared/types/responses';
+import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 
 export class CustomersController {
@@ -23,6 +25,11 @@ export class CustomersController {
   async list(req: Request, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to customers list', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -50,6 +57,7 @@ export class CustomersController {
         count: result.data?.length || 0
       });
 
+      // Mantener formato de respuesta original
       res.json({ customers: result.data });
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.LIST.FAILED, {
@@ -66,6 +74,11 @@ export class CustomersController {
   async getById(req: Request, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to customer details', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -86,9 +99,15 @@ export class CustomersController {
             customerId: id
           });
 
-          return res.status(404).json({ 
-            error: ERROR_MESSAGES.NOT_FOUND.CUSTOMER 
-          });
+          // Usar nuevo formato para error not found
+          return res.status(404).json(
+            createErrorResponse(
+              ApiErrorCode.NOT_FOUND,
+              result.error,
+              undefined,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.CUSTOMERS.GET.FAILED, {
@@ -107,6 +126,7 @@ export class CustomersController {
         customerId: id
       });
 
+      // Mantener formato de respuesta original
       res.json(result.data);
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.GET.FAILED, {
@@ -124,6 +144,11 @@ export class CustomersController {
   async create(req: Request<{}, {}, CreateCustomerDTO>, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to create customer', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -148,10 +173,15 @@ export class CustomersController {
             errors: result.errors
           });
 
-          return res.status(400).json({ 
-            error: ERROR_MESSAGES.VALIDATION.FAILED, 
-            details: result.errors 
-          });
+          // Usar nuevo formato para errores de validación
+          return res.status(400).json(
+            createErrorResponse(
+              ApiErrorCode.VALIDATION_ERROR,
+              ERROR_MESSAGES.VALIDATION.FAILED,
+              result.errors,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED, {
@@ -170,6 +200,7 @@ export class CustomersController {
         customerCode: result.data?.lookupCode
       });
 
+      // Mantener formato de respuesta original
       res.status(201).json(result.data);
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED, {
@@ -186,6 +217,11 @@ export class CustomersController {
   async update(req: Request<{id: string}, {}, UpdateCustomerDTO>, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to update customer', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -212,10 +248,15 @@ export class CustomersController {
             errors: result.errors
           });
 
-          return res.status(400).json({ 
-            error: ERROR_MESSAGES.VALIDATION.FAILED, 
-            details: result.errors 
-          });
+          // Usar nuevo formato para errores de validación
+          return res.status(400).json(
+            createErrorResponse(
+              ApiErrorCode.VALIDATION_ERROR,
+              ERROR_MESSAGES.VALIDATION.FAILED,
+              result.errors,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED, {
@@ -234,6 +275,7 @@ export class CustomersController {
         customerId: id
       });
 
+      // Mantener formato de respuesta original
       res.json(result.data);
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED, {
@@ -251,6 +293,11 @@ export class CustomersController {
   async delete(req: Request, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to delete customer', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -270,6 +317,16 @@ export class CustomersController {
             userId: req.user.userId,
             customerId: id
           });
+
+          // Usar nuevo formato para error not found
+          return res.status(404).json(
+            createErrorResponse(
+              ApiErrorCode.NOT_FOUND,
+              result.error,
+              undefined,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.CUSTOMERS.DELETE.FAILED, {

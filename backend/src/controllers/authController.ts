@@ -3,7 +3,9 @@ import { Request, Response } from 'express';
 import { AuthService } from '../services/auth/authService';
 import { UserRepository } from '../repositories/userRepository';
 import prisma from '../config/database';
-import { ERROR_MESSAGES, LOG_MESSAGES  } from '../shared/constants';
+import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
+import { ApiErrorCode } from '../shared/types/responses';
+import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
@@ -17,7 +19,6 @@ export class AuthController {
       JWT_SECRET
     );
 
-    // Bind de los métodos para mantener el contexto
     this.login = this.login.bind(this);
     this.register = this.register.bind(this);
     this.getCurrentUser = this.getCurrentUser.bind(this);
@@ -53,6 +54,7 @@ export class AuthController {
       role: result.data?.user.role
     });
 
+    // Mantener el formato de respuesta original
     res.json(result.data);
   }
 
@@ -74,10 +76,16 @@ export class AuthController {
           initiatedBy: req.user?.userId
         });
 
-        return res.status(409).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.USER_EXISTS 
-        });
+        return res.status(409).json(
+          createErrorResponse(
+            ApiErrorCode.CONFLICT,
+            ERROR_MESSAGES.AUTHENTICATION.USER_EXISTS,
+            undefined,
+            req
+          )
+        );
       }
+
       if (result.errors) {
         Logger.warn(LOG_MESSAGES.AUTH.REGISTRATION.FAILED_VALIDATION, {
           email,
@@ -109,6 +117,7 @@ export class AuthController {
       initiatedBy: req.user?.userId
     });
 
+    // Mantener formato de respuesta original
     res.status(201).json(result.data);
   }
 
@@ -155,6 +164,7 @@ export class AuthController {
       userId: req.user.userId
     });
 
+    // Mantener formato de respuesta original
     res.json(result.data);
   }
 
@@ -190,9 +200,9 @@ export class AuthController {
       userId: req.user.userId
     });
 
+    // Mantener el formato de respuesta original
     res.json({ token: result.data });
   }
 }
 
-// Exportar instancia por defecto para mantener compatibilidad
 export const authController = new AuthController();

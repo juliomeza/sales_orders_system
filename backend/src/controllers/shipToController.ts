@@ -3,10 +3,11 @@ import { Request, Response } from 'express';
 import { ShipToService } from '../services/shipTo/shipToService';
 import { ShipToRepository } from '../repositories/shipToRepository';
 import prisma from '../config/database';
-import { ERROR_MESSAGES, ROLES, ACCOUNT_TYPES } from '../shared/constants';
-import { CreateShipToAddressDTO } from '../services/shipTo/types';
-import { Role } from '../shared/types';
+import { ERROR_MESSAGES, ROLES, LOG_MESSAGES } from '../shared/constants';
+import { ApiErrorCode } from '../shared/types/responses';
+import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
+import { Role } from '../shared/types';
 
 export class ShipToController {
   private shipToService: ShipToService;
@@ -15,7 +16,6 @@ export class ShipToController {
     this.shipToService = shipToService || new ShipToService(
       new ShipToRepository(prisma)
     );
-
     this.bindMethods();
   }
 
@@ -36,57 +36,80 @@ export class ShipToController {
   async list(req: Request, res: Response) {
     try {
       if (!req.user) {
-        Logger.warn('Unauthenticated access attempt to list shipping addresses', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.LIST.FAILED_AUTH, {
           ip: req.ip,
           userAgent: req.get('user-agent')
         });
-        return res.status(401).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+
+        return res.status(401).json(
+          createErrorResponse(
+            ApiErrorCode.UNAUTHORIZED,
+            ERROR_MESSAGES.AUTHENTICATION.REQUIRED,
+            undefined,
+            req
+          )
+        );
       }
 
       const { customerId, role } = req.user;
       const userRole = role as Role;
 
       if (!this.isClient(userRole)) {
-        Logger.warn('Non-client user attempted to access shipping addresses', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.LIST.FAILED_ROLE, {
           userId: req.user.userId,
           role: userRole
         });
-        return res.status(403).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.ACCESS_DENIED 
-        });
+
+        return res.status(403).json(
+          createErrorResponse(
+            ApiErrorCode.FORBIDDEN,
+            ERROR_MESSAGES.AUTHENTICATION.ACCESS_DENIED,
+            undefined,
+            req
+          )
+        );
       }
 
       if (!this.validateCustomerId(customerId)) {
-        Logger.warn('Client user without customer ID attempted to access shipping addresses', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.LIST.FAILED_CUSTOMER, {
           userId: req.user.userId
         });
-        return res.status(400).json({ 
-          error: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD,
-          field: 'customerId'
-        });
+
+        return res.status(400).json(
+          createErrorResponse(
+            ApiErrorCode.VALIDATION_ERROR,
+            ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('customerId'),
+            undefined,
+            req
+          )
+        );
       }
 
-      Logger.debug('List shipping addresses request', {
+      Logger.debug(LOG_MESSAGES.SHIP_TO.LIST.REQUEST, {
         userId: req.user.userId,
         customerId
       });
 
       const result = await this.shipToService.getAddresses(customerId as number);
-      
+
       if (!result.success) {
-        Logger.error('Failed to list shipping addresses', {
+        Logger.error(LOG_MESSAGES.SHIP_TO.LIST.FAILED, {
           userId: req.user.userId,
           customerId,
           error: result.error
         });
-        return res.status(500).json({ 
-          error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-        });
+
+        return res.status(500).json(
+          createErrorResponse(
+            ApiErrorCode.INTERNAL_ERROR,
+            ERROR_MESSAGES.OPERATION.LIST_ERROR,
+            undefined,
+            req
+          )
+        );
       }
 
-      Logger.info('Successfully retrieved shipping addresses', {
+      Logger.info(LOG_MESSAGES.SHIP_TO.LIST.SUCCESS, {
         userId: req.user.userId,
         customerId,
         addressCount: result.data?.addresses.length
@@ -94,52 +117,75 @@ export class ShipToController {
 
       res.json(result.data);
     } catch (error) {
-      Logger.error('Error listing shipping addresses', {
+      Logger.error(LOG_MESSAGES.SHIP_TO.LIST.FAILED, {
         userId: req.user?.userId || 'anonymous',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-      res.status(500).json({ 
-        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-      });
+
+      res.status(500).json(
+        createErrorResponse(
+          ApiErrorCode.INTERNAL_ERROR,
+          ERROR_MESSAGES.OPERATION.LIST_ERROR,
+          undefined,
+          req
+        )
+      );
     }
   }
 
   async create(req: Request, res: Response) {
     try {
       if (!req.user) {
-        Logger.warn('Unauthenticated access attempt to create shipping address', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.CREATE.FAILED_AUTH, {
           ip: req.ip,
           userAgent: req.get('user-agent')
         });
-        return res.status(401).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+
+        return res.status(401).json(
+          createErrorResponse(
+            ApiErrorCode.UNAUTHORIZED,
+            ERROR_MESSAGES.AUTHENTICATION.REQUIRED,
+            undefined,
+            req
+          )
+        );
       }
 
       const { customerId, role } = req.user;
       const userRole = role as Role;
 
       if (!this.isClient(userRole)) {
-        Logger.warn('Non-client user attempted to create shipping address', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.CREATE.FAILED_ROLE, {
           userId: req.user.userId,
           role: userRole
         });
-        return res.status(403).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.ACCESS_DENIED 
-        });
+
+        return res.status(403).json(
+          createErrorResponse(
+            ApiErrorCode.FORBIDDEN,
+            ERROR_MESSAGES.AUTHENTICATION.ACCESS_DENIED,
+            undefined,
+            req
+          )
+        );
       }
 
       if (!this.validateCustomerId(customerId)) {
-        Logger.warn('Client user without customer ID attempted to create shipping address', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.CREATE.FAILED_CUSTOMER, {
           userId: req.user.userId
         });
-        return res.status(400).json({ 
-          error: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD,
-          field: 'customerId'
-        });
+
+        return res.status(400).json(
+          createErrorResponse(
+            ApiErrorCode.VALIDATION_ERROR,
+            ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('customerId'),
+            undefined,
+            req
+          )
+        );
       }
 
-      Logger.info('Create shipping address attempt', {
+      Logger.info(LOG_MESSAGES.SHIP_TO.CREATE.ATTEMPT, {
         userId: req.user.userId,
         customerId,
         addressData: {
@@ -149,40 +195,46 @@ export class ShipToController {
         }
       });
 
-      const addressData: CreateShipToAddressDTO = {
-        ...req.body,
-        accountType: req.body.accountType || 'SHIP_TO'
-      };
-
       const result = await this.shipToService.createAddress(
-        addressData,
+        req.body,
         customerId as number
       );
-      
+
       if (!result.success) {
         if (result.errors) {
-          Logger.warn('Validation failed while creating shipping address', {
+          Logger.warn(LOG_MESSAGES.SHIP_TO.CREATE.FAILED_VALIDATION, {
             userId: req.user.userId,
             customerId,
             errors: result.errors
           });
-          return res.status(400).json({ 
-            error: ERROR_MESSAGES.VALIDATION.FAILED, 
-            details: result.errors 
-          });
+
+          return res.status(400).json(
+            createErrorResponse(
+              ApiErrorCode.VALIDATION_ERROR,
+              ERROR_MESSAGES.VALIDATION.FAILED,
+              result.errors,
+              req
+            )
+          );
         }
 
-        Logger.error('Failed to create shipping address', {
+        Logger.error(LOG_MESSAGES.SHIP_TO.CREATE.FAILED, {
           userId: req.user.userId,
           customerId,
           error: result.error
         });
-        return res.status(500).json({ 
-          error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
-        });
+
+        return res.status(500).json(
+          createErrorResponse(
+            ApiErrorCode.INTERNAL_ERROR,
+            ERROR_MESSAGES.OPERATION.CREATE_ERROR,
+            undefined,
+            req
+          )
+        );
       }
 
-      Logger.info('Successfully created shipping address', {
+      Logger.info(LOG_MESSAGES.SHIP_TO.CREATE.SUCCESS, {
         userId: req.user.userId,
         customerId,
         addressId: result.data?.id
@@ -190,70 +242,99 @@ export class ShipToController {
 
       res.status(201).json(result.data);
     } catch (error) {
-      Logger.error('Error creating shipping address', {
+      Logger.error(LOG_MESSAGES.SHIP_TO.CREATE.FAILED, {
         userId: req.user?.userId || 'anonymous',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-      res.status(500).json({ 
-        error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
-      });
+
+      res.status(500).json(
+        createErrorResponse(
+          ApiErrorCode.INTERNAL_ERROR,
+          ERROR_MESSAGES.OPERATION.CREATE_ERROR,
+          undefined,
+          req
+        )
+      );
     }
   }
 
   async getBillingAddresses(req: Request, res: Response) {
     try {
       if (!req.user) {
-        Logger.warn('Unauthenticated access attempt to list billing addresses', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.BILLING.FAILED_AUTH, {
           ip: req.ip,
           userAgent: req.get('user-agent')
         });
-        return res.status(401).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+
+        return res.status(401).json(
+          createErrorResponse(
+            ApiErrorCode.UNAUTHORIZED,
+            ERROR_MESSAGES.AUTHENTICATION.REQUIRED,
+            undefined,
+            req
+          )
+        );
       }
 
       const { customerId, role } = req.user;
       const userRole = role as Role;
 
       if (!this.isClient(userRole)) {
-        Logger.warn('Non-client user attempted to access billing addresses', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.BILLING.FAILED_ROLE, {
           userId: req.user.userId,
           role: userRole
         });
-        return res.status(403).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.ACCESS_DENIED 
-        });
+
+        return res.status(403).json(
+          createErrorResponse(
+            ApiErrorCode.FORBIDDEN,
+            ERROR_MESSAGES.AUTHENTICATION.ACCESS_DENIED,
+            undefined,
+            req
+          )
+        );
       }
 
       if (!this.validateCustomerId(customerId)) {
-        Logger.warn('Client user without customer ID attempted to access billing addresses', {
+        Logger.warn(LOG_MESSAGES.SHIP_TO.BILLING.FAILED_CUSTOMER, {
           userId: req.user.userId
         });
-        return res.status(400).json({ 
-          error: ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD,
-          field: 'customerId'
-        });
+
+        return res.status(400).json(
+          createErrorResponse(
+            ApiErrorCode.VALIDATION_ERROR,
+            ERROR_MESSAGES.VALIDATION.REQUIRED_FIELD_WITH_NAME('customerId'),
+            undefined,
+            req
+          )
+        );
       }
 
-      Logger.debug('List billing addresses request', {
+      Logger.debug(LOG_MESSAGES.SHIP_TO.BILLING.REQUEST, {
         userId: req.user.userId,
         customerId
       });
 
       const result = await this.shipToService.getBillingAddresses(customerId as number);
-      
+
       if (!result.success) {
-        Logger.error('Failed to list billing addresses', {
+        Logger.error(LOG_MESSAGES.SHIP_TO.BILLING.FAILED, {
           userId: req.user.userId,
           customerId,
           error: result.error
         });
-        return res.status(500).json({ 
-          error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-        });
+
+        return res.status(500).json(
+          createErrorResponse(
+            ApiErrorCode.INTERNAL_ERROR,
+            ERROR_MESSAGES.OPERATION.LIST_ERROR,
+            undefined,
+            req
+          )
+        );
       }
 
-      Logger.info('Successfully retrieved billing addresses', {
+      Logger.info(LOG_MESSAGES.SHIP_TO.BILLING.SUCCESS, {
         userId: req.user.userId,
         customerId,
         addressCount: result.data?.addresses.length
@@ -261,16 +342,21 @@ export class ShipToController {
 
       res.json(result.data);
     } catch (error) {
-      Logger.error('Error listing billing addresses', {
+      Logger.error(LOG_MESSAGES.SHIP_TO.BILLING.FAILED, {
         userId: req.user?.userId || 'anonymous',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-      res.status(500).json({ 
-        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-      });
+
+      res.status(500).json(
+        createErrorResponse(
+          ApiErrorCode.INTERNAL_ERROR,
+          ERROR_MESSAGES.OPERATION.LIST_ERROR,
+          undefined,
+          req
+        )
+      );
     }
   }
 }
 
-// Export default instance for compatibility
 export const shipToController = new ShipToController();

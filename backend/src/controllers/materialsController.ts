@@ -4,6 +4,8 @@ import { MaterialService } from '../services/materials/materialService';
 import { MaterialRepository } from '../repositories/materialRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ROLES, LOG_MESSAGES } from '../shared/constants';
+import { ApiErrorCode } from '../shared/types/responses';
+import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 import { MaterialFilters, MaterialSearchFilters } from '../domain/material';
 
@@ -24,6 +26,11 @@ export class MaterialsController {
   async list(req: Request, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to materials list', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -67,15 +74,30 @@ export class MaterialsController {
       const result = await this.materialService.listMaterials(filters);
 
       if (!result.success) {
+        if (result.errors) {
+          Logger.warn(LOG_MESSAGES.MATERIALS.LIST.FAILED, {
+            userId: req.user.userId,
+            errors: result.errors
+          });
+
+          // Usar nuevo formato para errores de validación
+          return res.status(400).json(
+            createErrorResponse(
+              ApiErrorCode.VALIDATION_ERROR,
+              ERROR_MESSAGES.VALIDATION.FAILED,
+              result.errors,
+              req
+            )
+          );
+        }
+
         Logger.error(LOG_MESSAGES.MATERIALS.LIST.FAILED, {
           userId: req.user.userId,
-          error: result.error,
-          errors: result.errors
+          error: result.error
         });
 
         return res.status(500).json({ 
-          error: ERROR_MESSAGES.OPERATION.LIST_ERROR,
-          details: result.errors 
+          error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
       }
 
@@ -85,6 +107,7 @@ export class MaterialsController {
         filters
       });
 
+      // Mantener formato de respuesta original
       res.json(result.data);
     } catch (error) {
       Logger.error(LOG_MESSAGES.MATERIALS.LIST.FAILED, {
@@ -101,6 +124,11 @@ export class MaterialsController {
   async search(req: Request, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to materials search', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -153,10 +181,14 @@ export class MaterialsController {
             errors: result.errors
           });
 
-          return res.status(400).json({
-            error: ERROR_MESSAGES.VALIDATION.FAILED,
-            details: result.errors
-          });
+          return res.status(400).json(
+            createErrorResponse(
+              ApiErrorCode.VALIDATION_ERROR,
+              ERROR_MESSAGES.VALIDATION.FAILED,
+              result.errors,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.MATERIALS.SEARCH.FAILED, {
@@ -175,6 +207,7 @@ export class MaterialsController {
         searchParams: filters
       });
 
+      // Mantener formato de respuesta original
       res.json(result.data);
     } catch (error) {
       Logger.error(LOG_MESSAGES.MATERIALS.SEARCH.FAILED, {
@@ -191,6 +224,11 @@ export class MaterialsController {
   async getById(req: Request, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to material details', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -218,9 +256,14 @@ export class MaterialsController {
             materialId: id
           });
 
-          return res.status(404).json({ 
-            error: ERROR_MESSAGES.NOT_FOUND.MATERIAL 
-          });
+          return res.status(404).json(
+            createErrorResponse(
+              ApiErrorCode.NOT_FOUND,
+              ERROR_MESSAGES.NOT_FOUND.MATERIAL,
+              undefined,
+              req
+            )
+          );
         }
 
         Logger.error(LOG_MESSAGES.MATERIALS.GET.FAILED, {
@@ -240,6 +283,7 @@ export class MaterialsController {
         code: result.data?.code
       });
 
+      // Mantener formato de respuesta original
       res.json(result.data);
     } catch (error) {
       Logger.error(LOG_MESSAGES.MATERIALS.GET.FAILED, {
@@ -257,6 +301,11 @@ export class MaterialsController {
   async getUoms(req: Request, res: Response) {
     try {
       if (!req.user) {
+        Logger.warn('Unauthorized access attempt to UOMs list', {
+          ip: req.ip,
+          userAgent: req.get('user-agent')
+        });
+
         return res.status(401).json({ 
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
@@ -284,6 +333,7 @@ export class MaterialsController {
         count: result.data?.length || 0
       });
 
+      // Mantener formato de respuesta original
       res.json(result.data);
     } catch (error) {
       Logger.error(LOG_MESSAGES.MATERIALS.UOMS.FAILED, {

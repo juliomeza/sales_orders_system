@@ -127,7 +127,8 @@ export const LOG_MESSAGES = {
       REQUEST: 'Get order by ID request',
       SUCCESS: 'Get order successful',
       FAILED_NOT_FOUND: 'Get order failed - Not found',
-      FAILED: 'Get order failed'
+      FAILED: 'Get order failed',
+      FAILED_ACCESS_DENIED: 'Get order failed - Access Denied'
     },
     CREATE: {
       ATTEMPT: 'Create order attempt',

@@ -4,21 +4,32 @@ import { ValidationService } from '../../shared/validations';
 import { ServiceResult } from '../../shared/types';
 import { CreateCustomerDTO, UpdateCustomerDTO } from './types';
 import { CustomerDomain } from '../../domain/customer';
-import { ERROR_MESSAGES, STATUS, ROLES, AUTH_CONSTANTS } from '../../shared/constants';
+import { ERROR_MESSAGES, STATUS, ROLES, AUTH_CONSTANTS, LOG_MESSAGES } from '../../shared/constants';
+import Logger from '../../config/logger';
 import bcrypt from 'bcryptjs';
 
 export class CustomerService {
   constructor(private customerRepository: CustomerRepository) {}
 
   async getAllCustomers(): Promise<ServiceResult<CustomerDomain[]>> {
+    Logger.debug(LOG_MESSAGES.CUSTOMERS.LIST.REQUEST);
+
     try {
       const customers = await this.customerRepository.findAll();
+      
+      Logger.info(LOG_MESSAGES.CUSTOMERS.LIST.SUCCESS, {
+        count: customers?.length || 0
+      });
+
       return {
         success: true,
         data: customers as CustomerDomain[]
       };
     } catch (error) {
-      console.error('Get all customers error:', error);
+      Logger.error(LOG_MESSAGES.CUSTOMERS.LIST.FAILED, {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       return {
         success: false,
         error: ERROR_MESSAGES.OPERATION.LIST_ERROR
@@ -27,20 +38,39 @@ export class CustomerService {
   }
 
   async getCustomerById(id: number): Promise<ServiceResult<CustomerDomain>> {
+    Logger.debug(LOG_MESSAGES.CUSTOMERS.GET.REQUEST, {
+      customerId: id
+    });
+
     try {
       const customer = await this.customerRepository.findById(id);
+      
       if (!customer) {
+        Logger.warn(LOG_MESSAGES.CUSTOMERS.GET.FAILED_NOT_FOUND, {
+          customerId: id
+        });
+
         return {
           success: false,
           error: ERROR_MESSAGES.NOT_FOUND.CUSTOMER
         };
       }
+
+      Logger.info(LOG_MESSAGES.CUSTOMERS.GET.SUCCESS, {
+        customerId: id,
+        lookupCode: customer.lookupCode
+      });
+
       return {
         success: true,
         data: customer as CustomerDomain
       };
     } catch (error) {
-      console.error('Get customer by id error:', error);
+      Logger.error(LOG_MESSAGES.CUSTOMERS.GET.FAILED, {
+        customerId: id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       return {
         success: false,
         error: ERROR_MESSAGES.OPERATION.LIST_ERROR
@@ -49,8 +79,20 @@ export class CustomerService {
   }
 
   async createCustomer(data: CreateCustomerDTO): Promise<ServiceResult<CustomerDomain>> {
+    Logger.info(LOG_MESSAGES.CUSTOMERS.CREATE.ATTEMPT, {
+      lookupCode: data.customer.lookupCode,
+      name: data.customer.name,
+      projectsCount: data.projects.length,
+      usersCount: data.users.length
+    });
+
     const validation = this.validateCustomerData(data);
     if (!validation.isValid) {
+      Logger.warn(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED_VALIDATION, {
+        lookupCode: data.customer.lookupCode,
+        errors: validation.errors
+      });
+
       return {
         success: false,
         errors: validation.errors
@@ -82,12 +124,23 @@ export class CustomerService {
         usersWithHashedPasswords
       );
 
+      Logger.info(LOG_MESSAGES.CUSTOMERS.CREATE.SUCCESS, {
+        customerId: customer?.id,
+        lookupCode: customer?.lookupCode,
+        projectsCount: customer?.projects?.length || 0,
+        usersCount: customer?.users?.length || 0
+      });
+
       return {
         success: true,
         data: customer as CustomerDomain
       };
     } catch (error) {
-      console.error('Create customer error:', error);
+      Logger.error(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED, {
+        lookupCode: data.customer.lookupCode,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       return {
         success: false,
         error: ERROR_MESSAGES.OPERATION.CREATE_ERROR
@@ -96,8 +149,20 @@ export class CustomerService {
   }
 
   async updateCustomer(id: number, data: UpdateCustomerDTO): Promise<ServiceResult<CustomerDomain>> {
+    Logger.info(LOG_MESSAGES.CUSTOMERS.UPDATE.ATTEMPT, {
+      customerId: id,
+      hasCustomerData: !!data.customer,
+      hasProjects: !!data.projects,
+      hasUsers: !!data.users
+    });
+
     const validation = this.validateUpdateData(data);
     if (!validation.isValid) {
+      Logger.warn(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED_VALIDATION, {
+        customerId: id,
+        errors: validation.errors
+      });
+
       return {
         success: false,
         errors: validation.errors
@@ -107,6 +172,10 @@ export class CustomerService {
     try {
       const existingCustomer = await this.customerRepository.findById(id);
       if (!existingCustomer) {
+        Logger.warn(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED_NOT_FOUND, {
+          customerId: id
+        });
+
         return {
           success: false,
           error: ERROR_MESSAGES.NOT_FOUND.CUSTOMER
@@ -142,12 +211,23 @@ export class CustomerService {
         usersWithHashedPasswords
       );
 
+      Logger.info(LOG_MESSAGES.CUSTOMERS.UPDATE.SUCCESS, {
+        customerId: id,
+        lookupCode: customer?.lookupCode,
+        projectsUpdated: !!data.projects,
+        usersUpdated: !!data.users
+      });
+
       return {
         success: true,
         data: customer as CustomerDomain
       };
     } catch (error) {
-      console.error('Update customer error:', error);
+      Logger.error(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED, {
+        customerId: id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       return {
         success: false,
         error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR
@@ -156,9 +236,17 @@ export class CustomerService {
   }
 
   async deleteCustomer(id: number): Promise<ServiceResult<void>> {
+    Logger.info(LOG_MESSAGES.CUSTOMERS.DELETE.ATTEMPT, {
+      customerId: id
+    });
+
     try {
       const existingCustomer = await this.customerRepository.findById(id);
       if (!existingCustomer) {
+        Logger.warn(LOG_MESSAGES.CUSTOMERS.DELETE.FAILED_NOT_FOUND, {
+          customerId: id
+        });
+
         return {
           success: false,
           error: ERROR_MESSAGES.NOT_FOUND.CUSTOMER
@@ -166,11 +254,21 @@ export class CustomerService {
       }
 
       await this.customerRepository.delete(id);
+
+      Logger.info(LOG_MESSAGES.CUSTOMERS.DELETE.SUCCESS, {
+        customerId: id,
+        lookupCode: existingCustomer.lookupCode
+      });
+
       return {
         success: true
       };
     } catch (error) {
-      console.error('Delete customer error:', error);
+      Logger.error(LOG_MESSAGES.CUSTOMERS.DELETE.FAILED, {
+        customerId: id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       return {
         success: false,
         error: ERROR_MESSAGES.OPERATION.DELETE_ERROR
@@ -179,6 +277,12 @@ export class CustomerService {
   }
 
   private validateCustomerData(data: CreateCustomerDTO) {
+    Logger.debug('Validating customer data', {
+      lookupCode: data.customer.lookupCode,
+      projectsCount: data.projects.length,
+      usersCount: data.users.length
+    });
+
     return ValidationService.validate([
       {
         condition: !!data.customer.lookupCode,
@@ -220,6 +324,12 @@ export class CustomerService {
   }
 
   private validateUpdateData(data: UpdateCustomerDTO) {
+    Logger.debug('Validating customer update data', {
+      hasCustomerData: !!data.customer,
+      hasProjects: !!data.projects,
+      hasUsers: !!data.users
+    });
+
     const rules = [];
 
     if (data.customer) {

@@ -18,7 +18,8 @@ export const LOG_MESSAGES = {
       SUCCESS: 'Get current user successful',
       FAILED_NO_USER: 'Get current user failed - No user in request',
       FAILED_NOT_FOUND: 'Get current user failed - User not found',
-      FAILED_INTERNAL: 'Get current user failed - Internal error'
+      FAILED_INTERNAL: 'Get current user failed - Internal error',
+      FAILED_INACTIVE:'Get current user failed - Inactive user'
     },
     TOKEN: {
       REQUEST: 'Token refresh request',
@@ -51,13 +52,38 @@ export const LOG_MESSAGES = {
       SUCCESS: 'Update carrier successful',
       FAILED_NOT_FOUND: 'Update carrier failed - Not found',
       FAILED_VALIDATION: 'Update carrier failed - Validation errors',
-      FAILED: 'Update carrier failed'
+      FAILED: 'Update carrier failed',
+      FAILED_EXISTS:'Update carrier failed - Carrier exists'
     },
     SERVICES: {
-      REQUEST: 'Get carrier services request',
-      SUCCESS: 'Get carrier services successful',
-      FAILED_NOT_FOUND: 'Get carrier services failed - Carrier not found',
-      FAILED: 'Get carrier services failed'
+      GET: {
+        REQUEST: 'Get carrier service request',
+        SUCCESS: 'Get carrier service successful',
+        FAILED_NOT_FOUND: 'Get carrier service failed - Service not found',
+        FAILED: 'Get carrier service failed'
+      },
+      LIST: {
+        REQUEST: 'Get carrier services list request',
+        SUCCESS: 'Get carrier services list successful',
+        FAILED_NOT_FOUND: 'Get carrier services failed - Carrier not found',
+        FAILED: 'Get carrier services list failed'
+      },
+      CREATE: {
+        ATTEMPT: 'Create carrier service attempt',
+        SUCCESS: 'Create carrier service successful',
+        FAILED_VALIDATION: 'Create carrier service failed - Validation errors',
+        FAILED_CARRIER_NOT_FOUND: 'Create carrier service failed - Carrier not found',
+        FAILED_EXISTS: 'Create carrier service failed - Service code already exists',
+        FAILED: 'Create carrier service failed'
+      },
+      UPDATE: {
+        ATTEMPT: 'Update carrier service attempt',
+        SUCCESS: 'Update carrier service successful',
+        FAILED_NOT_FOUND: 'Update carrier service failed - Service not found',
+        FAILED_VALIDATION: 'Update carrier service failed - Validation errors',
+        FAILED_EXISTS: 'Update carrier service failed - Service code already exists',
+        FAILED: 'Update carrier service failed'
+      }
     }
   },
   CUSTOMERS: {

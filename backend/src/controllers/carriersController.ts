@@ -324,7 +324,7 @@ export class CarriersController {
       }
 
       const id = Number(req.params.id);
-      Logger.debug(LOG_MESSAGES.CARRIERS.SERVICES.REQUEST, {
+      Logger.debug(LOG_MESSAGES.CARRIERS.SERVICES.GET.REQUEST, {
         userId: req.user.userId,
         carrierId: id
       });
@@ -333,7 +333,7 @@ export class CarriersController {
       
       if (!result.success || !result.data) {
         if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
-          Logger.warn(LOG_MESSAGES.CARRIERS.SERVICES.FAILED_NOT_FOUND, {
+          Logger.warn(LOG_MESSAGES.CARRIERS.SERVICES.GET.FAILED_NOT_FOUND, {
             userId: req.user.userId,
             carrierId: id
           });
@@ -349,7 +349,7 @@ export class CarriersController {
           );
         }
 
-        Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.FAILED, {
+        Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.GET.FAILED, {
           userId: req.user.userId,
           carrierId: id,
           error: result.error
@@ -360,7 +360,7 @@ export class CarriersController {
         });
       }
 
-      Logger.info(LOG_MESSAGES.CARRIERS.SERVICES.SUCCESS, {
+      Logger.info(LOG_MESSAGES.CARRIERS.SERVICES.GET.SUCCESS, {
         userId: req.user.userId,
         carrierId: id,
         serviceCount: result.data.services.length
@@ -372,7 +372,7 @@ export class CarriersController {
         data: result.data.services
       });
     } catch (error) {
-      Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.FAILED, {
+      Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.GET.FAILED, {
         userId: req.user?.userId || 'anonymous',
         carrierId: req.params.id,
         error: error instanceof Error ? error.message : 'Unknown error'

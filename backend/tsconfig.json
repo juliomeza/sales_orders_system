@@ -12,7 +12,8 @@
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/.prisma/client"
-    ]
+    ],
+    "types": []
   },
   "include": [
     "src/**/*"

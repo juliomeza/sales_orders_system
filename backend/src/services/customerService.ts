@@ -1,11 +1,11 @@
-// backend/src/services/customers/customerService.ts
-import { CustomerRepository } from '../../repositories/customerRepository';
-import { ValidationService } from '../../shared/validations';
-import { ServiceResult } from '../../shared/types';
-import { CreateCustomerDTO, UpdateCustomerDTO } from './types';
-import { CustomerDomain } from '../../domain/customer';
-import { ERROR_MESSAGES, STATUS, ROLES, AUTH_CONSTANTS, LOG_MESSAGES } from '../../shared/constants';
-import Logger from '../../config/logger';
+// backend/src/services/customerService.ts
+import { CustomerRepository } from '../repositories/customerRepository';
+import { ValidationService } from '../shared/validations';
+import { ServiceResult } from '../shared/types';
+import { CreateCustomerDTO, UpdateCustomerDTO } from '../shared/types/customers.types';
+import { CustomerDomain } from '../domain/customer';
+import { ERROR_MESSAGES, STATUS, ROLES, AUTH_CONSTANTS, LOG_MESSAGES } from '../shared/constants';
+import Logger from '../config/logger';
 import bcrypt from 'bcryptjs';
 
 export class CustomerService {

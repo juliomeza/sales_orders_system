@@ -1,7 +1,7 @@
 // backend/src/controllers/customersController.ts
 import { Request, Response } from 'express';
-import { CustomerService } from '../services/customers/customerService';
-import { CreateCustomerDTO, UpdateCustomerDTO } from '../services/customers/types';
+import { CustomerService } from '../services/customerService';
+import { CreateCustomerDTO, UpdateCustomerDTO } from '../shared/types/customers.types';
 import { CustomerRepository } from '../repositories/customerRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';

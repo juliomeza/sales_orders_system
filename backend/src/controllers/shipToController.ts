@@ -1,6 +1,6 @@
 // backend/src/controllers/shipToController.ts
 import { Request, Response } from 'express';
-import { ShipToService } from '../services/shipTo/shipToService';
+import { ShipToService } from '../services/shipToService';
 import { ShipToRepository } from '../repositories/shipToRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ROLES, LOG_MESSAGES } from '../shared/constants';

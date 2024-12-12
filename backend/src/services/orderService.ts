@@ -1,17 +1,17 @@
-// backend/src/services/orders/orderService.ts
-import { OrderRepository } from '../../repositories/orderRepository';
-import { ServiceResult } from '../../shared/types';
-import { ValidationService } from '../../shared/validations';
-import { OrderDomain, OrderStatsDomain } from '../../domain/order';
-import { ERROR_MESSAGES, ORDER_STATUS, LOG_MESSAGES } from '../../shared/constants';
-import Logger from '../../config/logger';
+// backend/src/services/orderService.ts
+import { OrderRepository } from '../repositories/orderRepository';
+import { ServiceResult } from '../shared/types';
+import { ValidationService } from '../shared/validations';
+import { OrderDomain, OrderStatsDomain } from '../domain/order';
+import { ERROR_MESSAGES, ORDER_STATUS, LOG_MESSAGES } from '../shared/constants';
+import Logger from '../config/logger';
 import { 
   CreateOrderDTO, 
   UpdateOrderDTO, 
   OrderFilters, 
   OrderListResponse,
   OrderStatsFilters 
-} from './types';
+} from '../shared/types/orders.types';
 
 export class OrderService {
   constructor(private orderRepository: OrderRepository) {}

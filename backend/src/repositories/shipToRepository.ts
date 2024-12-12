@@ -1,7 +1,7 @@
 // backend/src/repositories/shipToRepository.ts
 import { PrismaClient } from '@prisma/client';
 import { ShipToAddressDomain } from '../domain/shipTo';
-import { CreateShipToAddressDTO } from '../services/shipTo/types';
+import { CreateShipToAddressDTO } from '../shared/types/shipto.types';
 import Logger from '../config/logger';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 

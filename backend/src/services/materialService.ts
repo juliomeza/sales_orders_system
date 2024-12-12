@@ -1,4 +1,4 @@
-// backend/src/services/materials/materialService.ts
+// backend/src/services/materialService.ts
 import { 
   MaterialDomain, 
   MaterialFilters, 
@@ -7,12 +7,12 @@ import {
   MaterialSummary,
   OrderItem,
   PaginatedResponse
-} from '../../domain/material';
-import { MaterialRepository } from '../../repositories/materialRepository';
-import { ServiceResult } from '../../shared/types';
-import { MaterialValidationService } from './materialValidationService';
-import { ERROR_MESSAGES, LOG_MESSAGES } from '../../shared/constants';
-import Logger from '../../config/logger';
+} from '../domain/material';
+import { MaterialRepository } from '../repositories/materialRepository';
+import { ServiceResult } from '../shared/types';
+import { MaterialValidation } from '../shared/validations/services/materialValidation';
+import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
+import Logger from '../config/logger';
 
 export class MaterialService {
   constructor(private materialRepository: MaterialRepository) {}
@@ -80,7 +80,7 @@ export class MaterialService {
     });
 
     try {
-      const validation = MaterialValidationService.validateFilters(filters);
+      const validation = MaterialValidation.validateFilters(filters);
       if (!validation.isValid) {
         Logger.warn(LOG_MESSAGES.MATERIALS.LIST.FAILED, {
           errors: validation.errors,
@@ -151,7 +151,7 @@ export class MaterialService {
     });
 
     try {
-      const validation = MaterialValidationService.validateSearchFilters(filters);
+      const validation = MaterialValidation.validateSearchFilters(filters);
       if (!validation.isValid) {
         Logger.warn(LOG_MESSAGES.MATERIALS.SEARCH.FAILED_VALIDATION, {
           errors: validation.errors,

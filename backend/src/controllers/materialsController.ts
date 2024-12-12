@@ -1,6 +1,6 @@
 // backend/src/controllers/materialsController.ts
 import { Request, Response } from 'express';
-import { MaterialService } from '../services/materials/materialService';
+import { MaterialService } from '../services/materialService';
 import { MaterialRepository } from '../repositories/materialRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ROLES, LOG_MESSAGES } from '../shared/constants';

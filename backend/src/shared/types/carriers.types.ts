@@ -1,5 +1,5 @@
-// backend/src/services/carriers/types.ts
-import { ServiceResult } from '../../shared/types';
+// backend/src/shared/types/carriers.types.ts
+import { ServiceResult } from '.';
 import { Carrier, CarrierService } from '../../domain/carrier';
 
 export interface CreateCarrierDTO {

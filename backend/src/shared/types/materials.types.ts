@@ -1,4 +1,4 @@
-// backend/src/services/materials/types.ts
+// backend/src/shared/types/materials.types.ts
 import { MaterialDomain } from '../../domain/material';
 
 export interface MaterialListResponse {

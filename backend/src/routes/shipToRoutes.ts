@@ -1,7 +1,7 @@
 // backend/src/routes/shipToRoutes.ts
 import express from 'express';
 import { ShipToController } from '../controllers/shipToController';
-import { ShipToService } from '../services/shipTo/shipToService';
+import { ShipToService } from '../services/shipToService';
 import { ShipToRepository } from '../repositories/shipToRepository';
 import { authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';

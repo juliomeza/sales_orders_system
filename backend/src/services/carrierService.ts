@@ -1,8 +1,8 @@
-// backend/src/services/carriers/carrierService.ts
-import { ERROR_MESSAGES, STATUS, LOG_MESSAGES } from '../../shared/constants';
-import { CarrierRepository } from '../../repositories/carrierRepository';
-import { validateCarrier, validateCarrierService } from './validation';
-import Logger from '../../config/logger';
+// backend/src/services/carrierService.ts
+import { ERROR_MESSAGES, STATUS, LOG_MESSAGES } from '../shared/constants';
+import { CarrierRepository } from '../repositories/carrierRepository';
+import { CarrierValidation  } from '../shared/validations/services/carrierValidation';
+import Logger from '../config/logger';
 import { 
   CarrierFilters, 
   CreateCarrierDTO, 
@@ -12,7 +12,7 @@ import {
   CarrierResult,
   CarrierServiceResult,
   CarriersListResult
-} from './types';
+} from '../shared/types/carriers.types';
 
 export class CarrierServiceImpl {
   constructor(private carrierRepository: CarrierRepository) {}
@@ -93,7 +93,7 @@ export class CarrierServiceImpl {
     });
 
     try {
-      const validationErrors = validateCarrier(data);
+      const validationErrors = CarrierValidation.validateCarrier(data);
       if (validationErrors.length > 0) {
         Logger.warn(LOG_MESSAGES.CARRIERS.CREATE.FAILED_VALIDATION, {
           lookupCode: data.lookupCode,
@@ -163,7 +163,7 @@ export class CarrierServiceImpl {
         };
       }
 
-      const validationErrors = validateCarrier(data, true);
+      const validationErrors = CarrierValidation.validateCarrier(data, true);
       if (validationErrors.length > 0) {
         Logger.warn(LOG_MESSAGES.CARRIERS.UPDATE.FAILED_VALIDATION, {
           carrierId: id,
@@ -259,7 +259,7 @@ export class CarrierServiceImpl {
     });
 
     try {
-      const validationErrors = validateCarrierService(data);
+      const validationErrors = CarrierValidation.validateCarrierService(data);
       if (validationErrors.length > 0) {
         Logger.warn(LOG_MESSAGES.CARRIERS.SERVICES.CREATE.FAILED_VALIDATION, {
           carrierId: data.carrierId,
@@ -345,7 +345,7 @@ export class CarrierServiceImpl {
         };
       }
 
-      const validationErrors = validateCarrierService(data, true);
+      const validationErrors = CarrierValidation.validateCarrierService(data, true);
       if (validationErrors.length > 0) {
         Logger.warn(LOG_MESSAGES.CARRIERS.SERVICES.UPDATE.FAILED_VALIDATION, {
           serviceId: id,

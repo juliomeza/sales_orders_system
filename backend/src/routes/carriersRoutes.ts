@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import prisma from '../config/database';
 import { CarrierRepository } from '../repositories/carrierRepository';
-import { CarrierServiceImpl } from '../services/carriers/carrierService';
+import { CarrierServiceImpl } from '../services/carrierService';
 import { CarriersController } from '../controllers/carriersController';
 import { authenticateToken } from '../middleware/auth';
 

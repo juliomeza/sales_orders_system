@@ -1,4 +1,4 @@
-// backend/src/servces/shipTo/types.ts
+// backend/src/shared/types/shipto.types.ts
 import { ShipToAddressSummary } from '../../domain/shipTo';
 
 export interface CreateShipToAddressDTO {

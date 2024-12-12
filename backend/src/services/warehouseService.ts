@@ -1,17 +1,17 @@
-// backend/src/services/warehouses/warehouseService.ts
-import { WarehouseRepository } from '../../repositories/warehouseRepository';
-import { ServiceResult } from '../../shared/types';
-import { ValidationService } from '../../shared/validations';
+// backend/src/services/warehouseService.ts
+import { WarehouseRepository } from '../repositories/warehouseRepository';
+import { ServiceResult } from '../shared/types';
+import { ValidationService } from '../shared/validations';
 import { 
   CreateWarehouseDTO, 
   UpdateWarehouseDTO, 
   WarehouseFilters,
   WarehouseListResponse,
   WarehouseStatsResponse 
-} from './types';
-import { WarehouseDomain } from '../../domain/warehouse';
-import { ERROR_MESSAGES, LOG_MESSAGES } from '../../shared/constants';
-import Logger from '../../config/logger';
+} from '../shared/types/warehouses.types';
+import { WarehouseDomain } from '../domain/warehouse';
+import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
+import Logger from '../config/logger';
 
 export class WarehouseService {
   constructor(private warehouseRepository: WarehouseRepository) {}

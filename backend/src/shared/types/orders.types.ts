@@ -1,4 +1,4 @@
-// backend/src/services/orders/types.ts
+// backend/src/shared/types/orders.types.ts
 import { OrderItemDomain } from '../../domain/order';
 
 export interface CreateOrderDTO {

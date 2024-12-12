@@ -1,4 +1,4 @@
-// backend/src/services/warehouses/types.ts
+// backend/src/shared/types/warehouses.types.ts
 
 import { WarehouseDomain } from '../../domain/warehouse';
 

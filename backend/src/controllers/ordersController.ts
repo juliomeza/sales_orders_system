@@ -1,6 +1,6 @@
 // backend/src/controllers/ordersController.ts
 import { Request, Response } from 'express';
-import { OrderService } from '../services/orders/orderService';
+import { OrderService } from '../services/orderService';
 import { OrderRepository } from '../repositories/orderRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ORDER_STATUS, ROLES, LOG_MESSAGES } from '../shared/constants';

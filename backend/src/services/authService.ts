@@ -1,11 +1,11 @@
-// backend/src/services/auth/authService.ts
-import { UserRepository } from '../../repositories/userRepository';
-import { ServiceResult } from '../../shared/types';
-import { ValidationService } from '../../shared/validations';
-import { LoginDTO, RegisterDTO, AuthResponse, CreateUserDTO } from './types';
-import { UserDomain, UserTokenData } from '../../domain/user';
-import { ERROR_MESSAGES, STATUS, ROLES, AUTH_CONSTANTS, LOG_MESSAGES } from '../../shared/constants';
-import Logger from '../../config/logger';
+// backend/src/services/authService.ts
+import { UserRepository } from '../repositories/userRepository';
+import { ServiceResult } from '../shared/types';
+import { ValidationService } from '../shared/validations';
+import { LoginDTO, RegisterDTO, AuthResponse, CreateUserDTO } from '../shared/types/auth.types';
+import { UserDomain, UserTokenData } from '../domain/user';
+import { ERROR_MESSAGES, STATUS, ROLES, AUTH_CONSTANTS, LOG_MESSAGES } from '../shared/constants';
+import Logger from '../config/logger';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 

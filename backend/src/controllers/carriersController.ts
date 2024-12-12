@@ -1,6 +1,6 @@
 // backend/src/controllers/carriersController.ts
 import { Request, Response } from 'express';
-import { CarrierServiceImpl } from '../services/carriers/carrierService';
+import { CarrierServiceImpl } from '../services/carrierService';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 import { ApiErrorCode } from '../shared/types/responses';
 import { createErrorResponse } from '../shared/utils/response';

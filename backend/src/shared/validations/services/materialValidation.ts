@@ -1,8 +1,8 @@
-// backend/src/services/materials/materialValidationService.ts
-import { ValidationService } from '../../shared/validations/validationService';
-import { MaterialFilters, MaterialSearchFilters } from '../../domain/material';
+// backend/src/shared/validations/services/materialValidation.ts
+import { ValidationService } from '../validationService';
+import { MaterialFilters, MaterialSearchFilters }  from '../../../domain/material';
 
-export class MaterialValidationService {
+export class MaterialValidation {
   static validateFilters(filters: MaterialFilters) {
     return ValidationService.validate([
       {

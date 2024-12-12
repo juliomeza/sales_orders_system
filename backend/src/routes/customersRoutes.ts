@@ -1,7 +1,7 @@
 // backend/src/routes/customersRoutes.ts
 import express from 'express';
 import { CustomersController } from '../controllers/customersController';
-import { CustomerService } from '../services/customers/customerService';
+import { CustomerService } from '../services/customerService';
 import { CustomerRepository } from '../repositories/customerRepository';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import prisma from '../config/database';

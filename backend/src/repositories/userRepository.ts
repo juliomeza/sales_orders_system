@@ -1,7 +1,7 @@
 // backend/src/repositories/userRepository.ts
 import { PrismaClient } from '@prisma/client';
 import { UserDomain } from '../domain/user';
-import { CreateUserDTO } from '../services/auth/types';
+import { CreateUserDTO } from '../shared/types/auth.types';
 import bcrypt from 'bcryptjs';
 import Logger from '../config/logger';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';

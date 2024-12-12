@@ -1,6 +1,6 @@
-// backend/src/services/auth/types.ts
+// backend/src/shared/types/auth.types.ts
 import { UserDomain } from '../../domain/user';
-import { Status } from '../../shared/types';
+import { Status } from '.';
 
 export interface LoginDTO {
     email: string;

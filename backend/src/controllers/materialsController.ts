@@ -4,7 +4,7 @@ import { MaterialService } from '../services/materialService';
 import { MaterialRepository } from '../repositories/materialRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ROLES, LOG_MESSAGES } from '../shared/constants';
-import { ApiErrorCode } from '../shared/types/responses';
+import { ApiErrorCode } from '../shared/types/base/responses';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 import { MaterialFilters, MaterialSearchFilters } from '../domain/material';

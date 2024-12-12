@@ -1,5 +1,5 @@
 // backend/src/domain/customer.ts
-import { Status } from '../shared/types/common';
+import { Status } from '../shared/types/base/common';
 
 export interface CustomerDomain {
     id: number;

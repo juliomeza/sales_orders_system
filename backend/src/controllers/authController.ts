@@ -4,7 +4,7 @@ import { AuthService } from '../services/authService';
 import { UserRepository } from '../repositories/userRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
-import { ApiErrorCode } from '../shared/types/responses';
+import { ApiErrorCode } from '../shared/types/base/responses';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 

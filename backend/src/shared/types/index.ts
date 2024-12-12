@@ -1,2 +1,3 @@
 // backend/src/shared/types/index.ts
-export * from './common';
+export * from './base/common';
+export * from './base/responses';

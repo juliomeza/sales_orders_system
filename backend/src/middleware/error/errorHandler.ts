@@ -1,6 +1,6 @@
 // backend/src/middleware/error/errorHandler.ts
 import { Request, Response, NextFunction } from 'express';
-import { ApiErrorCode } from '../../shared/types/responses';
+import { ApiErrorCode } from '../../shared/types/base/responses';
 import { createErrorResponse, handleCommonErrors } from '../../shared/utils/response';
 import Logger from '../../config/logger';
 import { ValidationError } from '../../shared/errors/ValidationError';

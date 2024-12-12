@@ -1,6 +1,6 @@
 // backend/src/shared/utils/response.ts
 import { Request } from 'express';
-import { ApiResponse, ApiError, ApiErrorCode, ResponseMetadata, PaginatedApiResponse } from '../types/responses';
+import { ApiResponse, ApiError, ApiErrorCode, ResponseMetadata, PaginatedApiResponse } from '../types/base/responses';
 
 // Función para crear metadata consistente
 const createMetadata = (req?: Request): ResponseMetadata => ({

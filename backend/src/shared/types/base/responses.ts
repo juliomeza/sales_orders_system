@@ -1,4 +1,4 @@
-// backend/src/shared/types/responses.ts
+// backend/src/shared/types/base/responses.ts
 
 // Códigos de error estandarizados
 export enum ApiErrorCode {

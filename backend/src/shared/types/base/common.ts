@@ -1,5 +1,5 @@
-// backend/src/shared/types/common.ts
-import { STATUS, ORDER_STATUS, ROLES, ACCOUNT_TYPES, UOM_TYPES } from '../constants';
+// backend/src/shared/types/base/common.ts
+import { STATUS, ORDER_STATUS, ROLES, ACCOUNT_TYPES, UOM_TYPES } from '../../constants';
 
 export type Status = typeof STATUS[keyof typeof STATUS];
 export type OrderStatus = typeof ORDER_STATUS[keyof typeof ORDER_STATUS];

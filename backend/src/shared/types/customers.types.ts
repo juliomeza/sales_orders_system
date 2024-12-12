@@ -1,6 +1,6 @@
 // backend/src/shared/types/customers.types.ts
 import { CustomerDomain, ProjectDomain, UserDomain } from '../../domain/customer';
-import { Status } from './common';
+import { Status } from './base/common';
 
 export interface CreateCustomerDTO {
   customer: Omit<CustomerDomain, 'id' | 'status'>;

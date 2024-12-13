@@ -4,7 +4,7 @@ import { ShipToService } from '../services/shipToService';
 import { ShipToRepository } from '../repositories/shipToRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ROLES, LOG_MESSAGES } from '../shared/constants';
-import { ApiErrorCode } from '../shared/types/base/responses';
+import { ApiErrorCode } from '../shared/types';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 import { Role } from '../shared/types';

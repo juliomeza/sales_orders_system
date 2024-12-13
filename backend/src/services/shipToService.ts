@@ -1,8 +1,7 @@
 // backend/src/servces/shipToService.ts
 import { ShipToRepository } from '../repositories/shipToRepository';
-import { ServiceResult } from '../shared/types';
 import { ValidationService } from '../shared/validations';
-import { CreateShipToAddressDTO, ShipToAddressResponse } from '../shared/types/shipto.types';
+import { ServiceResult, CreateShipToAddressDTO, ShipToAddressResponse } from '../shared/types';
 import { ShipToAddressDomain, ShipToAddressSummary } from '../domain/shipTo';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 import Logger from '../config/logger';

@@ -4,7 +4,7 @@ import {
   UpdateCarrierDTO, 
   CreateCarrierServiceDTO, 
   UpdateCarrierServiceDTO 
-} from '../../types/carriers.types';
+} from '../../types';
 import { ERROR_MESSAGES } from '../../constants';
 
 export class CarrierValidation {

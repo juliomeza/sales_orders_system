@@ -1,8 +1,7 @@
 // backend/src/services/customerService.ts
 import { CustomerRepository } from '../repositories/customerRepository';
 import { ValidationService } from '../shared/validations';
-import { ServiceResult } from '../shared/types';
-import { CreateCustomerDTO, UpdateCustomerDTO } from '../shared/types/customers.types';
+import { CreateCustomerDTO, UpdateCustomerDTO, ServiceResult } from '../shared/types';
 import { CustomerDomain } from '../domain/customer';
 import { ERROR_MESSAGES, STATUS, ROLES, AUTH_CONSTANTS, LOG_MESSAGES } from '../shared/constants';
 import Logger from '../config/logger';

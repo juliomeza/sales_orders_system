@@ -1,7 +1,7 @@
 // backend/src/repositories/carrierRepository.ts
 import { PrismaClient } from '@prisma/client';
 import { Carrier, CarrierService } from '../domain/carrier';
-import { CarrierFilters, CreateCarrierDTO, CreateCarrierServiceDTO, UpdateCarrierDTO, UpdateCarrierServiceDTO } from '../shared/types/carriers.types';
+import { CarrierFilters, CreateCarrierDTO, CreateCarrierServiceDTO, UpdateCarrierDTO, UpdateCarrierServiceDTO } from '../shared/types';
 import Logger from '../config/logger';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 

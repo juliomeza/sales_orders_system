@@ -1,11 +1,10 @@
 // backend/src/controllers/customersController.ts
 import { Request, Response } from 'express';
 import { CustomerService } from '../services/customerService';
-import { CreateCustomerDTO, UpdateCustomerDTO } from '../shared/types/customers.types';
+import { CreateCustomerDTO, UpdateCustomerDTO, ApiErrorCode } from '../shared/types';
 import { CustomerRepository } from '../repositories/customerRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
-import { ApiErrorCode } from '../shared/types/base/responses';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 

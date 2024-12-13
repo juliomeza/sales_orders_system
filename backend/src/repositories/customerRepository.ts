@@ -201,11 +201,10 @@ export class CustomerRepository {
     Logger.info('Repository: Updating customer and related entities', {
       customerId: id,
       hasCustomerUpdates: Object.keys(data).length > 0,
-      hasProjectUpdates: !!projects,
-      hasUserUpdates: !!users,
-      operation: 'update'
+      hasProjects: !!projects,
+      hasUsers: !!users
     });
-
+  
     return this.prisma.$transaction(async (tx) => {
       try {
         // Actualizar el customer
@@ -225,53 +224,43 @@ export class CustomerRepository {
             modified_at: new Date()
           }
         });
-
-        Logger.debug('Repository: Customer updated, processing related entities', {
-          customerId: id,
-          lookupCode: customer.lookupCode,
-          operation: 'update'
-        });
-
-        // Actualizar proyectos si se proporcionaron
+  
+        // Si hay proyectos para actualizar
         if (projects !== undefined) {
-          await tx.project.updateMany({
-            where: { customerId: id },
-            data: { 
-              isDefault: false,
-              modified_at: new Date(),
-              modified_by: null
-            }
+          // Primero eliminar todos los proyectos existentes
+          await tx.project.deleteMany({
+            where: { customerId: id }
           });
-
-          const defaultProject = projects.find(p => p.isDefault);
-          if (defaultProject) {
-            await tx.project.updateMany({
-              where: { 
+  
+          // Luego crear los nuevos proyectos
+          if (projects.length > 0) {
+            await tx.project.createMany({
+              data: projects.map(project => ({
+                lookupCode: project.lookupCode,
+                name: project.name,
+                description: project.description || null,
+                isDefault: project.isDefault,
+                status: 1,
                 customerId: id,
-                lookupCode: defaultProject.lookupCode 
-              },
-              data: { 
-                isDefault: true,
-                modified_at: new Date(),
+                created_by: null,
                 modified_by: null
-              }
+              }))
             });
           }
-
+  
           Logger.debug('Repository: Projects updated for customer', {
             customerId: id,
             projectCount: projects.length,
-            hasDefaultProject: !!defaultProject,
             operation: 'update'
           });
         }
-
+  
         // Actualizar usuarios si se proporcionaron
         if (users !== undefined) {
           await tx.user.deleteMany({
             where: { customerId: id }
           });
-
+  
           if (users.length > 0) {
             await tx.user.createMany({
               data: users.map(user => ({
@@ -286,16 +275,16 @@ export class CustomerRepository {
               }))
             });
           }
-
+  
           Logger.debug('Repository: Users updated for customer', {
             customerId: id,
             userCount: users.length,
             operation: 'update'
           });
         }
-
+  
         const updatedCustomer = await this.findById(id);
-
+  
         Logger.info('Repository: Successfully updated customer and related entities', {
           customerId: id,
           lookupCode: customer.lookupCode,
@@ -303,7 +292,7 @@ export class CustomerRepository {
           usersUpdated: !!users,
           operation: 'update'
         });
-
+  
         return updatedCustomer;
       } catch (error) {
         Logger.error('Repository: Error updating customer and related entities', {

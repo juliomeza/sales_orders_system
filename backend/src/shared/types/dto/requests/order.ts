@@ -1,5 +1,5 @@
-// backend/src/shared/types/orders.types.ts
-import { OrderItemDomain } from '../../domain/order';
+// backend/src/shared/types/dto/requests/order.ts
+import { OrderItemDomain } from '../../../../domain/order';
 
 export interface CreateOrderDTO {
   orderTypeId: number;
@@ -31,28 +31,6 @@ export interface OrderFilters {
   customerId?: number;
   page?: number;
   limit?: number;
-}
-
-export interface OrderListResponse {
-  orders: OrderSummary[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
-
-export interface OrderSummary {
-  id: number;
-  orderNumber: string;
-  status: number;
-  expectedDeliveryDate: Date;
-  customerName: string;
-  itemCount: number;
-  totalQuantity: number;
-  created_at: Date;
-  modified_at: Date;
 }
 
 export interface OrderStatsFilters {

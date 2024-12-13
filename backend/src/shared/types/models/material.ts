@@ -1,5 +1,6 @@
 // backend/src/shared/types/models/material.ts
 import { BaseEntity, Status } from '../base/common';
+import { OrderItemDomain } from '../../../domain/order';
 
 export interface Material extends BaseEntity {
   code: string;
@@ -16,7 +17,7 @@ export interface Material extends BaseEntity {
       name: string;
     };
   };
-  orderItems?: OrderItem[];
+  orderItems?: OrderItemDomain[];  // Use domain type instead of redefining
   orderHistory?: OrderHistoryItem[];
   stats?: MaterialStats;
 }
@@ -29,15 +30,6 @@ export interface OrderHistoryItem {
   customerName: string;
   expectedDeliveryDate: Date;
   created_at: Date;
-}
-
-export interface OrderItem {
-  quantity: number;
-  order: {
-    orderNumber: string;
-    status: number;
-    created_at: Date;
-  };
 }
 
 export interface MaterialStats {

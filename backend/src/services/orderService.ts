@@ -11,7 +11,7 @@ import {
   OrderFilters, 
   OrderListResponse,
   OrderStatsFilters 
-} from '../shared/types/orders.types';
+} from '../shared/types';
 
 export class OrderService {
   constructor(private orderRepository: OrderRepository) {}

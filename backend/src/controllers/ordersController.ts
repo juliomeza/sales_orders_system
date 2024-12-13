@@ -4,10 +4,9 @@ import { OrderService } from '../services/orderService';
 import { OrderRepository } from '../repositories/orderRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ORDER_STATUS, ROLES, LOG_MESSAGES } from '../shared/constants';
-import { ApiErrorCode } from '../shared/types/base/responses';
+import { ApiErrorCode, Role } from '../shared/types';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
-import { Role } from '../shared/types';
 
 export class OrdersController {
   private orderService: OrderService;

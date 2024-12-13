@@ -12,7 +12,7 @@ import {
   CarrierResult,
   CarrierServiceResult,
   CarriersListResult
-} from '../shared/types/carriers.types';
+} from '../shared/types';
 
 export class CarrierServiceImpl {
   constructor(private carrierRepository: CarrierRepository) {}

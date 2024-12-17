@@ -23,6 +23,7 @@ export const queryKeys = {
     all: ['customers'] as const,
     byId: (id: number) => ['customers', id] as const,
     search: (query: string) => ['customers', 'search', query] as const,
+    projects: (customerId: number) => ['customers', customerId, 'projects'] as const,
   },
   inventory: {
     all: ['inventory'] as const,

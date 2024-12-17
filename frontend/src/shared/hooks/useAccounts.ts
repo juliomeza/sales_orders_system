@@ -1,11 +1,7 @@
 // frontend/src/shared/hooks/useAccounts.ts
 import { useState, useEffect } from 'react';
-import { ShippingAddress } from '../types/shipping';
-import { apiClient } from '../api/apiClient';
-
-interface AddressResponse {
-  addresses: ShippingAddress[];
-}
+import { ShippingAddress } from '../api/types/accounts.types';
+import { useShippingAddressesQuery, useCreateShippingAddressMutation } from '../api/queries/useAccountQueries';
 
 interface UseAccountsReturn {
   accounts: ShippingAddress[];
@@ -26,49 +22,39 @@ export const useAccounts = (
   initialBillToId?: string,
   initialIsDifferentBillTo: boolean = false
 ): UseAccountsReturn => {
-  const [accounts, setAccounts] = useState<ShippingAddress[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedShipTo, setSelectedShipTo] = useState<ShippingAddress | null>(null);
   const [selectedBillTo, setSelectedBillTo] = useState<ShippingAddress | null>(null);
   const [isDifferentBillTo, setIsDifferentBillTo] = useState(initialIsDifferentBillTo);
 
+  const { 
+    data: accounts = [], 
+    isLoading, 
+    error: queryError 
+  } = useShippingAddressesQuery();
+
+  const createMutation = useCreateShippingAddressMutation();
+
   useEffect(() => {
-    const loadAccounts = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await apiClient.get<AddressResponse>('/ship-to');
-        setAccounts(response.addresses);
-
-        // Set initial selections if provided
-        if (initialShipToId) {
-          const shipTo = response.addresses.find(a => a.id === initialShipToId);
-          if (shipTo) {
-            setSelectedShipTo(shipTo);
-            if (!initialIsDifferentBillTo) {
-              setSelectedBillTo(shipTo);
-            }
+    if (accounts.length > 0) {
+      // Set initial selections if provided
+      if (initialShipToId) {
+        const shipTo = accounts.find(a => a.id === initialShipToId);
+        if (shipTo) {
+          setSelectedShipTo(shipTo);
+          if (!initialIsDifferentBillTo) {
+            setSelectedBillTo(shipTo);
           }
         }
-
-        if (initialBillToId && initialIsDifferentBillTo) {
-          const billTo = response.addresses.find(a => a.id === initialBillToId);
-          if (billTo) {
-            setSelectedBillTo(billTo);
-          }
-        }
-
-      } catch (err: any) {
-        console.error('Error loading accounts:', err);
-        setError(err?.response?.data?.error || 'Error loading shipping addresses');
-      } finally {
-        setIsLoading(false);
       }
-    };
 
-    loadAccounts();
-  }, [initialShipToId, initialBillToId, initialIsDifferentBillTo]);
+      if (initialBillToId && initialIsDifferentBillTo) {
+        const billTo = accounts.find(a => a.id === initialBillToId);
+        if (billTo) {
+          setSelectedBillTo(billTo);
+        }
+      }
+    }
+  }, [accounts, initialShipToId, initialBillToId, initialIsDifferentBillTo]);
 
   useEffect(() => {
     if (!isDifferentBillTo && selectedShipTo) {
@@ -92,12 +78,11 @@ export const useAccounts = (
 
   const createNewAccount = async (newAccount: Omit<ShippingAddress, 'id'>): Promise<ShippingAddress> => {
     try {
-      const response = await apiClient.post<ShippingAddress>('/ship-to', newAccount);
-      setAccounts(prev => [...prev, response]);
+      const response = await createMutation.mutateAsync(newAccount);
       return response;
-    } catch (err: any) {
-      console.error('Error creating address:', err);
-      throw new Error(err?.response?.data?.error || 'Error creating shipping address');
+    } catch (error) {
+      console.error('Error creating address:', error);
+      throw error;
     }
   };
 
@@ -110,7 +95,7 @@ export const useAccounts = (
   return {
     accounts,
     isLoading,
-    error,
+    error: queryError ? String(queryError) : null,
     selectedShipTo,
     selectedBillTo,
     isDifferentBillTo,

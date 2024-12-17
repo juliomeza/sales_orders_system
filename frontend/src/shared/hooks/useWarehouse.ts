@@ -1,88 +1,83 @@
 // frontend/src/shared/hooks/useWarehouse.ts
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../auth/contexts/AuthContext';
 import { 
-  warehouseService, 
+  useWarehousesQuery, 
+  useWarehouseStatsQuery,
+  useCreateWarehouseMutation,
+  useUpdateWarehouseMutation,
+  useDeleteWarehouseMutation
+} from '../api/queries/useWarehouseQueries';
+import { 
   Warehouse, 
   WarehouseStats, 
-  WarehouseFilters 
-} from '../../shared/api/warehouseService';
+  WarehouseFilters, 
+  CreateWarehouseData, 
+  UpdateWarehouseData 
+} from '../api/warehouseService';
 
 interface UseWarehouseReturn {
   warehouses: Warehouse[];
   stats: WarehouseStats | null;
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
   selectedWarehouse: Warehouse | null;
-  loadWarehouses: (filters?: WarehouseFilters) => Promise<void>;
-  getWarehouseById: (id: number) => Promise<Warehouse | null>;
   setSelectedWarehouse: (warehouse: Warehouse | null) => void;
-  // Métodos admin
-  createWarehouse?: typeof warehouseService.createWarehouse;
-  updateWarehouse?: typeof warehouseService.updateWarehouse;
-  deleteWarehouse?: typeof warehouseService.deleteWarehouse;
+  createWarehouse?: (warehouse: CreateWarehouseData) => Promise<void>;
+  updateWarehouse?: (id: number, warehouse: UpdateWarehouseData) => Promise<void>;
+  deleteWarehouse?: (id: number) => Promise<void>;
 }
 
-export const useWarehouse = (): UseWarehouseReturn => {
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-  const [stats, setStats] = useState<WarehouseStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const useWarehouse = (filters: WarehouseFilters = {}): UseWarehouseReturn => {
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
-  
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
-  const loadWarehouses = useCallback(async (filters: WarehouseFilters = {}) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await warehouseService.getWarehouses(filters);
-      setWarehouses(response.warehouses);
-      
-      // Cargar estadísticas solo si es admin o tiene acceso a warehouses
-      if (isAdmin || response.warehouses.length > 0) {
-        const statsResponse = await warehouseService.getStats();
-        setStats(statsResponse);
-      }
-    } catch (err) {
-      console.error('Error loading warehouses:', err);
-      setError(err instanceof Error ? err.message : 'Error loading warehouses');
-    } finally {
-      setLoading(false);
-    }
-  }, [isAdmin]);
+  // Queries
+  const { 
+    data: warehousesData, 
+    isLoading: isLoadingWarehouses, 
+    error: warehousesError 
+  } = useWarehousesQuery(filters);
 
-  const getWarehouseById = async (id: number): Promise<Warehouse | null> => {
-    try {
-      const warehouse = await warehouseService.getWarehouse(id);
-      return warehouse;
-    } catch (err) {
-      console.error('Error getting warehouse:', err);
-      return null;
-    }
+  const { 
+    data: statsData, 
+    isLoading: isLoadingStats,
+    error: statsError
+  } = useWarehouseStatsQuery();
+
+  // Mutations (solo para admin)
+  const createMutation = useCreateWarehouseMutation();
+  const updateMutation = useUpdateWarehouseMutation();
+  const deleteMutation = useDeleteWarehouseMutation();
+
+  // Helper functions for admin operations
+  const handleCreate = async (warehouse: CreateWarehouseData) => {
+    if (!isAdmin) return;
+    await createMutation.mutateAsync(warehouse);
   };
 
-  // Cargar warehouses al montar el componente
-  useEffect(() => {
-    loadWarehouses();
-  }, [loadWarehouses]);
+  const handleUpdate = async (id: number, warehouse: UpdateWarehouseData) => {
+    if (!isAdmin) return;
+    await updateMutation.mutateAsync({ id, data: warehouse });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!isAdmin) return;
+    await deleteMutation.mutateAsync(id);
+  };
 
   return {
-    warehouses,
-    stats,
-    loading,
-    error,
+    warehouses: warehousesData?.warehouses ?? [],
+    stats: statsData ?? null,
+    isLoading: isLoadingWarehouses || isLoadingStats,
+    error: warehousesError || statsError ? String(warehousesError || statsError) : null,
     selectedWarehouse,
-    loadWarehouses,
-    getWarehouseById,
     setSelectedWarehouse,
-    // Incluir métodos admin solo si el usuario es admin
     ...(isAdmin && {
-      createWarehouse: warehouseService.createWarehouse,
-      updateWarehouse: warehouseService.updateWarehouse,
-      deleteWarehouse: warehouseService.deleteWarehouse,
+      createWarehouse: handleCreate,
+      updateWarehouse: handleUpdate,
+      deleteWarehouse: handleDelete,
     }),
   };
 };

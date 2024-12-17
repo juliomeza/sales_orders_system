@@ -1,14 +1,25 @@
-// src/admin/customers/hooks/useCustomerUsers.ts
+// frontend/src/admin/customers/hooks/useCustomerUsers.ts
 import { useState, useEffect } from 'react';
-import { User } from '../types';
+import { User } from '../../../shared/api/types/customer.types';
+import {
+  useCustomerUsersQuery,
+  useAddUserMutation,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+  useResetPasswordMutation
+} from '../../../shared/api/queries/useUserQueries';
 
 interface UseCustomerUsersProps {
-  initialUsers: User[];
+  customerId?: number;
+  initialUsers?: User[];
   onChange: (users: User[]) => void;
 }
 
-export const useCustomerUsers = ({ initialUsers, onChange }: UseCustomerUsersProps) => {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+export const useCustomerUsers = ({ 
+  customerId,
+  initialUsers = [],
+  onChange 
+}: UseCustomerUsersProps) => {
   const [newUser, setNewUser] = useState<User & { password: string; confirmPassword: string }>({
     email: '',
     role: 'CLIENT',
@@ -16,11 +27,20 @@ export const useCustomerUsers = ({ initialUsers, onChange }: UseCustomerUsersPro
     password: '',
     confirmPassword: ''
   });
+
   const [resetPasswordUser, setResetPasswordUser] = useState<{index: number; email: string} | null>(null);
 
-  useEffect(() => {
-    setUsers(initialUsers);
-  }, [initialUsers]);
+  // Queries y Mutations
+  const { 
+    data: users = initialUsers,
+    isLoading,
+    error
+  } = useCustomerUsersQuery(customerId ?? 0);
+
+  const addUserMutation = useAddUserMutation(customerId ?? 0);
+  const updateUserMutation = useUpdateUserMutation(customerId ?? 0);
+  const deleteUserMutation = useDeleteUserMutation(customerId ?? 0);
+  const resetPasswordMutation = useResetPasswordMutation(customerId ?? 0);
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -48,7 +68,7 @@ export const useCustomerUsers = ({ initialUsers, onChange }: UseCustomerUsersPro
     return errors;
   };
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!validateEmail(newUser.email) || !newUser.password || newUser.password !== newUser.confirmPassword) {
       return;
     }
@@ -60,22 +80,39 @@ export const useCustomerUsers = ({ initialUsers, onChange }: UseCustomerUsersPro
       password: newUser.password
     };
     
-    const updatedUsers = [...users, userToAdd];
-    setUsers(updatedUsers);
-    onChange(updatedUsers);
-    setNewUser({
-      email: '',
-      role: 'CLIENT',
-      status: 1,
-      password: '',
-      confirmPassword: ''
-    });
+    try {
+      if (customerId) {
+        await addUserMutation.mutateAsync(userToAdd);
+      }
+
+      const updatedUsers = [...users, userToAdd];
+      onChange(updatedUsers);
+      
+      setNewUser({
+        email: '',
+        role: 'CLIENT',
+        status: 1,
+        password: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Error adding user:', error);
+    }
   };
 
-  const handleRemoveUser = (index: number) => {
-    const updatedUsers = users.filter((_, i) => i !== index);
-    setUsers(updatedUsers);
-    onChange(updatedUsers);
+  const handleRemoveUser = async (index: number) => {
+    const userToRemove = users[index];
+    
+    try {
+      if (customerId && userToRemove.id) {
+        await deleteUserMutation.mutateAsync(userToRemove.id);
+      }
+      
+      const updatedUsers = users.filter((_, i) => i !== index);
+      onChange(updatedUsers);
+    } catch (error) {
+      console.error('Error removing user:', error);
+    }
   };
 
   const openResetPassword = (index: number) => {
@@ -87,28 +124,31 @@ export const useCustomerUsers = ({ initialUsers, onChange }: UseCustomerUsersPro
     setResetPasswordUser(null);
   };
 
-  const handleResetPassword = (password: string) => {
-    if (!resetPasswordUser) return;
+  const handleResetPassword = async (password: string) => {
+    if (!resetPasswordUser || !customerId) return;
 
-    const updatedUsers = users.map((user, i) => {
-      if (i === resetPasswordUser.index) {
-        return {
-          ...user,
-          password
-        };
+    try {
+      const user = users[resetPasswordUser.index];
+      if (user.id) {
+        await resetPasswordMutation.mutateAsync({ 
+          userId: user.id, 
+          password 
+        });
       }
-      return user;
-    });
 
-    setUsers(updatedUsers);
-    onChange(updatedUsers);
-    closeResetPassword();
+      closeResetPassword();
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    }
   };
 
   return {
-    users,
+    users: customerId ? users : initialUsers,
     newUser,
     resetPasswordUser,
+    isLoading: customerId ? isLoading : false,
+    error: error ? String(error) : null,
     handleAddUser,
     handleRemoveUser,
     openResetPassword,

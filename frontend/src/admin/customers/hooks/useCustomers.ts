@@ -1,71 +1,61 @@
 // frontend/src/admin/customers/hooks/useCustomers.ts
-import { useState, useCallback } from 'react';
-import { apiClient } from '../../../shared/api/apiClient';
-import { Customer, CreateCustomerData } from '../types';
+import { useCallback } from 'react';
+import { 
+  useCustomersQuery,
+  useCreateCustomerMutation,
+  useUpdateCustomerMutation,
+  useDeleteCustomerMutation 
+} from '../../../shared/api/queries/useCustomerQueries';
+import { CreateCustomerData } from '../../../shared/api/types/customer.types';
 
 export const useCustomers = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    data: customersData,
+    isLoading,
+    error,
+    refetch: loadCustomers // Añadimos esto
+  } = useCustomersQuery();
 
-  const loadCustomers = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await apiClient.get<{ customers: Customer[] }>('/customers');
-      setCustomers(response.customers);
-    } catch (err) {
-      console.error('Error loading customers:', err);
-      setError('Error loading customers');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const createMutation = useCreateCustomerMutation();
+  const updateMutation = useUpdateCustomerMutation();
+  const deleteMutation = useDeleteCustomerMutation();
 
   const handleCreateCustomer = async (data: CreateCustomerData) => {
     try {
-      const response = await apiClient.post<Customer>('/customers', data);
-      await loadCustomers();
-      return response;
+      await createMutation.mutateAsync(data);
     } catch (err) {
       console.error('Error creating customer:', err);
-      setError('Error creating customer');
       throw err;
     }
   };
 
   const handleUpdateCustomer = async (customerId: number, data: Partial<CreateCustomerData>) => {
     try {
-      const response = await apiClient.put<Customer>(`/customers/${customerId}`, data);
-      await loadCustomers();
-      return response;
+      await updateMutation.mutateAsync({ customerId, data });
     } catch (err) {
       console.error('Error updating customer:', err);
       const axiosError = err as any;
-      console.error('Server response:', axiosError.response?.data); // Log server error details
-      setError('Error updating customer');
+      console.error('Server response:', axiosError.response?.data);
       throw err;
     }
   };
 
   const handleDeleteCustomer = async (customerId: number) => {
     try {
-      await apiClient.delete(`/customers/${customerId}`);
-      await loadCustomers();
+      await deleteMutation.mutateAsync(customerId);
     } catch (err) {
       console.error('Error deleting customer:', err);
-      setError('Error deleting customer');
       throw err;
     }
   };
 
   return {
-    customers,
+    customers: customersData?.customers ?? [],
     isLoading,
-    error,
-    loadCustomers,
+    error: error ? String(error) : null,
+    loadCustomers, // Exponemos refetch como loadCustomers
     handleCreateCustomer,
     handleUpdateCustomer,
-    handleDeleteCustomer,
+    handleDeleteCustomer
   };
 };

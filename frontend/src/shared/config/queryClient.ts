@@ -37,6 +37,7 @@ export const queryKeys = {
   shipping: {
     carriers: ['shipping', 'carriers'] as const,
     services: (carrierId: string) => ['shipping', 'carriers', carrierId, 'services'] as const,
+    warehouses: ['shipping', 'warehouses'] as const,  // Agregamos esta línea
   },
   accounts: {
     all: ['accounts'] as const,

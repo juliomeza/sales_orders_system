@@ -48,22 +48,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Login attempt for:', email); // Log inicial
+  
       const response = await apiClient.post<AuthResponse>('/auth/login', { 
         email, 
         password 
       });
-
+  
+      console.log('Raw API Response:', response); // Log de la respuesta completa
+      console.log('Auth Response:', {
+        token: response.token ? 'Token present' : 'No token',
+        user: response.user
+      });
+  
+      if (!response.token) {
+        console.error('No token received in response');
+        throw new Error('Invalid response format');
+      }
+  
       localStorage.setItem('token', response.token);
       setUser(response.user);
       
-      // Redirigir según el rol
+      console.log('User role:', response.user.role); // Log del rol
+  
+      // Agregar log antes de la redirección
+      console.log('Redirecting user based on role:', response.user.role);
+      
       if (response.user.role === 'ADMIN') {
         navigate('/admin');
       } else {
         navigate('/');
       }
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch (error: any) {
+      console.error('Detailed login error:', {
+        error,
+        response: error.response,
+        message: error.message
+      });
       throw new Error('Invalid credentials');
     }
   };

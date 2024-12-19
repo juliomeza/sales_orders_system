@@ -3,27 +3,14 @@ import { apiClient } from '../apiClient';
 import { MaterialResponse, MaterialQueryParams } from '../types/inventory.types';
 import { InventoryItem } from '../../types/shipping';
 
-export const inventoryService = {
-  getInventory: async (params: MaterialQueryParams = {}): Promise<InventoryItem[]> => {
-    const queryParams = new URLSearchParams();
-    
-    if (params.query) {
-      queryParams.append('query', params.query);
-    }
-    if (params.page) {
-      queryParams.append('page', params.page.toString());
-    }
-    if (params.limit) {
-      queryParams.append('limit', params.limit.toString());
-    }
+class InventoryService {
+  private readonly basePath = '/materials';
 
-    const endpoint = params.query ? 
-      `/materials/search?${queryParams.toString()}` : 
-      '/materials';
-    
-    const response = await apiClient.get<MaterialResponse>(endpoint);
-    
-    return response.materials.map(material => ({
+  /**
+   * Transforms a material from API response to frontend InventoryItem format
+   */
+  private transformMaterial(material: MaterialResponse['materials'][0]): InventoryItem {
+    return {
       id: material.id.toString(),
       code: material.code,
       lookupCode: material.code,
@@ -34,6 +21,87 @@ export const inventoryService = {
       quantity: 0,
       packaging: material.uom,
       baseAvailable: material.availableQuantity
-    }));
+    };
   }
-};
+
+  /**
+   * Get inventory items with optional search parameters
+   */
+  public async getInventory(params: MaterialQueryParams = {}): Promise<InventoryItem[]> {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (params.query) {
+        queryParams.append('query', params.query);
+      }
+      if (params.page) {
+        queryParams.append('page', params.page.toString());
+      }
+      if (params.limit) {
+        queryParams.append('limit', params.limit.toString());
+      }
+
+      const endpoint = params.query ? 
+        `${this.basePath}/search?${queryParams.toString()}` : 
+        this.basePath;
+      
+      const response = await apiClient.get<MaterialResponse>(endpoint);
+      
+      return response.materials.map(material => this.transformMaterial(material));
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Get a single inventory item by ID
+   */
+  public async getInventoryItem(id: string): Promise<InventoryItem> {
+    try {
+      const response = await apiClient.get<{ material: MaterialResponse['materials'][0] }>(
+        `${this.basePath}/${id}`
+      );
+      
+      return this.transformMaterial(response.material);
+    } catch (error) {
+      console.error(`Error fetching inventory item ${id}:`, error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Check availability for multiple items
+   */
+  public async checkAvailability(itemIds: string[]): Promise<Record<string, number>> {
+    try {
+      const response = await apiClient.post<{ availability: Record<string, number> }>(
+        `${this.basePath}/check-availability`,
+        { itemIds }
+      );
+      
+      return response.availability;
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Standardized error handling
+   */
+  private handleError(error: unknown): Error {
+    if (error instanceof Error) {
+      return error;
+    }
+    
+    if (typeof error === 'string') {
+      return new Error(error);
+    }
+    
+    return new Error('An unknown error occurred in inventory service');
+  }
+}
+
+// Export a singleton instance
+export const inventoryService = new InventoryService();

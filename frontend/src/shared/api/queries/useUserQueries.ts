@@ -1,7 +1,7 @@
 // frontend/src/shared/api/queries/useUserQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../services/userService';
-import { queryKeys } from '../../config/queryClient';
+import { queryKeys } from '../../config/queryKeys';
 import { User } from '../types/customer.types';
 
 export const useCustomerUsersQuery = (customerId: number) => {

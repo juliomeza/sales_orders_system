@@ -1,50 +1,91 @@
 // frontend/src/shared/config/queryClient.ts
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryKey } from '@tanstack/react-query';
+import { queryKeys } from './queryKeys';
+import { shippingService } from '../api/services/shippingService';
 
+// Cache time configuration
+export const CACHE_TIME = {
+  STATIC: 30 * 60 * 1000,    // 30 minutes - data that changes rarely
+  DYNAMIC: 5 * 60 * 1000,    // 5 minutes - data that changes occasionally
+  VOLATILE: 2 * 60 * 1000    // 2 minutes - data that changes frequently
+} as const;
+
+// Determine cache time based on query key
+const getStaleTime = (queryKey: QueryKey): number => {
+  const [entity] = queryKey as string[];
+  
+  switch (entity) {
+    case 'warehouses':
+    case 'carriers':
+      return CACHE_TIME.STATIC;
+    case 'inventory':
+      return CACHE_TIME.VOLATILE;
+    default:
+      return CACHE_TIME.DYNAMIC;
+  }
+};
+
+// Central React Query configuration
 export const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes
-        refetchOnWindowFocus: false,
-        retry: 1,
-        retryDelay: 3000,
+  defaultOptions: {
+    queries: {
+      staleTime: CACHE_TIME.DYNAMIC,
+      gcTime: CACHE_TIME.DYNAMIC * 2,
+      retry: (failureCount, error: any) => {
+        if (error?.response?.status === 401) return false;
+        if (error?.response?.status === 404) return false;
+        if (error?.response?.status === 403) return false;
+        return failureCount < 2;
       },
-      mutations: {
-        retry: 1,
-        retryDelay: 3000,
-      },
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      refetchOnMount: true
     },
-  });
+    mutations: {
+      retry: false,
+      onError: (error: unknown) => {
+        console.error('Mutation error:', error);
+      }
+    }
+  }
+});
 
-// Keys para consultas
-export const queryKeys = {
-  customers: {
-    all: ['customers'] as const,
-    byId: (id: number) => ['customers', id] as const,
-    search: (query: string) => ['customers', 'search', query] as const,
-    projects: (customerId: number) => ['customers', customerId, 'projects'] as const,
-    users: (customerId: number) => ['customers', customerId, 'users'] as const,
-  },
-  inventory: {
-    all: ['inventory'] as const,
-    byId: (id: string) => ['inventory', id] as const,
-    search: (query: string) => ['inventory', 'search', query] as const,
-  },
-  warehouses: {
-    all: ['warehouses'] as const,
-    byId: (id: number) => ['warehouses', id] as const,
-    stats: ['warehouses', 'stats'] as const,
-  },
-  shipping: {
-    carriers: ['shipping', 'carriers'] as const,
-    services: (carrierId: string) => ['shipping', 'carriers', carrierId, 'services'] as const,
-    warehouses: ['shipping', 'warehouses'] as const,  // Agregamos esta línea
-  },
-  accounts: {
-    all: ['accounts'] as const,
-    byId: (id: string) => ['accounts', id] as const,
-    shipTo: ['accounts', 'ship-to'] as const,
-    billTo: ['accounts', 'bill-to'] as const,
-  },
+// Function to invalidate related queries
+export const invalidateRelatedQueries = async (entity: keyof typeof queryKeys) => {
+  await queryClient.invalidateQueries({ 
+    queryKey: [entity]
+  });
+};
+
+// Prefetch common data
+export const prefetchCommonData = async () => {
+  const token = localStorage.getItem('token');
+  
+  // Only prefetch if user is authenticated
+  if (!token) {
+    return;
+  }
+
+  try {
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.warehouses.all,
+        queryFn: () => shippingService.getWarehouses(),
+        staleTime: CACHE_TIME.STATIC
+      }),
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.shipping.carriers,
+        queryFn: () => shippingService.getCarriers(),
+        staleTime: CACHE_TIME.STATIC
+      })
+    ]);
+  } catch (error) {
+    console.error('Error prefetching common data:', error);
+    // Don't throw - we don't want to break app initialization
+  }
+};
+
+// Helper function to get specific staleTime for a query
+export const getQueryStaleTime = (queryKey: QueryKey): number => {
+  return getStaleTime(queryKey);
 };

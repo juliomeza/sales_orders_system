@@ -1,7 +1,7 @@
 // frontend/src/shared/api/queries/useAccountQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { accountsService } from '../services/accountsService';
-import { queryKeys } from '../../config/queryClient';
+import { queryKeys } from '../../config/queryKeys';
 import { ShippingAddress } from '../types/accounts.types';
 
 export const useShippingAddressesQuery = () => {

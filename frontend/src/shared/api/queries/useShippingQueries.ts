@@ -1,7 +1,7 @@
 // frontend/src/shared/api/queries/useShippingQueries.ts
 import { useQuery } from '@tanstack/react-query';
 import { shippingService } from '../services/shippingService';
-import { queryKeys } from '../../config/queryClient';
+import { queryKeys } from '../../config/queryKeys';
 import { Carrier, Warehouse } from '../types/shipping.types';
 
 export const useCarriersQuery = () => {

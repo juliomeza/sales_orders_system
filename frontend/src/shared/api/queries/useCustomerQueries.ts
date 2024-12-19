@@ -1,7 +1,7 @@
 // frontend/src/shared/api/queries/useCustomerQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customerService } from '../services/customerService';
-import { queryKeys } from '../../config/queryClient';
+import { queryKeys } from '../../config/queryKeys';
 import { Customer, CreateCustomerData } from '../types/customer.types';
 
 export const useCustomersQuery = () => {
@@ -17,8 +17,13 @@ export const useCreateCustomerMutation = () => {
   return useMutation({
     mutationFn: (data: CreateCustomerData) => customerService.createCustomer(data),
     onSuccess: () => {
+      // Invalidar la lista de customers cuando se crea uno nuevo
       queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
     },
+    // Opcional: manejar el error si lo necesitas
+    onError: (error) => {
+      console.error('Error in create customer mutation:', error);
+    }
   });
 };
 
@@ -30,7 +35,7 @@ export const useUpdateCustomerMutation = () => {
       customerService.updateCustomer(customerId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
-    },
+    }
   });
 };
 
@@ -41,6 +46,6 @@ export const useDeleteCustomerMutation = () => {
     mutationFn: (customerId: number) => customerService.deleteCustomer(customerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
-    },
+    }
   });
 };

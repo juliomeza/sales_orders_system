@@ -1,7 +1,7 @@
 // frontend/src/shared/api/queries/useProjectQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectService } from '../services/projectService';
-import { queryKeys } from '../../config/queryClient';
+import { queryKeys } from '../../config/queryKeys';
 import { Project } from '../types/customer.types';
 
 export const useCustomerProjectsQuery = (customerId: number) => {

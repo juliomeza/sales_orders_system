@@ -1,7 +1,7 @@
 // frontend/src/shared/api/queries/useWarehouseQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { warehouseService, Warehouse, WarehouseStats, WarehouseFilters, CreateWarehouseData, UpdateWarehouseData } from '../warehouseService';
-import { queryKeys } from '../../config/queryClient';
+import { queryKeys } from '../../config/queryKeys';
 
 // Queries
 export const useWarehousesQuery = (filters: WarehouseFilters = {}) => {

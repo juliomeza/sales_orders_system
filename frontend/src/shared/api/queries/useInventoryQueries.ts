@@ -1,7 +1,7 @@
 // frontend/src/shared/api/queries/useInventoryQueries.ts
 import { useQuery } from '@tanstack/react-query';
 import { inventoryService } from '../services/inventoryService';
-import { queryKeys } from '../../config/queryClient';
+import { queryKeys } from '../../config/queryKeys';
 import { MaterialQueryParams } from '../types/inventory.types';
 
 export const useInventoryQuery = (searchTerm: string = '') => {

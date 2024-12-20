@@ -14,7 +14,7 @@ import {
   WarehouseFilters, 
   CreateWarehouseData, 
   UpdateWarehouseData 
-} from '../api/warehouseService';
+} from '../api/services/warehouseService';
 
 interface UseWarehouseReturn {
   warehouses: Warehouse[];

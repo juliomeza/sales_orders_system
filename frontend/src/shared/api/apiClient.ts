@@ -32,10 +32,17 @@ class ApiClient {
 
     // Response interceptor
     this.api.interceptors.response.use(
-      (response) => response.data, // Automatically return response.data
+      (response) => {
+        const data = response.data;
+        console.log('Raw response data:', data); // Para debug
+
+        if (data && typeof data === 'object') {
+          return data;
+        }
+        return { success: true, data: response.data };
+      },
       async (error) => {
         if (error.response?.status === 401) {
-          // Handle token expiration
           localStorage.removeItem('token');
           window.location.href = '/login';
         }

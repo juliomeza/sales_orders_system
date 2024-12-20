@@ -30,6 +30,7 @@ export class CustomersController {
         });
 
         return res.status(401).json({ 
+          success: false,
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
       }
@@ -47,6 +48,7 @@ export class CustomersController {
         });
 
         return res.status(500).json({ 
+          success: false,
           error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
       }
@@ -56,8 +58,10 @@ export class CustomersController {
         count: result.data?.length || 0
       });
 
-      // Mantener formato de respuesta original
-      res.json({ customers: result.data });
+      res.json({
+        success: true,
+        data: { customers: result.data }
+      });
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.LIST.FAILED, {
         userId: req.user?.userId || 'anonymous',
@@ -65,6 +69,7 @@ export class CustomersController {
       });
 
       res.status(500).json({ 
+        success: false,
         error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
       });
     }
@@ -79,6 +84,7 @@ export class CustomersController {
         });
 
         return res.status(401).json({ 
+          success: false,
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
       }
@@ -98,15 +104,10 @@ export class CustomersController {
             customerId: id
           });
 
-          // Usar nuevo formato para error not found
-          return res.status(404).json(
-            createErrorResponse(
-              ApiErrorCode.NOT_FOUND,
-              result.error,
-              undefined,
-              req
-            )
-          );
+          return res.status(404).json({
+            success: false,
+            error: result.error
+          });
         }
 
         Logger.error(LOG_MESSAGES.CUSTOMERS.GET.FAILED, {
@@ -116,6 +117,7 @@ export class CustomersController {
         });
 
         return res.status(500).json({ 
+          success: false,
           error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
         });
       }
@@ -125,8 +127,10 @@ export class CustomersController {
         customerId: id
       });
 
-      // Mantener formato de respuesta original
-      res.json(result.data);
+      res.json({
+        success: true,
+        data: result.data
+      });
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.GET.FAILED, {
         userId: req.user?.userId || 'anonymous',
@@ -135,11 +139,11 @@ export class CustomersController {
       });
 
       res.status(500).json({ 
+        success: false,
         error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
       });
     }
   }
-
   async create(req: Request<{}, {}, CreateCustomerDTO>, res: Response) {
     try {
       if (!req.user) {
@@ -149,6 +153,7 @@ export class CustomersController {
         });
 
         return res.status(401).json({ 
+          success: false,
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
       }
@@ -172,15 +177,11 @@ export class CustomersController {
             errors: result.errors
           });
 
-          // Usar nuevo formato para errores de validación
-          return res.status(400).json(
-            createErrorResponse(
-              ApiErrorCode.VALIDATION_ERROR,
-              ERROR_MESSAGES.VALIDATION.FAILED,
-              result.errors,
-              req
-            )
-          );
+          return res.status(400).json({
+            success: false,
+            errors: result.errors,
+            error: ERROR_MESSAGES.VALIDATION.FAILED
+          });
         }
 
         Logger.error(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED, {
@@ -189,6 +190,7 @@ export class CustomersController {
         });
 
         return res.status(500).json({ 
+          success: false,
           error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
         });
       }
@@ -199,8 +201,10 @@ export class CustomersController {
         customerCode: result.data?.lookupCode
       });
 
-      // Mantener formato de respuesta original
-      res.status(201).json(result.data);
+      res.status(201).json({
+        success: true,
+        data: result.data
+      });
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED, {
         userId: req.user?.userId || 'anonymous',
@@ -208,6 +212,7 @@ export class CustomersController {
       });
 
       res.status(500).json({ 
+        success: false,
         error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
       });
     }
@@ -222,6 +227,7 @@ export class CustomersController {
         });
 
         return res.status(401).json({ 
+          success: false,
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
       }
@@ -247,15 +253,11 @@ export class CustomersController {
             errors: result.errors
           });
 
-          // Usar nuevo formato para errores de validación
-          return res.status(400).json(
-            createErrorResponse(
-              ApiErrorCode.VALIDATION_ERROR,
-              ERROR_MESSAGES.VALIDATION.FAILED,
-              result.errors,
-              req
-            )
-          );
+          return res.status(400).json({
+            success: false,
+            errors: result.errors,
+            error: ERROR_MESSAGES.VALIDATION.FAILED
+          });
         }
 
         Logger.error(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED, {
@@ -265,6 +267,7 @@ export class CustomersController {
         });
 
         return res.status(500).json({ 
+          success: false,
           error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
         });
       }
@@ -274,8 +277,10 @@ export class CustomersController {
         customerId: id
       });
 
-      // Mantener formato de respuesta original
-      res.json(result.data);
+      res.json({
+        success: true,
+        data: result.data
+      });
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED, {
         userId: req.user?.userId || 'anonymous',
@@ -284,6 +289,7 @@ export class CustomersController {
       });
 
       res.status(500).json({ 
+        success: false,
         error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
       });
     }
@@ -298,6 +304,7 @@ export class CustomersController {
         });
 
         return res.status(401).json({ 
+          success: false,
           error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
         });
       }
@@ -317,15 +324,10 @@ export class CustomersController {
             customerId: id
           });
 
-          // Usar nuevo formato para error not found
-          return res.status(404).json(
-            createErrorResponse(
-              ApiErrorCode.NOT_FOUND,
-              result.error,
-              undefined,
-              req
-            )
-          );
+          return res.status(404).json({
+            success: false,
+            error: result.error
+          });
         }
 
         Logger.error(LOG_MESSAGES.CUSTOMERS.DELETE.FAILED, {
@@ -335,6 +337,7 @@ export class CustomersController {
         });
 
         return res.status(500).json({ 
+          success: false,
           error: ERROR_MESSAGES.OPERATION.DELETE_ERROR 
         });
       }
@@ -344,7 +347,9 @@ export class CustomersController {
         customerId: id
       });
 
-      res.status(204).send();
+      res.status(200).json({
+        success: true
+      });
     } catch (error) {
       Logger.error(LOG_MESSAGES.CUSTOMERS.DELETE.FAILED, {
         userId: req.user?.userId || 'anonymous',
@@ -353,6 +358,7 @@ export class CustomersController {
       });
 
       res.status(500).json({ 
+        success: false,
         error: ERROR_MESSAGES.OPERATION.DELETE_ERROR 
       });
     }

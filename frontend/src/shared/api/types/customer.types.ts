@@ -44,6 +44,20 @@ export interface ValidationErrorItem {
   message: string;
 }
 
+export interface ServiceResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  errors?: string[];
+}
+
+export interface ServiceResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  errors?: string[];
+}
+
 export class ValidationError extends Error {
   constructor(
     message: string,

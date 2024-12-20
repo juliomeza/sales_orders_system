@@ -3,12 +3,13 @@ import { apiClient } from '../apiClient';
 import { 
   Customer, 
   CreateCustomerData,
-  ValidationErrorItem
+  ValidationErrorItem,
+  ServiceResult
 } from '../types/customer.types';
 
 interface ServiceResponse<T> {
   success: boolean;
-  data?: T;
+  data?: { customers?: Customer[] } | Customer | T;
   error?: string;
   errors?: string[];
 }
@@ -37,8 +38,25 @@ class CustomerService {
         ? `${this.basePath}?${queryParams.toString()}`
         : this.basePath;
 
-      return await apiClient.get(endpoint);
+      const response = await apiClient.get<{
+        success: boolean;
+        data: { customers: Customer[] };
+        error?: string;
+      }>(endpoint);
+
+      // Verificar la respuesta
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch customers');
+      }
+
+      // Asegurarse de que tenemos los datos
+      if (!response.data || !response.data.customers) {
+        throw new Error('Invalid response format: missing customers data');
+      }
+
+      return response.data;
     } catch (error) {
+      console.error('Error fetching customers:', error);
       throw this.handleError(error);
     }
   }
@@ -46,67 +64,29 @@ class CustomerService {
   /**
    * Create a new customer
    */
-  public async createCustomer(data: CreateCustomerData): Promise<Customer> {
+  public async createCustomer(data: CreateCustomerData): Promise<void> { // Cambiar return type a void
     try {
-        // Log para debugging inicial
-        console.log('Starting createCustomer method...');
-        console.log('Received data:', JSON.stringify(data, null, 2));
-
-        // Validación básica antes de enviar
-        console.log('Validating customer data...');
-        const validationErrors = this.validateCustomerData(data);
-        if (validationErrors.length > 0) {
-            console.warn('Validation errors found:', validationErrors);
-            throw new Error('Validation failed: ' + 
-                validationErrors.map(e => e.message).join(', '));
-        }
-
-        // Log antes de realizar la solicitud
-        console.log('Validation passed. Sending request to server with data:', JSON.stringify(data, null, 2));
-
-        const response = await apiClient.post<ServiceResponse<Customer>>(this.basePath, data);
-
-        // Chequeo adicional para respuesta nula
-        if (response === null) {
-            console.error('Server returned null. Check backend implementation.');
-            throw new Error('Unexpected null response from server.');
-        }
-
-        // Log de la respuesta completa del servidor
-        console.log('Response received from server:', JSON.stringify(response, null, 2));
-
-        // Chequeamos diferentes formatos de respuesta posibles
-        if (response && 'success' in response) {
-            console.log('Response is of type ServiceResponse<Customer>:');
-            const serviceResponse = response as ServiceResponse<Customer>;
-            if (!serviceResponse.success) {
-                console.error('ServiceResponse indicates failure:', serviceResponse);
-                throw new Error(serviceResponse.error || 'Failed to create customer');
-            }
-            console.log('Returning data from ServiceResponse:', serviceResponse.data);
-            return serviceResponse.data!;
-        } else if (response && 'id' in response) {
-            console.log('Response is a plain Customer object:', response);
-            return response as Customer;
-        } else if (response && 'customer' in response) {
-            console.log('Response is wrapped in a customer object:', response);
-            return (response as any).customer;
-        }
-
-        // Si no se encuentra un formato válido, lanzar error
-        console.error('Invalid response format from server. Response was:', JSON.stringify(response, null, 2));
-        throw new Error('Invalid response format from server');
+      const response = await apiClient.post<ServiceResponse<void>>(
+        this.basePath, 
+        data
+      );
+  
+      // Solo verificamos el success
+      if (!response.success) {
+        const errorMessage = response.errors 
+          ? `Validation failed: ${response.errors.join(', ')}` 
+          : response.error 
+          || 'Failed to create customer';
+        throw new Error(errorMessage);
+      }
+  
+      // Si success es true, todo está bien
+      return;
     } catch (error) {
-        // Log detallado del error
-        console.error('Error during createCustomer method execution:', error);
-        console.error('Error details:', {
-            message: error instanceof Error ? error.message : 'Unknown error',
-            stack: error instanceof Error ? error.stack : 'No stack trace available',
-        });
-        throw this.handleError(error);
+      console.error('Error creating customer:', error);
+      throw this.handleError(error);
     }
   }
-
 
   /**
    * Update an existing customer
@@ -123,23 +103,15 @@ class CustomerService {
         data
       );
 
-      // Chequeamos diferentes formatos de respuesta posibles
-      if (response && 'success' in response) {
-        // Si es una ServiceResponse
-        const serviceResponse = response as ServiceResponse<Customer>;
-        if (!serviceResponse.success) {
-          throw new Error(serviceResponse.error || 'Failed to update customer');
-        }
-        return serviceResponse.data!;
-      } else if (response && 'id' in response) {
-        // Si es directamente un Customer
-        return response as Customer;
-      } else if (response && 'customer' in response) {
-        // Si está envuelto en un objeto customer
-        return (response as any).customer;
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to update customer');
       }
 
-      throw new Error('Invalid response format from server');
+      if (!response.data) {
+        throw new Error('Server response is missing customer data');
+      }
+
+      return response.data as Customer;
     } catch (error) {
       console.error('Error updating customer:', error);
       throw this.handleError(error);
@@ -151,8 +123,25 @@ class CustomerService {
    */
   public async deleteCustomer(customerId: number): Promise<void> {
     try {
-      await apiClient.delete(`${this.basePath}/${customerId}`);
+      const response = await apiClient.delete<ServiceResponse<void>>(
+        `${this.basePath}/${customerId}`
+      );
+  
+      // Para respuestas normales, verificar success
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to delete customer');
+      }
     } catch (error) {
+      console.error('Error deleting customer:', error);
+      
+      // Si el error es de tipo axios y el status es 204, considerarlo como éxito
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError?.response?.status === 204) {
+          return;
+        }
+      }
+      
       throw this.handleError(error);
     }
   }
@@ -202,8 +191,6 @@ class CustomerService {
    * Standardized error handling
    */
   private handleError(error: unknown): Error {
-    console.error('Customer service error:', error);
-
     if (error instanceof Error) {
       return error;
     }
@@ -215,8 +202,11 @@ class CustomerService {
         data: axiosError.response?.data
       });
 
-      if (axiosError.response?.data?.message) {
-        return new Error(axiosError.response.data.message);
+      if (axiosError.response?.data?.error) {
+        return new Error(axiosError.response.data.error);
+      }
+      if (axiosError.response?.data?.errors) {
+        return new Error(axiosError.response.data.errors.join(', '));
       }
       if (axiosError.response?.status === 404) {
         return new Error('Customer not found');
@@ -225,10 +215,7 @@ class CustomerService {
         return new Error('Not authorized to perform this action');
       }
       if (axiosError.response?.status === 400) {
-        return new Error(
-          axiosError.response.data.message || 
-          'Invalid request data. Please check your input.'
-        );
+        return new Error('Invalid request data. Please check your input.');
       }
     }
 

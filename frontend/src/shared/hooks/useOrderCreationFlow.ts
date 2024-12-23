@@ -1,4 +1,9 @@
-// frontend/src/shared/hooks/useOrderCreationFlow.ts
+/**
+ * @fileoverview Custom hook for managing the order creation workflow
+ * Handles multi-step form state, validation, and order submission process
+ * with optimistic updates and error handling.
+ */
+
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOrderForm } from './useOrderForm';
@@ -6,21 +11,34 @@ import { useOrderValidation } from './useOrderValidation';
 import { InventoryItem } from '../types/shipping';
 import { queryKeys } from '../config/queryKeys';
 
+/**
+ * Interface for managing the state of the order creation flow
+ */
 interface OrderCreationState {
-  activeStep: number;
-  isSubmitted: boolean;
-  showErrors: boolean;
+  activeStep: number;    // Current step in the workflow
+  isSubmitted: boolean;  // Whether the order has been submitted
+  showErrors: boolean;   // Whether to display validation errors
 }
 
+/**
+ * Hook for managing the entire order creation process
+ * 
+ * @returns {Object} Order creation state and handlers
+ */
 export const useOrderCreationFlow = () => {
   const queryClient = useQueryClient();
+  
+  // Initialize state for workflow management
   const [state, setState] = useState<OrderCreationState>({
     activeStep: 0,
     isSubmitted: false,
     showErrors: false
   });
+  
+  // State for selected inventory items
   const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([]);
 
+  // Import form management and validation hooks
   const { orderData, handleOrderDataChange, resetForm } = useOrderForm();
   const { errors, canProceedToNextStep, canSubmitOrder } = useOrderValidation(
     orderData,
@@ -28,6 +46,10 @@ export const useOrderCreationFlow = () => {
     state.activeStep
   );
 
+  /**
+   * Handles progression to next step
+   * Validates current step before proceeding
+   */
   const handleNext = useCallback(() => {
     if (canProceedToNextStep(state.activeStep)) {
       setState(prev => ({
@@ -40,6 +62,10 @@ export const useOrderCreationFlow = () => {
     }
   }, [state.activeStep, canProceedToNextStep]);
 
+  /**
+   * Handles navigation to previous step
+   * Resets error display when moving back
+   */
   const handleBack = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -48,6 +74,10 @@ export const useOrderCreationFlow = () => {
     }));
   }, []);
 
+  /**
+   * Handles order submission
+   * Includes optimistic updates and error handling
+   */
   const handleSubmitOrder = useCallback(async () => {
     if (!canSubmitOrder()) {
       setState(prev => ({ ...prev, showErrors: true }));
@@ -55,13 +85,15 @@ export const useOrderCreationFlow = () => {
     }
 
     try {
-      // Optimistic update
+      // Optimistic update to orders list
       queryClient.setQueryData(queryKeys.orders.all, (oldData: any) => {
         return oldData ? [...oldData, { ...orderData, status: 'pending' }] : [{ ...orderData, status: 'pending' }];
       });
 
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Replace with actual API call
+      // Simulate API call - replace with actual implementation
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Update UI state on success
       setState(prev => ({
         ...prev,
         isSubmitted: true,
@@ -69,7 +101,7 @@ export const useOrderCreationFlow = () => {
         showErrors: false
       }));
 
-      // Invalidate relevant queries
+      // Refresh affected data
       await queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       await queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all });
     } catch (error) {
@@ -78,6 +110,10 @@ export const useOrderCreationFlow = () => {
     }
   }, [orderData, canSubmitOrder, queryClient]);
 
+  /**
+   * Resets the entire form to start a new order
+   * Clears all state and form data
+   */
   const handleNewOrder = useCallback(() => {
     setState({
       activeStep: 0,
@@ -88,8 +124,9 @@ export const useOrderCreationFlow = () => {
     setSelectedItems([]);
   }, [resetForm]);
 
+  // Return state and handlers
   return {
-    // State
+    // Current state
     activeStep: state.activeStep,
     isSubmitted: state.isSubmitted,
     showErrors: state.showErrors,
@@ -97,7 +134,7 @@ export const useOrderCreationFlow = () => {
     orderData,
     errors,
 
-    // Actions
+    // Action handlers
     handleOrderDataChange,
     handleNext,
     handleBack,

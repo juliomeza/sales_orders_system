@@ -1,7 +1,7 @@
 // frontend/src/shared/hooks/useOrderValidation.ts
 import { useState, useEffect } from 'react';
 import { OrderData, InventoryItem } from '../types/shipping';
-import { useInventoryAvailabilityQuery } from '../api/queries/useInventoryQueries';
+
 
 export interface ValidationError {
  field: string; 
@@ -24,7 +24,6 @@ export const useOrderValidation = (
  });
 
  const itemIds = selectedItems.map(item => item.id);
- const { data: availability } = useInventoryAvailabilityQuery(itemIds);
 
  const validateOrderHeader = (): ValidationError[] => {
    const errors: ValidationError[] = [];
@@ -75,36 +74,34 @@ export const useOrderValidation = (
  };
 
  const validateInventory = (): ValidationError[] => {
-   const errors: ValidationError[] = [];
+  const errors: ValidationError[] = [];
 
-   if (selectedItems.length === 0) {
-     errors.push({
-       field: 'inventory',
-       message: 'At least one item must be selected'
-     });
-     return errors;
-   }
+  if (selectedItems.length === 0) {
+    errors.push({
+      field: 'inventory',
+      message: 'At least one item must be selected'
+    });
+    return errors;
+  }
 
-   selectedItems.forEach(item => {
-     const currentAvailability = availability?.[item.id] ?? item.available;
+  selectedItems.forEach(item => {
+    if (item.quantity <= 0) {
+      errors.push({
+        field: `quantity_${item.id}`,
+        message: `Invalid quantity for ${item.lookupCode}`
+      });
+    }
 
-     if (item.quantity <= 0) {
-       errors.push({
-         field: `quantity_${item.id}`,
-         message: `Invalid quantity for ${item.lookupCode}`
-       });
-     }
+    if (item.quantity > item.available) {
+      errors.push({
+        field: `quantity_${item.id}`,
+        message: `Quantity exceeds available stock (${item.available}) for ${item.lookupCode}`
+      });
+    }
+  });
 
-     if (item.quantity > currentAvailability) {
-       errors.push({
-         field: `quantity_${item.id}`,
-         message: `Quantity exceeds available stock (${currentAvailability}) for ${item.lookupCode}`
-       });
-     }
-   });
-
-   return errors;
- };
+  return errors;
+};
 
  useEffect(() => {
    let errors: ValidationError[] = [];
@@ -125,7 +122,7 @@ export const useOrderValidation = (
      isValid: errors.length === 0,
      errors
    });
- }, [activeStep, orderData, selectedItems, availability]);
+ }, [activeStep, orderData, selectedItems]);
 
  return {
    isStepValid: stepValidation.isValid,

@@ -71,23 +71,6 @@ class InventoryService {
   }
 
   /**
-   * Check availability for multiple items
-   */
-  public async checkAvailability(itemIds: string[]): Promise<Record<string, number>> {
-    try {
-      const response = await apiClient.post<{ availability: Record<string, number> }>(
-        `${this.basePath}/check-availability`,
-        { itemIds }
-      );
-      
-      return response.availability;
-    } catch (error) {
-      console.error('Error checking availability:', error);
-      throw this.handleError(error);
-    }
-  }
-
-  /**
    * Standardized error handling
    */
   private handleError(error: unknown): Error {

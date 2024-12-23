@@ -58,18 +58,3 @@ export const useInventoryItemQuery = (id: string) => {
   });
 };
 
-/**
- * Hook to check availability for multiple items
- */
-export const useInventoryAvailabilityQuery = (itemIds: string[]) => {
-  return useQuery<Record<string, number>, Error>({
-    queryKey: [...queryKeys.inventory.all, 'availability', itemIds],
-    queryFn: () => inventoryService.checkAvailability(itemIds),
-    enabled: itemIds.length > 0,
-    staleTime: CACHE_TIME.VOLATILE,
-    retry: (failureCount, error: any) => {
-      if (error?.response?.status === 404) return false;
-      return failureCount < 2;
-    }
-  });
-};

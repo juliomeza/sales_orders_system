@@ -4,22 +4,45 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Customer, Project, User } from '../../../shared/api/types/customer.types';
 import { queryKeys } from '../../../shared/config/queryKeys';
 
+/**
+ * Interface for the form's complete state structure
+ * @interface CustomerFormState
+ * @property {Omit<Customer, 'id' | '_count'>} customer - Basic customer information
+ * @property {Project[]} projects - List of customer projects
+ * @property {User[]} users - List of customer users
+ */
 interface CustomerFormState {
   customer: Omit<Customer, 'id' | '_count'>;
   projects: Project[];
   users: User[];
 }
 
+/**
+ * Interface for validation results
+ * @interface ValidationResult
+ * @property {boolean} isValid - Whether the validation passed
+ * @property {string[]} errors - List of validation error messages
+ */
 interface ValidationResult {
   isValid: boolean;
   errors: string[];
 }
 
+/**
+ * Props interface for the useCustomerForm hook
+ * @interface UseCustomerFormProps
+ * @property {Customer} [initialCustomer] - Initial customer data for edit mode
+ * @property {(step: number) => void} [onStepComplete] - Callback when a step is completed
+ */
 interface UseCustomerFormProps {
   initialCustomer?: Customer;
   onStepComplete?: (step: number) => void;
 }
 
+/**
+ * Initial state template for a new customer
+ * Provides default values for all required customer fields
+ */
 const initialCustomerState: Omit<Customer, 'id' | '_count'> = {
   lookupCode: '',
   name: '',
@@ -32,15 +55,22 @@ const initialCustomerState: Omit<Customer, 'id' | '_count'> = {
   status: 1
 };
 
+/**
+ * Custom hook for managing multi-step customer form state and validation
+ * Handles form data, validation, and step navigation for customer creation/editing
+ */
 export const useCustomerForm = ({ 
   initialCustomer,
   onStepComplete 
 }: UseCustomerFormProps = {}) => {
   const queryClient = useQueryClient();
+  
+  // Form state management
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const [formData, setFormData] = useState<CustomerFormState>({
+    // Initialize form with customer data or defaults
     customer: initialCustomer ? {
       lookupCode: initialCustomer.lookupCode,
       name: initialCustomer.name,
@@ -56,6 +86,10 @@ export const useCustomerForm = ({
     users: initialCustomer?.users || []
   });
 
+  /**
+   * Validates basic customer information (Step 1)
+   * Checks for required fields and proper formatting
+   */
   const validateBasicInfo = useCallback((): ValidationResult => {
     const errors: string[] = [];
     const { customer } = formData;
@@ -73,6 +107,10 @@ export const useCustomerForm = ({
     };
   }, [formData]);
 
+  /**
+   * Validates project information (Step 2)
+   * Checks for required projects, default project, and unique codes
+   */
   const validateProjects = useCallback((): ValidationResult => {
     const errors: string[] = [];
     
@@ -98,6 +136,10 @@ export const useCustomerForm = ({
     };
   }, [formData.projects]);
 
+  /**
+   * Validates user information (Step 3)
+   * Checks for required users and unique email addresses
+   */
   const validateUsers = useCallback((): ValidationResult => {
     const errors: string[] = [];
     
@@ -119,6 +161,11 @@ export const useCustomerForm = ({
     };
   }, [formData.users]);
 
+  /**
+   * Validates the current step's data
+   * @param {number} step - Step index to validate
+   * @returns {ValidationResult} Validation result with errors if any
+   */
   const validateStep = useCallback((step: number): ValidationResult => {
     switch (step) {
       case 0:
@@ -132,9 +179,11 @@ export const useCustomerForm = ({
     }
   }, [validateBasicInfo, validateProjects, validateUsers]);
 
-  const handleCustomerChange = useCallback((
-    customer: Omit<Customer, 'id' | '_count'>
-  ) => {
+  /**
+   * Form data change handlers
+   * Update specific sections of form data while maintaining immutability
+   */
+  const handleCustomerChange = useCallback((customer: Omit<Customer, 'id' | '_count'>) => {
     setFormData(prev => ({ ...prev, customer }));
     setShowErrors(false);
   }, []);
@@ -149,6 +198,11 @@ export const useCustomerForm = ({
     setShowErrors(false);
   }, []);
 
+  /**
+   * Handles navigation to next step
+   * Validates current step before proceeding
+   * @returns {boolean} Whether navigation was successful
+   */
   const handleNext = useCallback((): boolean => {
     const validation = validateStep(activeStep);
     if (validation.isValid) {
@@ -162,15 +216,28 @@ export const useCustomerForm = ({
     }
   }, [activeStep, validateStep, onStepComplete]);
 
+  /**
+   * Handles navigation to previous step
+   * Resets error display state
+   */
   const handleBack = useCallback(() => {
     setActiveStep(prevStep => prevStep - 1);
     setShowErrors(false);
   }, []);
 
+  /**
+   * Checks if the entire form can be submitted
+   * Validates all steps
+   * @returns {boolean} Whether the form is valid for submission
+   */
   const canSubmit = useCallback((): boolean => {
     return [0, 1, 2].every(step => validateStep(step).isValid);
   }, [validateStep]);
 
+  /**
+   * Resets the form to its initial state
+   * Clears all form data and validation states
+   */
   const resetForm = useCallback(() => {
     setFormData({
       customer: initialCustomerState,
@@ -182,7 +249,10 @@ export const useCustomerForm = ({
     setShowErrors(false);
   }, []);
 
-  // Computed properties
+  /**
+   * Computed properties for form state and validation
+   * Memoized to prevent unnecessary recalculations
+   */
   const currentStepValidation = useMemo(() => 
     validateStep(activeStep),
     [activeStep, validateStep]
@@ -200,6 +270,7 @@ export const useCustomerForm = ({
     validation: currentStepValidation
   }), [formData, activeStep, showErrors, currentStepValidation, canSubmit]);
 
+  // Return hook interface with all necessary state and handlers
   return {
     formData,
     formState,

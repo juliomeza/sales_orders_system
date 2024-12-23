@@ -1,4 +1,9 @@
-// frontend/src/shared/api/queries/useCustomerQueries.ts
+/**
+ * @fileoverview Customer management React Query hooks
+ * Provides functionality for fetching, creating, updating, and deleting customers
+ * with optimistic updates and comprehensive error handling.
+ */
+
 import { 
   useQuery, 
   useMutation, 
@@ -15,16 +20,28 @@ import {
 import { CACHE_TIME } from '../../config/queryClient';
 
 // Types
+/**
+ * Interface for the customer list response
+ */
 interface CustomersResponse {
   customers: Customer[];
 }
 
+/**
+ * Options for filtering customer queries
+ */
 interface UseCustomersQueryOptions {
   status?: number;
   search?: string;
 }
 
 // Main Queries
+/**
+ * Hook to fetch customers with optional filtering
+ * 
+ * @param options - Filtering options for the query
+ * @returns Query result containing customer list
+ */
 export const useCustomersQuery = (options: UseCustomersQueryOptions = {}) => {
   return useQuery({
     queryKey: queryKeys.customers.all,
@@ -47,6 +64,16 @@ export const useCustomersQuery = (options: UseCustomersQueryOptions = {}) => {
 };
 
 // Create Customer Mutation
+/**
+ * Hook to create a new customer
+ * 
+ * Features:
+ * - Optimistic updates to the customer list
+ * - Automatic cache invalidation on success
+ * - Rollback on error
+ * 
+ * @returns Mutation handlers for customer creation
+ */
 export const useCreateCustomerMutation = () => {
   const queryClient = useQueryClient();
 
@@ -109,6 +136,16 @@ export const useCreateCustomerMutation = () => {
 };
 
 // Update Customer Mutation
+/**
+ * Hook to update an existing customer
+ * 
+ * Features:
+ * - Optimistic updates with rollback
+ * - Updates related queries (customer details, projects, users)
+ * - Comprehensive error handling
+ * 
+ * @returns Mutation handlers for customer updates
+ */
 export const useUpdateCustomerMutation = () => {
   const queryClient = useQueryClient();
 
@@ -183,6 +220,16 @@ export const useUpdateCustomerMutation = () => {
 };
 
 // Delete Customer Mutation
+/**
+ * Hook to delete a customer
+ * 
+ * Features:
+ * - Optimistic removal from list
+ * - Invalidates all related customer queries
+ * - Automatic rollback on error
+ * 
+ * @returns Mutation handlers for customer deletion
+ */
 export const useDeleteCustomerMutation = () => {
   const queryClient = useQueryClient();
 

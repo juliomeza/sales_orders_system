@@ -1,15 +1,26 @@
-// frontend/src/shared/api/services/accountsService.ts
+/**
+ * @fileoverview Service layer for managing shipping addresses
+ * Provides a complete API wrapper with data validation, error handling, and response transformation
+ */
+
 import { apiClient } from '../apiClient';
 import { 
   ShippingAddress, 
   ShippingAddressResponse 
 } from '../types/accounts.types';
 
+/**
+ * Service class for managing shipping addresses
+ * Implements CRUD operations with comprehensive error handling and data validation
+ */
 class AccountsService {
   private readonly basePath = '/ship-to';
 
   /**
-   * Get all shipping addresses
+   * Fetches all shipping addresses for the current account
+   * 
+   * @throws {Error} If the request fails or returns invalid data
+   * @returns {Promise<ShippingAddress[]>} List of validated shipping addresses
    */
   public async getShippingAddresses(): Promise<ShippingAddress[]> {
     try {
@@ -21,7 +32,11 @@ class AccountsService {
   }
 
   /**
-   * Get shipping address by ID
+   * Fetches a specific shipping address by ID
+   * 
+   * @param {string} id - The ID of the shipping address to fetch
+   * @throws {Error} If the address is not found or request fails
+   * @returns {Promise<ShippingAddress>} The requested shipping address
    */
   public async getShippingAddress(id: string): Promise<ShippingAddress> {
     try {
@@ -35,7 +50,11 @@ class AccountsService {
   }
 
   /**
-   * Create new shipping address
+   * Creates a new shipping address
+   * 
+   * @param {Omit<ShippingAddress, 'id'>} address - The address data to create
+   * @throws {Error} If validation fails or the request errors
+   * @returns {Promise<ShippingAddress>} The newly created address with ID
    */
   public async createShippingAddress(
     address: Omit<ShippingAddress, 'id'>
@@ -53,7 +72,12 @@ class AccountsService {
   }
 
   /**
-   * Update shipping address
+   * Updates an existing shipping address
+   * 
+   * @param {string} id - The ID of the address to update
+   * @param {Partial<ShippingAddress>} address - The fields to update
+   * @throws {Error} If the address is not found or update fails
+   * @returns {Promise<ShippingAddress>} The updated address
    */
   public async updateShippingAddress(
     id: string,
@@ -71,7 +95,10 @@ class AccountsService {
   }
 
   /**
-   * Delete shipping address
+   * Deletes a shipping address
+   * 
+   * @param {string} id - The ID of the address to delete
+   * @throws {Error} If the address is not found or deletion fails
    */
   public async deleteShippingAddress(id: string): Promise<void> {
     try {
@@ -82,7 +109,12 @@ class AccountsService {
   }
 
   /**
-   * Transform addresses response to ensure consistent data structure
+   * Transforms API response to ensure consistent data structure
+   * Applies validation to each address in the response
+   * 
+   * @param {ShippingAddressResponse} response - Raw API response
+   * @returns {ShippingAddress[]} Validated address list
+   * @private
    */
   private transformAddressesResponse(
     response: ShippingAddressResponse
@@ -91,7 +123,13 @@ class AccountsService {
   }
 
   /**
-   * Validate address data structure
+   * Validates address data structure and required fields
+   * Ensures all required fields are present and properly formatted
+   * 
+   * @param {ShippingAddress} address - Address to validate
+   * @throws {Error} If validation fails
+   * @returns {ShippingAddress} Validated and normalized address
+   * @private
    */
   private validateAddress(address: ShippingAddress): ShippingAddress {
     const requiredFields: (keyof ShippingAddress)[] = [
@@ -120,7 +158,12 @@ class AccountsService {
   }
 
   /**
-   * Validate new address data
+   * Validates new address data before creation
+   * Checks required fields and state code format
+   * 
+   * @param {Omit<ShippingAddress, 'id'>} address - New address data
+   * @throws {Error} If validation fails
+   * @private
    */
   private validateNewAddress(address: Omit<ShippingAddress, 'id'>): void {
     const requiredFields: (keyof Omit<ShippingAddress, 'id'>)[] = [
@@ -146,6 +189,12 @@ class AccountsService {
 
   /**
    * Standardized error handling with context
+   * Transforms API errors into user-friendly messages
+   * 
+   * @param {unknown} error - The caught error
+   * @param {string} context - Description of the operation that failed
+   * @returns {Error} Formatted error with context
+   * @private
    */
   private handleError(error: unknown, context: string): Error {
     console.error(`${context}:`, error);
@@ -172,5 +221,5 @@ class AccountsService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance for use across the application
 export const accountsService = new AccountsService();

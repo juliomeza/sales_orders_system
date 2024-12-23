@@ -1,4 +1,9 @@
-// frontend/src/shared/api/queries/useShippingQueries.ts
+/**
+ * @fileoverview Shipping-related React Query hooks
+ * Provides functionality for managing carriers, services, and warehouses
+ * with error handling, caching, and data prefetching capabilities.
+ */
+
 import { useQuery, useQueryClient, QueryClient } from '@tanstack/react-query';
 import { shippingService } from '../services/shippingService';
 import { queryKeys } from '../../config/queryKeys';
@@ -10,7 +15,16 @@ import {
   WarehousesResponse
 } from '../types/shipping.types';
 
-// Carrier Queries
+/**
+ * Hook to fetch all available carriers
+ * 
+ * Features:
+ * - Static caching for infrequently changing data
+ * - Data normalization and validation
+ * - Error handling with fallback values
+ * 
+ * @returns {UseQueryResult} Query result with carrier list
+ */
 export const useCarriersQuery = () => {
   const queryClient = useQueryClient();
 
@@ -19,7 +33,7 @@ export const useCarriersQuery = () => {
     queryFn: async () => {
       try {
         const response = await shippingService.getCarriers();
-        // Asegurarnos de que response siempre tenga la estructura correcta
+        // Ensure response has correct structure
         if (!Array.isArray(response)) {
           console.error('Unexpected response format:', response);
           return { carriers: [], total: 0 };
@@ -52,7 +66,12 @@ export const useCarriersQuery = () => {
   });
 };
 
-// Función separada para prefetch de servicios
+/**
+ * Prefetches carrier services for active carriers
+ * 
+ * @param {QueryClient} queryClient - React Query client instance
+ * @param {Carrier[]} carriers - List of carriers to prefetch services for
+ */
 const prefetchCarrierServices = (queryClient: QueryClient, carriers: Carrier[]) => {
   carriers.forEach((carrier: Carrier) => {
     if (carrier.status === 1) {
@@ -65,7 +84,16 @@ const prefetchCarrierServices = (queryClient: QueryClient, carriers: Carrier[]) 
   });
 };
 
-// Carrier Services Query
+/**
+ * Hook to fetch services for a specific carrier
+ * 
+ * Features:
+ * - Conditional fetching based on carrier ID
+ * - Filters for active services only
+ * - Smart retry logic for specific error codes
+ * 
+ * @param {string} carrierId - ID of the carrier
+ */
 export const useCarrierServicesQuery = (carrierId: string) => {
   return useQuery<CarrierService[]>({
     queryKey: queryKeys.shipping.services(carrierId),
@@ -83,7 +111,16 @@ export const useCarrierServicesQuery = (carrierId: string) => {
   });
 };
 
-// Warehouses Query
+/**
+ * Hook to fetch warehouses with optional filtering
+ * 
+ * Features:
+ * - Support for status, city, and state filters
+ * - Placeholder data from cache while loading
+ * - Data normalization for consistency
+ * 
+ * @param {Object} filters - Optional filters for warehouse query
+ */
 export const useWarehousesQuery = (filters?: {
   status?: number;
   city?: string;
@@ -123,7 +160,16 @@ export const useWarehousesQuery = (filters?: {
   });
 };
 
-// Warehouse Details Query
+/**
+ * Hook to fetch details for a specific warehouse
+ * 
+ * Features:
+ * - Uses cached warehouse list as placeholder
+ * - Conditional fetching based on ID
+ * - Static caching for performance
+ * 
+ * @param {string} id - Warehouse ID
+ */
 export const useWarehouseQuery = (id: string) => {
   const queryClient = useQueryClient();
 
@@ -141,7 +187,12 @@ export const useWarehouseQuery = (id: string) => {
   });
 };
 
-// Prefetch function para datos críticos
+/**
+ * Prefetches critical shipping data
+ * Includes carriers and warehouses for initial app load
+ * 
+ * @param {QueryClient} queryClient - React Query client instance
+ */
 export const prefetchShippingData = async (queryClient: any) => {
   try {
     await Promise.all([
@@ -161,7 +212,17 @@ export const prefetchShippingData = async (queryClient: any) => {
   }
 };
 
-// Hook personalizado para obtener carrier y servicio juntos
+/**
+ * Custom hook combining carrier and service data
+ * 
+ * Features:
+ * - Combines data from multiple queries
+ * - Provides carrier validation
+ * - Returns normalized service list
+ * 
+ * @param {string} carrierId - Optional carrier ID
+ * @returns {Object} Combined carrier and services data
+ */
 export const useCarrierWithServices = (carrierId?: string) => {
   const { data: carriers } = useCarriersQuery();
   const { data: services } = useCarrierServicesQuery(carrierId || '');

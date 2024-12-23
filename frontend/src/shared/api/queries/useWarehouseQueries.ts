@@ -1,4 +1,9 @@
-// frontend/src/shared/api/queries/useWarehouseQueries.ts
+/**
+ * @fileoverview Warehouse management React Query hooks
+ * Provides comprehensive functionality for managing warehouses including CRUD operations,
+ * statistics tracking, and optimistic updates with error handling.
+ */
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { warehouseService } from '../services/warehouseService';
 import { queryKeys } from '../../config/queryKeys';
@@ -13,7 +18,16 @@ import {
 } from '../services/warehouseService';
 
 /**
- * Hook to fetch warehouses with optional filters
+ * Hook to fetch warehouses with optional filtering
+ * 
+ * Features:
+ * - Supports complex filtering options
+ * - Uses static cache for stable data
+ * - Implements placeholder data while loading
+ * - Normalizes warehouse status
+ * 
+ * @param {WarehouseFilters} filters - Optional filters for warehouse query
+ * @returns {UseQueryResult} Query result with warehouse list and metadata
  */
 export const useWarehousesQuery = (filters: WarehouseFilters = {}) => {
   const queryClient = useQueryClient();
@@ -45,7 +59,15 @@ export const useWarehousesQuery = (filters: WarehouseFilters = {}) => {
 };
 
 /**
- * Hook to fetch a specific warehouse by ID
+ * Hook to fetch details of a specific warehouse
+ * 
+ * Features:
+ * - Conditional fetching based on ID
+ * - Uses warehouse list as placeholder data
+ * - Normalizes warehouse data
+ * 
+ * @param {number} id - Warehouse ID to fetch
+ * @returns {UseQueryResult} Query result with warehouse details
  */
 export const useWarehouseQuery = (id: number) => {
   const queryClient = useQueryClient();
@@ -70,6 +92,13 @@ export const useWarehouseQuery = (id: number) => {
 
 /**
  * Hook to fetch warehouse statistics
+ * 
+ * Features:
+ * - Static caching for performance
+ * - Specific retry logic for auth errors
+ * - Aggregated warehouse metrics
+ * 
+ * @returns {UseQueryResult} Query result with warehouse statistics
  */
 export const useWarehouseStatsQuery = () => {
   return useQuery<WarehouseStats, Error>({
@@ -85,6 +114,13 @@ export const useWarehouseStatsQuery = () => {
 
 /**
  * Hook to create a new warehouse
+ * 
+ * Features:
+ * - Optimistic updates with temporary ID
+ * - Updates both warehouse list and stats
+ * - Comprehensive error handling with rollback
+ * 
+ * @returns {UseMutationResult} Mutation handlers for warehouse creation
  */
 export const useCreateWarehouseMutation = () => {
   const queryClient = useQueryClient();
@@ -94,6 +130,7 @@ export const useCreateWarehouseMutation = () => {
       warehouseService.createWarehouse(data),
     
     onMutate: async (newWarehouse) => {
+      // Optimistic update implementation
       await queryClient.cancelQueries({ 
         queryKey: queryKeys.warehouses.all 
       });
@@ -128,6 +165,7 @@ export const useCreateWarehouseMutation = () => {
     },
 
     onError: (error, variables, context) => {
+      // Rollback on error
       if (context?.previousWarehouses) {
         queryClient.setQueryData<WarehouseResponse>(
           queryKeys.warehouses.all,
@@ -138,6 +176,7 @@ export const useCreateWarehouseMutation = () => {
     },
 
     onSettled: () => {
+      // Invalidate affected queries
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.warehouses.all 
       });
@@ -150,6 +189,13 @@ export const useCreateWarehouseMutation = () => {
 
 /**
  * Hook to update an existing warehouse
+ * 
+ * Features:
+ * - Optimistic updates with modification timestamp
+ * - Partial updates support
+ * - Updates related queries (list, details, stats)
+ * 
+ * @returns {UseMutationResult} Mutation handlers for warehouse updates
  */
 export const useUpdateWarehouseMutation = () => {
   const queryClient = useQueryClient();
@@ -217,6 +263,13 @@ export const useUpdateWarehouseMutation = () => {
 
 /**
  * Hook to delete a warehouse
+ * 
+ * Features:
+ * - Optimistic removal from list
+ * - Updates total count
+ * - Invalidates related queries
+ * 
+ * @returns {UseMutationResult} Mutation handlers for warehouse deletion
  */
 export const useDeleteWarehouseMutation = () => {
   const queryClient = useQueryClient();

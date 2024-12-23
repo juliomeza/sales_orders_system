@@ -11,22 +11,40 @@ import {
 } from '../../../shared/api/queries/useProjectQueries';
 import { queryKeys } from '../../../shared/config/queryKeys';
 
+/**
+ * Props interface for useCustomerProjects hook
+ * @interface UseCustomerProjectsProps
+ * @property {number} [customerId] - Optional ID of the customer whose projects are being managed
+ * @property {Project[]} [initialProjects] - Initial array of projects
+ * @property {(projects: Project[]) => void} onChange - Callback when projects are modified
+ */
 interface UseCustomerProjectsProps {
   customerId?: number;
   initialProjects?: Project[];
   onChange: (projects: Project[]) => void;
 }
 
+/**
+ * Interface for the projects data structure returned by the API
+ * @interface ProjectsData
+ * @property {Project[]} projects - Array of customer projects
+ */
 interface ProjectsData {
   projects: Project[];
 }
 
+/**
+ * Custom hook for managing customer projects
+ * Handles CRUD operations for projects with optimistic updates and error handling
+ */
 export const useCustomerProjects = ({ 
   customerId,
   initialProjects = [],
   onChange 
 }: UseCustomerProjectsProps) => {
   const queryClient = useQueryClient();
+  
+  // State for new project form
   const [newProject, setNewProject] = useState<Project>({
     lookupCode: '',
     name: '',
@@ -34,6 +52,7 @@ export const useCustomerProjects = ({
     isDefault: false
   });
 
+  // Query hooks for data fetching and mutations
   const { 
     data: projects = initialProjects,
     isLoading,
@@ -45,6 +64,11 @@ export const useCustomerProjects = ({
   const deleteProjectMutation = useDeleteProjectMutation(customerId ?? 0);
   const updateDefaultProjectMutation = useUpdateDefaultProjectMutation(customerId ?? 0);
 
+  /**
+   * Handles adding a new project
+   * Implements optimistic updates with error rollback
+   * Sets first project as default automatically
+   */
   const handleAddProject = useCallback(async () => {
     if (!newProject.lookupCode || !newProject.name) return;
     
@@ -106,6 +130,12 @@ export const useCustomerProjects = ({
     }
   }, [newProject, initialProjects, customerId, addProjectMutation, onChange, queryClient]);
 
+  /**
+   * Handles removing a project
+   * Implements optimistic updates with error rollback
+   * Manages default project reassignment when necessary
+   * @param {number} index - Index of the project to remove
+   */
   const handleRemoveProject = useCallback(async (index: number) => {
     const projectToRemove = initialProjects[index];
     let previousData: ProjectsData | undefined;
@@ -165,6 +195,12 @@ export const useCustomerProjects = ({
     }
   }, [initialProjects, customerId, deleteProjectMutation, updateDefaultProjectMutation, onChange, queryClient]);
 
+  /**
+   * Handles changing the default project
+   * Implements optimistic updates with error rollback
+   * Updates all projects to reflect new default status
+   * @param {number} index - Index of the new default project
+   */
   const handleDefaultChange = useCallback(async (index: number) => {
     const project = initialProjects[index];
     let previousData: ProjectsData | undefined;
@@ -220,6 +256,7 @@ export const useCustomerProjects = ({
     }
   }, [initialProjects, customerId, updateDefaultProjectMutation, onChange, queryClient]);
 
+  // Return hook interface with all necessary state and handlers
   return {
     projects: customerId ? projects : initialProjects,
     newProject,

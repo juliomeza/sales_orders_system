@@ -10,13 +10,23 @@ import {
 import { Customer, CreateCustomerData } from '../../../shared/api/types/customer.types';
 import { queryKeys } from '../../../shared/config/queryKeys';
 
+/**
+ * Interface representing the structure of customers data from the API
+ * @interface CustomersData
+ * @property {Customer[]} customers - Array of customer records
+ */
 interface CustomersData {
   customers: Customer[];
 }
 
+/**
+ * Custom hook for managing customer data operations
+ * Provides CRUD operations with optimistic updates and error handling
+ */
 export const useCustomers = () => {
   const queryClient = useQueryClient();
   
+  // Query and mutation hooks setup
   const { 
     data: customersData,
     isLoading,
@@ -28,15 +38,20 @@ export const useCustomers = () => {
   const updateMutation = useUpdateCustomerMutation();
   const deleteMutation = useDeleteCustomerMutation();
 
+  /**
+   * Creates a new customer with optimistic updates
+   * @param {CreateCustomerData} data - Customer data to be created
+   * @throws {Error} When creation fails
+   */
   const handleCreateCustomer = useCallback(async (data: CreateCustomerData) => {
     let previousData: CustomersData | undefined;
   
     try {
+      // Cancel outgoing queries and prepare for optimistic update
       await queryClient.cancelQueries({ queryKey: queryKeys.customers.all });
-  
       previousData = queryClient.getQueryData<CustomersData>(queryKeys.customers.all);
   
-      // Optimistic update
+      // Optimistic update with temporary ID
       const tempId = Date.now();
       if (previousData?.customers) {
         queryClient.setQueryData<CustomersData>(queryKeys.customers.all, {
@@ -51,10 +66,10 @@ export const useCustomers = () => {
         });
       }
   
-      // Await server response
+      // Perform actual server update
       const savedCustomer = await createMutation.mutateAsync(data);
   
-      // Replace temporary ID with actual ID
+      // Update cache with real server data
       queryClient.setQueryData<CustomersData>(queryKeys.customers.all, (oldData) => {
         if (!oldData) return oldData; // Si no hay datos previos, no se modifica nada.
       
@@ -69,7 +84,7 @@ export const useCustomers = () => {
         };
       });
     } catch (error) {
-      // Rollback on error
+      // Rollback optimistic update on error
       if (previousData) {
         queryClient.setQueryData<CustomersData>(queryKeys.customers.all, previousData);
       }
@@ -77,8 +92,13 @@ export const useCustomers = () => {
       throw error;
     }
   }, [createMutation, queryClient]);
-  
 
+  /**
+   * Updates an existing customer with optimistic updates
+   * @param {number} customerId - ID of the customer to update
+   * @param {Partial<CreateCustomerData>} data - Updated customer data
+   * @throws {Error} When update fails
+   */
   const handleUpdateCustomer = useCallback(async (
     customerId: number, 
     data: Partial<CreateCustomerData>
@@ -86,13 +106,14 @@ export const useCustomers = () => {
     let previousData: CustomersData | undefined;
 
     try {
+      // Prepare for optimistic update
       await queryClient.cancelQueries({ 
         queryKey: queryKeys.customers.byId(customerId) 
       });
 
       previousData = queryClient.getQueryData<CustomersData>(queryKeys.customers.all);
 
-      // Optimistic update
+      // Perform optimistic update
       if (previousData?.customers) {
         const updatedCustomers = previousData.customers.map(customer =>
           customer.id === customerId
@@ -105,13 +126,16 @@ export const useCustomers = () => {
         });
       }
 
+      // Execute server update
       await updateMutation.mutateAsync({ customerId, data });
 
-      // Invalidate related queries
-      await queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
-      await queryClient.invalidateQueries({ 
-        queryKey: queryKeys.customers.byId(customerId)
-      });
+      // Invalidate and refetch affected queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.customers.all }),
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.customers.byId(customerId)
+        })
+      ]);
     } catch (error) {
       // Rollback on error
       if (previousData) {
@@ -122,15 +146,21 @@ export const useCustomers = () => {
     }
   }, [updateMutation, queryClient]);
 
+  /**
+   * Deletes a customer with optimistic updates
+   * @param {number} customerId - ID of the customer to delete
+   * @throws {Error} When deletion fails
+   */
   const handleDeleteCustomer = useCallback(async (customerId: number) => {
     let previousData: CustomersData | undefined;
 
     try {
+      // Prepare for optimistic deletion
       await queryClient.cancelQueries({ queryKey: queryKeys.customers.all });
 
       previousData = queryClient.getQueryData<CustomersData>(queryKeys.customers.all);
 
-      // Optimistic update
+      // Perform optimistic removal
       if (previousData?.customers) {
         queryClient.setQueryData<CustomersData>(queryKeys.customers.all, {
           customers: previousData.customers.filter(
@@ -139,9 +169,10 @@ export const useCustomers = () => {
         });
       }
 
+      // Execute server deletion
       await deleteMutation.mutateAsync(customerId);
 
-      // Invalidate queries
+      // Invalidate affected queries
       await queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
     } catch (error) {
       // Rollback on error
@@ -153,6 +184,7 @@ export const useCustomers = () => {
     }
   }, [deleteMutation, queryClient]);
 
+  // Return hook interface with all necessary operations and state
   return {
     customers: customersData?.customers ?? [],
     isLoading,

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview User management React Query hooks
+ * Provides functionality for managing customer users including CRUD operations
+ * and password management with optimistic updates and error handling.
+ */
+
 // frontend/src/shared/api/queries/useUserQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../services/userService';
@@ -6,7 +12,15 @@ import { User } from '../types/customer.types';
 import { CACHE_TIME } from '../../config/queryClient';
 
 /**
- * Hook to fetch all users for a customer
+ * Hook to fetch all users associated with a customer
+ * 
+ * Features:
+ * - Conditional fetching based on customer ID
+ * - Data normalization for role and status
+ * - Smart retry logic for specific error cases
+ * 
+ * @param {number} customerId - The ID of the customer whose users to fetch
+ * @returns {UseQueryResult} Query result containing user list
  */
 export const useCustomerUsersQuery = (customerId: number) => {
   return useQuery<User[], Error>({
@@ -28,7 +42,15 @@ export const useCustomerUsersQuery = (customerId: number) => {
 };
 
 /**
- * Hook to add a new user
+ * Hook to add a new user to a customer account
+ * 
+ * Features:
+ * - Optimistic updates with temporary IDs
+ * - Automatic cache invalidation for related queries
+ * - Rollback capability on error
+ * 
+ * @param {number} customerId - The ID of the customer to add the user to
+ * @returns {UseMutationResult} Mutation handlers and state
  */
 export const useAddUserMutation = (customerId: number) => {
   const queryClient = useQueryClient();
@@ -38,6 +60,7 @@ export const useAddUserMutation = (customerId: number) => {
       userService.addUser(customerId, user),
     
     onMutate: async (newUser) => {
+      // Optimistic update implementation
       await queryClient.cancelQueries({ 
         queryKey: queryKeys.customers.users(customerId) 
       });
@@ -60,6 +83,7 @@ export const useAddUserMutation = (customerId: number) => {
     },
 
     onError: (error, variables, context) => {
+      // Rollback logic
       if (context?.previousUsers) {
         queryClient.setQueryData<User[]>(
           queryKeys.customers.users(customerId),
@@ -70,7 +94,7 @@ export const useAddUserMutation = (customerId: number) => {
     },
 
     onSettled: () => {
-      // Invalidate both users and customer queries
+      // Invalidate affected queries
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.customers.users(customerId) 
       });
@@ -82,7 +106,14 @@ export const useAddUserMutation = (customerId: number) => {
 };
 
 /**
- * Hook to update an existing user
+ * Hook to update an existing user's information
+ * 
+ * Features:
+ * - Optimistic updates with rollback
+ * - Partial updates support
+ * - Cache synchronization
+ * 
+ * @param {number} customerId - The ID of the customer owning the user
  */
 export const useUpdateUserMutation = (customerId: number) => {
   const queryClient = useQueryClient();
@@ -133,7 +164,14 @@ export const useUpdateUserMutation = (customerId: number) => {
 };
 
 /**
- * Hook to delete a user
+ * Hook to delete a user from a customer account
+ * 
+ * Features:
+ * - Optimistic deletion
+ * - Automatic cache updates
+ * - Related queries invalidation
+ * 
+ * @param {number} customerId - The ID of the customer owning the user
  */
 export const useDeleteUserMutation = (customerId: number) => {
   const queryClient = useQueryClient();
@@ -184,27 +222,29 @@ export const useDeleteUserMutation = (customerId: number) => {
 };
 
 /**
- * Hook to reset user password
+ * Hook to handle user password reset
+ * 
+ * Features:
+ * - No optimistic updates for security
+ * - Optional cache refresh on success
+ * - Error handling for sensitive operation
+ * 
+ * @param {number} customerId - The ID of the customer owning the user
  */
 export const useResetPasswordMutation = (customerId: number) => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ 
-      userId, 
-      password 
-    }: { 
-      userId: number; 
-      password: string 
-    }) => userService.resetPassword(customerId, userId, password),
+    mutationFn: ({ userId, password }: { userId: number; password: string }) => 
+      userService.resetPassword(customerId, userId, password),
     
-    // No optimistic update for password reset
+    // No optimistic update for security-sensitive operations
     onError: (error) => {
       console.error('Error resetting password:', error);
     },
 
     onSuccess: () => {
-      // Optionally invalidate user query to refresh status/metadata
+      // Refresh user data after successful password reset
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.customers.users(customerId) 
       });

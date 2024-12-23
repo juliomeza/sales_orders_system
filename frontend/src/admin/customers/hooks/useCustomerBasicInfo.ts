@@ -5,18 +5,36 @@ import { Customer } from '../../../shared/api/types/customer.types';
 import { useUpdateCustomerMutation } from '../../../shared/api/queries/useCustomerQueries';
 import { queryKeys } from '../../../shared/config/queryKeys';
 
+/**
+ * Props interface for useCustomerBasicInfo hook
+ * @interface UseCustomerBasicInfoProps
+ * @property {number} [customerId] - Optional ID of the customer being edited
+ * @property {Partial<Customer>} [initialData] - Initial customer data
+ * @property {(data: Partial<Customer>) => void} [onUpdate] - Callback after successful update
+ */
 interface UseCustomerBasicInfoProps {
   customerId?: number;
   initialData?: Partial<Customer>;
   onUpdate?: (data: Partial<Customer>) => void;
 }
 
+/**
+ * State interface for managing customer basic information form
+ * @interface CustomerBasicInfoState
+ * @property {Partial<Customer>} formData - Current form field values
+ * @property {boolean} isDirty - Indicates if form has unsaved changes
+ * @property {Record<string, string>} errors - Form validation errors
+ */
 interface CustomerBasicInfoState {
   formData: Partial<Customer>;
   isDirty: boolean;
   errors: Record<string, string>;
 }
 
+/**
+ * Custom hook for managing customer basic information form state and operations
+ * Handles form state, validation, and API interactions for customer data
+ */
 export const useCustomerBasicInfo = ({
   customerId,
   initialData,
@@ -25,6 +43,7 @@ export const useCustomerBasicInfo = ({
   const queryClient = useQueryClient();
   const updateMutation = useUpdateCustomerMutation();
 
+  // Initialize form state with default values or provided initial data
   const [state, setState] = useState<CustomerBasicInfoState>({
     formData: initialData || {
       lookupCode: '',
@@ -41,6 +60,11 @@ export const useCustomerBasicInfo = ({
     errors: {}
   });
 
+  /**
+   * Validates form data and returns validation errors
+   * @param {Partial<Customer>} data - Customer data to validate
+   * @returns {Record<string, string>} Object containing field-specific error messages
+   */
   const validateForm = useCallback((data: Partial<Customer>): Record<string, string> => {
     const errors: Record<string, string> = {};
     
@@ -71,6 +95,11 @@ export const useCustomerBasicInfo = ({
     return errors;
   }, []);
 
+  /**
+   * Handles changes to form field values
+   * Updates form state and triggers validation
+   * @param {keyof Customer} field - Name of the field being updated
+   */
   const handleChange = useCallback((field: keyof Customer) => (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -92,6 +121,10 @@ export const useCustomerBasicInfo = ({
     }));
   }, [validateForm]);
 
+  /**
+   * Handles changes to customer status toggle
+   * Updates status between active (1) and inactive (2)
+   */
   const handleStatusChange = useCallback((
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -105,9 +138,16 @@ export const useCustomerBasicInfo = ({
     }));
   }, []);
 
+  /**
+   * Saves customer data to the server
+   * Implements optimistic updates with error rollback
+   * Validates form before submission
+   * @throws {Error} When update operation fails
+   */
   const handleSave = useCallback(async () => {
     if (!customerId) return;
 
+    // Validate form before submission
     const errors = validateForm(state.formData);
     if (Object.keys(errors).length > 0) {
       setState(prev => ({ ...prev, errors }));
@@ -191,6 +231,10 @@ export const useCustomerBasicInfo = ({
     }
   }, [customerId, state.formData, validateForm, updateMutation, queryClient, onUpdate]);
 
+  /**
+   * Resets form to initial state or default values
+   * Clears errors and dirty state
+   */
   const resetForm = useCallback(() => {
     setState({
       formData: initialData || {
@@ -209,6 +253,7 @@ export const useCustomerBasicInfo = ({
     });
   }, [initialData]);
 
+  // Return hook interface
   return {
     formData: state.formData,
     errors: state.errors,

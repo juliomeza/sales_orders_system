@@ -1,4 +1,9 @@
-// frontend/src/shared/api/queries/useProjectQueries.ts
+/**
+ * @fileoverview React Query hooks for project management
+ * Provides functionality for fetching, creating, updating, and deleting projects,
+ * as well as managing default project settings.
+ */
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectService } from '../services/projectService';
 import { queryKeys } from '../../config/queryKeys';
@@ -6,7 +11,14 @@ import { Project } from '../types/customer.types';
 import { CACHE_TIME } from '../../config/queryClient';
 
 /**
- * Hook to fetch all projects for a customer
+ * Hook to fetch all projects for a specific customer
+ * 
+ * Features:
+ * - Conditional fetching based on customerId
+ * - Data normalization for isDefault property
+ * - Smart retry logic for different error types
+ * 
+ * @param {number} customerId - The ID of the customer whose projects to fetch
  */
 export const useCustomerProjectsQuery = (customerId: number) => {
   return useQuery<Project[], Error>({
@@ -27,7 +39,14 @@ export const useCustomerProjectsQuery = (customerId: number) => {
 };
 
 /**
- * Hook to add a new project
+ * Hook to add a new project to a customer
+ * 
+ * Features:
+ * - Optimistic updates with temporary IDs
+ * - Automatic cache invalidation
+ * - Error rollback capability
+ * 
+ * @param {number} customerId - The ID of the customer to add the project to
  */
 export const useAddProjectMutation = (customerId: number) => {
   const queryClient = useQueryClient();
@@ -37,6 +56,7 @@ export const useAddProjectMutation = (customerId: number) => {
       projectService.addProject(customerId, project),
     
     onMutate: async (newProject) => {
+      // Optimistic update implementation
       await queryClient.cancelQueries({ 
         queryKey: queryKeys.customers.projects(customerId) 
       });
@@ -59,6 +79,7 @@ export const useAddProjectMutation = (customerId: number) => {
     },
 
     onError: (error, variables, context) => {
+      // Rollback on error
       if (context?.previousProjects) {
         queryClient.setQueryData<Project[]>(
           queryKeys.customers.projects(customerId),
@@ -69,6 +90,7 @@ export const useAddProjectMutation = (customerId: number) => {
     },
 
     onSettled: () => {
+      // Cache invalidation
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.customers.projects(customerId) 
       });
@@ -78,6 +100,13 @@ export const useAddProjectMutation = (customerId: number) => {
 
 /**
  * Hook to update an existing project
+ * 
+ * Features:
+ * - Optimistic updates with rollback
+ * - Preserves existing project data
+ * - Handles partial updates
+ * 
+ * @param {number} customerId - The ID of the customer owning the project
  */
 export const useUpdateProjectMutation = (customerId: number) => {
   const queryClient = useQueryClient();
@@ -129,6 +158,13 @@ export const useUpdateProjectMutation = (customerId: number) => {
 
 /**
  * Hook to delete a project
+ * 
+ * Features:
+ * - Optimistic removal from list
+ * - Automatic rollback on error
+ * - Cache invalidation after success
+ * 
+ * @param {number} customerId - The ID of the customer owning the project
  */
 export const useDeleteProjectMutation = (customerId: number) => {
   const queryClient = useQueryClient();
@@ -175,7 +211,14 @@ export const useDeleteProjectMutation = (customerId: number) => {
 };
 
 /**
- * Hook to set a project as default
+ * Hook to set a project as the default for a customer
+ * 
+ * Features:
+ * - Updates isDefault status across all customer projects
+ * - Optimistic updates with rollback
+ * - Maintains data consistency across projects
+ * 
+ * @param {number} customerId - The ID of the customer owning the projects
  */
 export const useUpdateDefaultProjectMutation = (customerId: number) => {
   const queryClient = useQueryClient();
@@ -185,6 +228,7 @@ export const useUpdateDefaultProjectMutation = (customerId: number) => {
       projectService.updateDefaultProject(customerId, projectId),
     
     onMutate: async (newDefaultProjectId) => {
+      // Optimistic update: Set new default project
       await queryClient.cancelQueries({ 
         queryKey: queryKeys.customers.projects(customerId) 
       });
@@ -209,6 +253,7 @@ export const useUpdateDefaultProjectMutation = (customerId: number) => {
     },
 
     onError: (error, variables, context) => {
+      // Rollback changes on error
       if (context?.previousProjects) {
         queryClient.setQueryData<Project[]>(
           queryKeys.customers.projects(customerId),
@@ -219,6 +264,7 @@ export const useUpdateDefaultProjectMutation = (customerId: number) => {
     },
 
     onSettled: () => {
+      // Refresh project data
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.customers.projects(customerId) 
       });

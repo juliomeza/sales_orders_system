@@ -1,4 +1,9 @@
-// frontend/src/shared/api/queries/useAccountQueries.ts
+/**
+ * @fileoverview Collection of React Query hooks for managing shipping addresses
+ * Includes functionality for fetching, creating, updating, and deleting shipping addresses
+ * with optimistic updates and error handling.
+ */
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { accountsService } from '../services/accountsService';
 import { queryKeys } from '../../config/queryKeys';
@@ -6,7 +11,14 @@ import { ShippingAddress } from '../types/accounts.types';
 import { CACHE_TIME } from '../../config/queryClient';
 
 /**
- * Hook to fetch shipping addresses
+ * Hook to fetch all shipping addresses
+ * 
+ * Features:
+ * - Caches results based on CACHE_TIME.DYNAMIC
+ * - Normalizes state codes to uppercase
+ * - Implements smart retry logic based on error types
+ * 
+ * @returns {UseQueryResult} Query result with shipping addresses data
  */
 export const useShippingAddressesQuery = () => {
   return useQuery<ShippingAddress[], Error>({
@@ -26,7 +38,14 @@ export const useShippingAddressesQuery = () => {
 };
 
 /**
- * Hook to fetch a specific shipping address
+ * Hook to fetch a single shipping address by ID
+ * 
+ * Features:
+ * - Only runs query when ID is provided
+ * - Implements retry logic with 404 handling
+ * 
+ * @param {string} id - The ID of the shipping address to fetch
+ * @returns {UseQueryResult} Query result with single address data
  */
 export const useShippingAddressQuery = (id: string) => {
   return useQuery<ShippingAddress, Error>({
@@ -43,6 +62,13 @@ export const useShippingAddressQuery = (id: string) => {
 
 /**
  * Hook to create a new shipping address
+ * 
+ * Features:
+ * - Implements optimistic updates
+ * - Handles rollback on error
+ * - Automatically invalidates related queries on success
+ * 
+ * @returns {UseMutationResult} Mutation handlers and state
  */
 export const useCreateShippingAddressMutation = () => {
   const queryClient = useQueryClient();
@@ -52,6 +78,8 @@ export const useCreateShippingAddressMutation = () => {
       accountsService.createShippingAddress(newAddress),
     
     onMutate: async (newAddress) => {
+      // Optimistic update logic
+      // Cancels in-flight queries and updates cache with temporary data
       await queryClient.cancelQueries({ 
         queryKey: queryKeys.accounts.shipTo 
       });
@@ -77,6 +105,8 @@ export const useCreateShippingAddressMutation = () => {
     },
 
     onError: (error, variables, context) => {
+      // Rollback logic on error
+      // Restores previous data if mutation fails
       if (context?.previousAddresses) {
         queryClient.setQueryData<ShippingAddress[]>(
           queryKeys.accounts.shipTo,
@@ -87,6 +117,8 @@ export const useCreateShippingAddressMutation = () => {
     },
 
     onSettled: () => {
+      // Cleanup logic
+      // Invalidates queries to ensure fresh data
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.accounts.shipTo 
       });
@@ -95,7 +127,14 @@ export const useCreateShippingAddressMutation = () => {
 };
 
 /**
- * Hook to update a shipping address
+ * Hook to update an existing shipping address
+ * 
+ * Features:
+ * - Implements optimistic updates
+ * - Handles state normalization
+ * - Manages cache invalidation for both list and individual queries
+ * 
+ * @returns {UseMutationResult} Mutation handlers and state
  */
 export const useUpdateShippingAddressMutation = () => {
   const queryClient = useQueryClient();
@@ -161,6 +200,13 @@ export const useUpdateShippingAddressMutation = () => {
 
 /**
  * Hook to delete a shipping address
+ * 
+ * Features:
+ * - Implements optimistic deletion
+ * - Handles rollback on error
+ * - Manages cache invalidation for affected queries
+ * 
+ * @returns {UseMutationResult} Mutation handlers and state
  */
 export const useDeleteShippingAddressMutation = () => {
   const queryClient = useQueryClient();

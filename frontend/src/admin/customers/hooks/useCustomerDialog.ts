@@ -9,6 +9,10 @@ import {
 } from '../../../shared/api/types/customer.types';
 import { queryKeys } from '../../../shared/config/queryKeys';
 
+/**
+ * Interface defining the structure of the customer form data
+ * Contains all information needed across the three form steps
+ */
 interface CustomerFormData {
   customer: {
     lookupCode: string;
@@ -25,6 +29,10 @@ interface CustomerFormData {
   users: User[];
 }
 
+/**
+ * Initial state for the customer form
+ * Provides default values for all form fields
+ */
 const initialFormState: CustomerFormData = {
   customer: {
     lookupCode: '',
@@ -41,6 +49,14 @@ const initialFormState: CustomerFormData = {
   users: []
 };
 
+/**
+ * Props interface for the useCustomerDialog hook
+ * @interface UseCustomerDialogProps
+ * @property {Customer | null} customer - Existing customer data for edit mode
+ * @property {() => void} onClose - Callback when dialog is closed
+ * @property {(data: CreateCustomerData) => Promise<void>} onSubmit - Callback for creating new customer
+ * @property {(customerId: number, data: Partial<CreateCustomerData>) => Promise<void>} onUpdate - Optional callback for updating existing customer
+ */
 interface UseCustomerDialogProps {
   customer: Customer | null;
   onClose: () => void;
@@ -48,6 +64,10 @@ interface UseCustomerDialogProps {
   onUpdate?: (customerId: number, data: Partial<CreateCustomerData>) => Promise<void>;
 }
 
+/**
+ * Custom hook for managing the customer dialog state and operations
+ * Handles form state, validation, and API interactions across multiple steps
+ */
 export const useCustomerDialog = ({
   customer,
   onClose,
@@ -55,11 +75,16 @@ export const useCustomerDialog = ({
   onUpdate
 }: UseCustomerDialogProps) => {
   const queryClient = useQueryClient();
+  // State management for form steps and validation
   const [activeStep, setActiveStep] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<CustomerFormData>(initialFormState);
 
+  /**
+   * Effect to initialize form data when customer data is provided
+   * Maps customer data to form structure for editing
+   */
   useEffect(() => {
     if (customer) {
       setFormData({
@@ -93,6 +118,11 @@ export const useCustomerDialog = ({
     }
   }, [customer]);
 
+  /**
+   * Validates the current step's data
+   * @param {number} step - Step index to validate
+   * @returns {string[]} Array of validation error messages
+   */
   const validateStep = useCallback((step: number): string[] => {
     const errors: string[] = [];
     switch (step) {
@@ -121,6 +151,11 @@ export const useCustomerDialog = ({
     return errors;
   }, [formData]);
 
+  /**
+   * Handles navigation to next step
+   * Validates current step before proceeding
+   * @returns {boolean} Whether navigation was successful
+   */
   const handleNext = useCallback(() => {
     const errors = validateStep(activeStep);
     if (errors.length === 0) {
@@ -132,11 +167,19 @@ export const useCustomerDialog = ({
     return false;
   }, [activeStep, validateStep]);
 
+  /**
+   * Handles navigation to previous step
+   * Resets error display state
+   */
   const handleBack = useCallback(() => {
     setActiveStep(prev => prev - 1);
     setShowErrors(false);
   }, []);
 
+  /**
+   * Handles dialog closure
+   * Resets form state and triggers onClose callback
+   */
   const handleClose = useCallback(() => {
     setActiveStep(0);
     setShowErrors(false);
@@ -144,6 +187,10 @@ export const useCustomerDialog = ({
     onClose();
   }, [onClose]);
 
+  /**
+   * Handles form submission for new customer creation
+   * Validates all steps before submission
+   */
   const handleSubmit = useCallback(async () => {
     const allErrors = [0, 1, 2].flatMap(step => validateStep(step));
     if (allErrors.length > 0) {
@@ -161,6 +208,10 @@ export const useCustomerDialog = ({
     }
   }, [formData, validateStep, onSubmit, queryClient, handleClose]);
 
+  /**
+   * Handles saving changes for the current step in edit mode
+   * Validates current step and updates specific sections based on step
+   */
   const handleSaveStep = useCallback(async () => {
     if (!customer?.id || !onUpdate) return;
 
@@ -216,6 +267,10 @@ export const useCustomerDialog = ({
     }
   }, [activeStep, customer, formData, onUpdate, queryClient, validateStep]);
 
+  /**
+   * Form field change handlers
+   * Update specific sections of form data while maintaining immutability
+   */
   const handleCustomerChange = useCallback((
     customerData: Partial<CustomerFormData['customer']>
   ) => {
@@ -246,6 +301,7 @@ export const useCustomerDialog = ({
     setFormData((prev: CustomerFormData) => ({ ...prev, users }));
   }, []);
 
+  // Return hook interface with all necessary state and handlers
   return {
     activeStep,
     formData,

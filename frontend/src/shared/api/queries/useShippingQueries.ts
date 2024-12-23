@@ -77,8 +77,9 @@ export const useCarrierServicesQuery = (carrierId: string) => {
       if (error?.response?.status === 403) return false;
       return failureCount < 2;
     },
+    placeholderData: [], // Add this
     select: (services) => 
-      services.filter(service => service.status === 1)
+      services?.filter(service => service.status === 1) || [] // Modify this
   });
 };
 

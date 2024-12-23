@@ -32,9 +32,10 @@ class ShippingService {
       const response = await apiClient.get<{ services: CarrierService[] }>(
         `${this.carriersPath}/${carrierId}/services`
       );
-      return response.services;
+      return response.services || []; // Add the || []
     } catch (error) {
-      throw this.handleError(error, 'Error fetching carrier services');
+      console.error('Error fetching carrier services:', error);
+      return []; // Return empty array instead of throwing
     }
   }
 

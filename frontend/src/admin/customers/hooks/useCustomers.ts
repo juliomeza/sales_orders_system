@@ -30,30 +30,44 @@ export const useCustomers = () => {
 
   const handleCreateCustomer = useCallback(async (data: CreateCustomerData) => {
     let previousData: CustomersData | undefined;
-    
+  
     try {
       await queryClient.cancelQueries({ queryKey: queryKeys.customers.all });
-      
+  
       previousData = queryClient.getQueryData<CustomersData>(queryKeys.customers.all);
-      
+  
       // Optimistic update
+      const tempId = Date.now();
       if (previousData?.customers) {
         queryClient.setQueryData<CustomersData>(queryKeys.customers.all, {
           customers: [
             ...previousData.customers,
             {
-              id: Date.now(), // Temporary ID
+              id: tempId, // Temporary ID
               ...data.customer,
               _count: { users: data.users?.length || 0 }
             }
           ]
         });
       }
-
-      await createMutation.mutateAsync(data);
+  
+      // Await server response
+      const savedCustomer = await createMutation.mutateAsync(data);
+  
+      // Replace temporary ID with actual ID
+      queryClient.setQueryData<CustomersData>(queryKeys.customers.all, (oldData) => {
+        if (!oldData) return oldData; // Si no hay datos previos, no se modifica nada.
       
-      // Invalidate and refetch
-      await queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
+        // Mapeamos y nos aseguramos de que solo retornamos valores del tipo Customer.
+        return {
+          customers: oldData.customers.map((customer) => {
+            if (customer.id === tempId) {
+              return savedCustomer; // Reemplazamos el ID temporal con el del servidor.
+            }
+            return customer; // Retornamos el resto de los clientes sin cambios.
+          }) as Customer[], // Aseguramos explícitamente que el resultado es del tipo Customer[].
+        };
+      });
     } catch (error) {
       // Rollback on error
       if (previousData) {
@@ -63,6 +77,7 @@ export const useCustomers = () => {
       throw error;
     }
   }, [createMutation, queryClient]);
+  
 
   const handleUpdateCustomer = useCallback(async (
     customerId: number, 

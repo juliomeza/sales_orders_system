@@ -37,7 +37,12 @@ export const CustomerDialog: React.FC<CustomerDialogProps> = ({
     handleUsersChange,
     validateStep,
     isEditMode
-  } = useCustomerDialog(customer, onClose, onSubmit, onUpdate);
+  } = useCustomerDialog({
+    customer,
+    onClose,
+    onSubmit,
+    onUpdate
+  });
 
   const errors = validateStep(activeStep);
 

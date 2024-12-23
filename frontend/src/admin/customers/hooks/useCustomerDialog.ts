@@ -1,6 +1,29 @@
-// src/admin/customers/hooks/useCustomerDialog.ts
-import { useState, useEffect } from 'react';
-import { Customer, CustomerFormData, CreateCustomerData } from '../types';
+// frontend/src/admin/customers/hooks/useCustomerDialog.ts
+import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { 
+  Customer, 
+  Project,
+  User,
+  CreateCustomerData 
+} from '../../../shared/api/types/customer.types';
+import { queryKeys } from '../../../shared/config/queryKeys';
+
+interface CustomerFormData {
+  customer: {
+    lookupCode: string;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    phone: string;
+    email: string;
+    status: number;
+  };
+  projects: Project[];
+  users: User[];
+}
 
 const initialFormState: CustomerFormData = {
   customer: {
@@ -18,49 +41,27 @@ const initialFormState: CustomerFormData = {
   users: []
 };
 
-export const useCustomerDialog = (
-  customer: Customer | null,
-  onClose: () => void,
-  onSubmit: (data: CreateCustomerData) => Promise<void>,
-  onUpdate?: (customerId: number, data: Partial<CreateCustomerData>) => Promise<void>
-) => {
+interface UseCustomerDialogProps {
+  customer: Customer | null;
+  onClose: () => void;
+  onSubmit: (data: CreateCustomerData) => Promise<void>;
+  onUpdate?: (customerId: number, data: Partial<CreateCustomerData>) => Promise<void>;
+}
+
+export const useCustomerDialog = ({
+  customer,
+  onClose,
+  onSubmit,
+  onUpdate
+}: UseCustomerDialogProps) => {
+  const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState<CustomerFormData>(() => 
-    customer ? {
-      customer: {
-        lookupCode: customer.lookupCode,
-        name: customer.name,
-        address: customer.address,
-        city: customer.city,
-        state: customer.state,
-        zipCode: customer.zipCode,
-        phone: customer.phone || '',
-        email: customer.email || '',
-        status: customer.status
-      },
-      projects: customer.projects?.map(project => ({
-        id: project.id,
-        lookupCode: project.lookupCode || '', // Aseguramos valor por defecto
-        name: project.name || '',             // Aseguramos valor por defecto
-        description: project.description || '', // Aseguramos valor por defecto
-        isDefault: Boolean(project.isDefault)  // Convertimos a booleano
-      })) || [],
-      users: customer.users?.map(user => ({
-        id: user.id,
-        email: user.email,
-        role: user.role || 'CLIENT',
-        status: user.status
-      })) || []
-    } : initialFormState
-  );
+  const [formData, setFormData] = useState<CustomerFormData>(initialFormState);
 
-  // Effect to update form data when customer changes
   useEffect(() => {
     if (customer) {
-      console.log('Customer in dialog:', customer);
-      console.log('Customer users:', customer.users);
       setFormData({
         customer: {
           lookupCode: customer.lookupCode,
@@ -73,15 +74,13 @@ export const useCustomerDialog = (
           email: customer.email || '',
           status: customer.status
         },
-        projects: (customer.projects || []).map(project => {
-          return {
-            id: project.id,
-            lookupCode: project.lookupCode || '',  // Aseguramos valor por defecto
-            name: project.name || '',              // Aseguramos valor por defecto
-            description: project.description || '', // Aseguramos valor por defecto
-            isDefault: Boolean(project.isDefault)   // Convertimos a booleano
-          };
-        }),
+        projects: (customer.projects || []).map(project => ({
+          id: project.id,
+          lookupCode: project.lookupCode || '',
+          name: project.name || '',
+          description: project.description || '',
+          isDefault: Boolean(project.isDefault)
+        })),
         users: customer.users?.map(user => ({
           id: user.id,
           email: user.email,
@@ -94,7 +93,7 @@ export const useCustomerDialog = (
     }
   }, [customer]);
 
-  const validateStep = (step: number): string[] => {
+  const validateStep = useCallback((step: number): string[] => {
     const errors: string[] = [];
     switch (step) {
       case 0:
@@ -109,7 +108,7 @@ export const useCustomerDialog = (
         if (formData.projects.length === 0) {
           errors.push('At least one project is required');
         }
-        if (!formData.projects.some(p => p.isDefault)) {
+        if (!formData.projects.some((p: Project) => p.isDefault)) {
           errors.push('One project must be set as default');
         }
         break;
@@ -120,9 +119,9 @@ export const useCustomerDialog = (
         break;
     }
     return errors;
-  };
+  }, [formData]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const errors = validateStep(activeStep);
     if (errors.length === 0) {
       setActiveStep(prev => prev + 1);
@@ -131,39 +130,38 @@ export const useCustomerDialog = (
     }
     setShowErrors(true);
     return false;
-  };
+  }, [activeStep, validateStep]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setActiveStep(prev => prev - 1);
     setShowErrors(false);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setActiveStep(0);
     setShowErrors(false);
     setFormData(initialFormState);
     onClose();
-  };
+  }, [onClose]);
 
-  const handleSubmit = async () => {
-    let hasErrors = false;
-    for (let step = 0; step <= 2; step++) {
-      const errors = validateStep(step);
-      if (errors.length > 0) {
-        hasErrors = true;
-        break;
-      }
+  const handleSubmit = useCallback(async () => {
+    const allErrors = [0, 1, 2].flatMap(step => validateStep(step));
+    if (allErrors.length > 0) {
+      setShowErrors(true);
+      return;
     }
 
-    if (!hasErrors) {
+    try {
       await onSubmit(formData);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
       handleClose();
-    } else {
+    } catch (error) {
+      console.error('Error submitting form:', error);
       setShowErrors(true);
     }
-  };
+  }, [formData, validateStep, onSubmit, queryClient, handleClose]);
 
-  const handleSaveStep = async () => {
+  const handleSaveStep = useCallback(async () => {
     if (!customer?.id || !onUpdate) return;
 
     const errors = validateStep(activeStep);
@@ -184,29 +182,31 @@ export const useCustomerDialog = (
           break;
         case 1:
           dataToUpdate = {
-            customer: formData.customer, // Mantener los datos del cliente
-            projects: formData.projects.map(project => ({
+            customer: formData.customer,
+            projects: formData.projects.map((project: Project) => ({
               lookupCode: project.lookupCode || '',
               name: project.name || '',
               description: project.description || '',
               isDefault: Boolean(project.isDefault)
-            })).filter(p => p.lookupCode && p.name) // Solo proyectos con datos válidos
+            }))
           };
           break;
-          case 2:
-            dataToUpdate = {
-              customer: formData.customer, // Include customer data
-              users: formData.users.map(user => ({
-                email: user.email,
-                role: user.role || 'CLIENT',
-                status: user.status || 1,
-                password: user.password // Include password for new users
-              }))
-            };
-            break;
+        case 2:
+          dataToUpdate = {
+            customer: formData.customer,
+            users: formData.users.map((user: User) => ({
+              email: user.email,
+              role: user.role || 'CLIENT',
+              status: user.status || 1,
+              password: user.password
+            }))
+          };
+          break;
       }
 
       await onUpdate(customer.id, dataToUpdate);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.customers.byId(customer.id) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
       setShowErrors(false);
     } catch (error) {
       console.error('Error saving changes:', error);
@@ -214,35 +214,44 @@ export const useCustomerDialog = (
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [activeStep, customer, formData, onUpdate, queryClient, validateStep]);
 
-  const handleCustomerChange = (customerData: Partial<CustomerFormData['customer']>) => {
-    setFormData(prev => ({
+  const handleCustomerChange = useCallback((
+    customerData: Partial<CustomerFormData['customer']>
+  ) => {
+    setFormData((prev: CustomerFormData) => ({
       ...prev,
       customer: { ...prev.customer, ...customerData }
     }));
-  };
+  }, []);
 
-  const handleProjectsChange = (projects: CustomerFormData['projects']) => {
-    const updatedProjects = projects.map(project => ({
-      ...project,
-      lookupCode: project.lookupCode || '',  // Aseguramos valor por defecto
-      name: project.name || '',              // Aseguramos valor por defecto
-      description: project.description || '', // Aseguramos valor por defecto
-      isDefault: Boolean(project.isDefault)   // Convertimos a booleano
+  const handleProjectsChange = useCallback((
+    projects: Project[]
+  ) => {
+    setFormData((prev: CustomerFormData) => ({
+      ...prev,
+      projects: projects.map((project: Project) => ({
+        ...project,
+        lookupCode: project.lookupCode || '',
+        name: project.name || '',
+        description: project.description || '',
+        isDefault: Boolean(project.isDefault)
+      }))
     }));
-    setFormData(prev => ({ ...prev, projects: updatedProjects }));
-  };
+  }, []);
 
-  const handleUsersChange = (users: CustomerFormData['users']) => {
-    setFormData(prev => ({ ...prev, users }));
-  };
+  const handleUsersChange = useCallback((
+    users: User[]
+  ) => {
+    setFormData((prev: CustomerFormData) => ({ ...prev, users }));
+  }, []);
 
   return {
     activeStep,
     formData,
     showErrors,
     isSaving,
+    isEditMode: Boolean(customer),
     handleNext,
     handleBack,
     handleClose,
@@ -251,7 +260,6 @@ export const useCustomerDialog = (
     handleCustomerChange,
     handleProjectsChange,
     handleUsersChange,
-    validateStep,
-    isEditMode: !!customer
+    validateStep
   };
 };

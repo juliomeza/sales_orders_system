@@ -1,11 +1,23 @@
 // frontend/src/admin/customers/hooks/useCustomerForm.ts
-import { useState } from 'react';
-import { Customer, Project, User } from '../types';
+import { useState, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Customer, Project, User } from '../../../shared/api/types/customer.types';
+import { queryKeys } from '../../../shared/config/queryKeys';
 
-interface CustomerFormData {
+interface CustomerFormState {
   customer: Omit<Customer, 'id' | '_count'>;
   projects: Project[];
   users: User[];
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+interface UseCustomerFormProps {
+  initialCustomer?: Customer;
+  onStepComplete?: (step: number) => void;
 }
 
 const initialCustomerState: Omit<Customer, 'id' | '_count'> = {
@@ -20,11 +32,15 @@ const initialCustomerState: Omit<Customer, 'id' | '_count'> = {
   status: 1
 };
 
-export const useCustomerForm = (initialCustomer?: Customer) => {
+export const useCustomerForm = ({ 
+  initialCustomer,
+  onStepComplete 
+}: UseCustomerFormProps = {}) => {
+  const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
-  const [formData, setFormData] = useState<CustomerFormData>({
+  const [formData, setFormData] = useState<CustomerFormState>({
     customer: initialCustomer ? {
       lookupCode: initialCustomer.lookupCode,
       name: initialCustomer.name,
@@ -40,7 +56,7 @@ export const useCustomerForm = (initialCustomer?: Customer) => {
     users: initialCustomer?.users || []
   });
 
-  const validateBasicInfo = (): string[] => {
+  const validateBasicInfo = useCallback((): ValidationResult => {
     const errors: string[] = [];
     const { customer } = formData;
 
@@ -51,35 +67,59 @@ export const useCustomerForm = (initialCustomer?: Customer) => {
     if (!customer.state) errors.push('State is required');
     if (!customer.zipCode) errors.push('ZIP Code is required');
 
-    return errors;
-  };
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }, [formData]);
 
-  const validateProjects = (): string[] => {
+  const validateProjects = useCallback((): ValidationResult => {
     const errors: string[] = [];
     
     if (formData.projects.length === 0) {
       errors.push('At least one project is required');
     }
     
-    const hasDefault = formData.projects.some(p => p.isDefault);
-    if (!hasDefault && formData.projects.length > 0) {
+    if (!formData.projects.some(p => p.isDefault)) {
       errors.push('One project must be set as default');
     }
 
-    return errors;
-  };
+    const duplicateCodes = formData.projects
+      .map(p => p.lookupCode)
+      .filter((code, index, array) => array.indexOf(code) !== index);
 
-  const validateUsers = (): string[] => {
+    if (duplicateCodes.length > 0) {
+      errors.push('Project codes must be unique');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }, [formData.projects]);
+
+  const validateUsers = useCallback((): ValidationResult => {
     const errors: string[] = [];
     
     if (formData.users.length === 0) {
       errors.push('At least one user is required');
     }
 
-    return errors;
-  };
+    const duplicateEmails = formData.users
+      .map(u => u.email)
+      .filter((email, index, array) => array.indexOf(email) !== index);
 
-  const validateStep = (step: number): string[] => {
+    if (duplicateEmails.length > 0) {
+      errors.push('Email addresses must be unique');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }, [formData.users]);
+
+  const validateStep = useCallback((step: number): ValidationResult => {
     switch (step) {
       case 0:
         return validateBasicInfo();
@@ -88,46 +128,50 @@ export const useCustomerForm = (initialCustomer?: Customer) => {
       case 2:
         return validateUsers();
       default:
-        return [];
+        return { isValid: true, errors: [] };
     }
-  };
+  }, [validateBasicInfo, validateProjects, validateUsers]);
 
-  const handleCustomerChange = (customer: Omit<Customer, 'id' | '_count'>) => {
+  const handleCustomerChange = useCallback((
+    customer: Omit<Customer, 'id' | '_count'>
+  ) => {
     setFormData(prev => ({ ...prev, customer }));
-  };
+    setShowErrors(false);
+  }, []);
 
-  const handleProjectsChange = (projects: Project[]) => {
+  const handleProjectsChange = useCallback((projects: Project[]) => {
     setFormData(prev => ({ ...prev, projects }));
-  };
+    setShowErrors(false);
+  }, []);
 
-  const handleUsersChange = (users: User[]) => {
+  const handleUsersChange = useCallback((users: User[]) => {
     setFormData(prev => ({ ...prev, users }));
-  };
+    setShowErrors(false);
+  }, []);
 
-  const handleNext = (): boolean => {
-    const errors = validateStep(activeStep);
-    if (errors.length === 0) {
-      setActiveStep((prevStep) => prevStep + 1);
+  const handleNext = useCallback((): boolean => {
+    const validation = validateStep(activeStep);
+    if (validation.isValid) {
+      onStepComplete?.(activeStep);
+      setActiveStep(prevStep => prevStep + 1);
       setShowErrors(false);
       return true;
     } else {
       setShowErrors(true);
       return false;
     }
-  };
+  }, [activeStep, validateStep, onStepComplete]);
 
-  const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1);
+  const handleBack = useCallback(() => {
+    setActiveStep(prevStep => prevStep - 1);
     setShowErrors(false);
-  };
+  }, []);
 
-  const canSubmit = (): boolean => {
-    return validateBasicInfo().length === 0 
-      && validateProjects().length === 0 
-      && validateUsers().length === 0;
-  };
+  const canSubmit = useCallback((): boolean => {
+    return [0, 1, 2].every(step => validateStep(step).isValid);
+  }, [validateStep]);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       customer: initialCustomerState,
       projects: [],
@@ -136,14 +180,32 @@ export const useCustomerForm = (initialCustomer?: Customer) => {
     setActiveStep(0);
     setIsSubmitted(false);
     setShowErrors(false);
-  };
+  }, []);
+
+  // Computed properties
+  const currentStepValidation = useMemo(() => 
+    validateStep(activeStep),
+    [activeStep, validateStep]
+  );
+
+  const formState = useMemo(() => ({
+    isValid: canSubmit(),
+    isDirty: JSON.stringify(formData) !== JSON.stringify({
+      customer: initialCustomerState,
+      projects: [],
+      users: []
+    }),
+    currentStep: activeStep,
+    showErrors,
+    validation: currentStepValidation
+  }), [formData, activeStep, showErrors, currentStepValidation, canSubmit]);
 
   return {
     formData,
+    formState,
     activeStep,
     showErrors,
     isSubmitted,
-    validateStep,
     handleCustomerChange,
     handleProjectsChange,
     handleUsersChange,
@@ -151,6 +213,7 @@ export const useCustomerForm = (initialCustomer?: Customer) => {
     handleBack,
     canSubmit,
     resetForm,
-    setIsSubmitted
+    setIsSubmitted,
+    validateStep
   };
 };

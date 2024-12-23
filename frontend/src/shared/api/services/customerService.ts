@@ -1,4 +1,9 @@
-// frontend/src/shared/api/services/customerService.ts
+/**
+ * @fileoverview Customer management service
+ * Provides API integration for customer CRUD operations with validation,
+ * error handling, and response transformation.
+ */
+
 import { apiClient } from '../apiClient';
 import { 
   Customer, 
@@ -7,6 +12,10 @@ import {
   ServiceResult
 } from '../types/customer.types';
 
+/**
+ * Interface for standardized API responses
+ * @interface
+ */
 interface ServiceResponse<T> {
   success: boolean;
   data?: { customers?: Customer[] } | Customer | T;
@@ -14,17 +23,26 @@ interface ServiceResponse<T> {
   errors?: string[];
 }
 
+/**
+ * Service class for managing customer operations
+ * Implements CRUD operations with comprehensive error handling and data validation
+ */
 class CustomerService {
   private readonly basePath = '/customers';
 
   /**
-   * Get all customers with optional filtering
+   * Fetches customers with optional filtering
+   * 
+   * @param filters - Optional status and search filters
+   * @throws {Error} If the request fails or returns invalid data
+   * @returns {Promise<{ customers: Customer[] }>} List of customers
    */
   public async getCustomers(filters?: {
     status?: number;
     search?: string;
   }): Promise<{ customers: Customer[] }> {
     try {
+      // Build query parameters
       const queryParams = new URLSearchParams();
       
       if (filters?.status) {
@@ -35,7 +53,7 @@ class CustomerService {
       }
 
       const endpoint = queryParams.toString() 
-        ? `${this.basePath}?${queryParams.toString()}`
+        ? `${this.basePath}?${queryParams.toString()}` 
         : this.basePath;
 
       const response = await apiClient.get<{
@@ -44,12 +62,12 @@ class CustomerService {
         error?: string;
       }>(endpoint);
 
-      // Verificar la respuesta
+      // Validate and process response
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch customers');
       }
 
-      // Asegurarse de que tenemos los datos
+      // Ensure data integrity
       if (!response.data || !response.data.customers) {
         throw new Error('Invalid response format: missing customers data');
       }
@@ -62,7 +80,10 @@ class CustomerService {
   }
 
   /**
-   * Create a new customer
+   * Creates a new customer
+   * 
+   * @param data - Customer creation data
+   * @throws {Error} If validation fails or creation request fails
    */
   public async createCustomer(data: CreateCustomerData): Promise<void> { // Cambiar return type a void
     try {
@@ -89,7 +110,12 @@ class CustomerService {
   }
 
   /**
-   * Update an existing customer
+   * Updates an existing customer
+   * 
+   * @param customerId - ID of the customer to update
+   * @param data - Partial customer data to update
+   * @throws {Error} If update fails or returns invalid data
+   * @returns {Promise<Customer>} Updated customer data
    */
   public async updateCustomer(
     customerId: number, 
@@ -119,7 +145,11 @@ class CustomerService {
   }
 
   /**
-   * Delete a customer
+   * Deletes a customer
+   * 
+   * @param customerId - ID of the customer to delete
+   * @throws {Error} If deletion fails
+   * @returns {Promise<void>}
    */
   public async deleteCustomer(customerId: number): Promise<void> {
     try {
@@ -147,7 +177,12 @@ class CustomerService {
   }
 
   /**
-   * Basic validation for required customer fields
+   * Validates customer data before submission
+   * 
+   * @param data - Customer data to validate
+   * @param isPartial - Whether this is a partial update
+   * @returns {ValidationErrorItem[]} Array of validation errors
+   * @private
    */
   private validateCustomerData(
     data: CreateCustomerData, 
@@ -156,13 +191,13 @@ class CustomerService {
     const errors: ValidationErrorItem[] = [];
     const { customer } = data;
 
-    // Solo validar si existe el objeto customer
+    // Basic existence check
     if (!customer) {
       errors.push({ field: 'customer', message: 'Customer data is required' });
       return errors;
     }
 
-    // Validaciones solo si no es una actualización parcial
+    // Full validation for new customers
     if (!isPartial) {
       if (!customer.lookupCode) {
         errors.push({ field: 'lookupCode', message: 'Customer code is required' });
@@ -188,7 +223,11 @@ class CustomerService {
   }
 
   /**
-   * Standardized error handling
+   * Handles API errors and transforms them into user-friendly messages
+   * 
+   * @param error - The caught error
+   * @returns {Error} Formatted error with context
+   * @private
    */
   private handleError(error: unknown): Error {
     if (error instanceof Error) {
@@ -223,5 +262,5 @@ class CustomerService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance for use across the application
 export const customerService = new CustomerService();

@@ -1,13 +1,32 @@
-// frontend/src/shared/api/services/projectService.ts
+/**
+ * @fileoverview Project management service layer
+ * Provides comprehensive API integration for managing customer projects
+ * with data validation, transformation, and error handling.
+ */
+
 import { apiClient } from '../apiClient';
 import { Project } from '../types/customer.types';
 
+/**
+ * Service class for managing customer projects
+ * Implements CRUD operations and project-specific functionality
+ */
 class ProjectService {
+  /**
+   * Generates the base API path for project endpoints
+   * @param {number} customerId - The customer ID for the path
+   * @returns {string} The formatted base path
+   * @private
+   */
   private readonly getBasePath = (customerId: number) => 
     `/customers/${customerId}/projects`;
 
   /**
-   * Get all projects for a customer
+   * Fetches all projects for a specific customer
+   * 
+   * @param {number} customerId - The customer whose projects to fetch
+   * @throws {Error} If the request fails or returns invalid data
+   * @returns {Promise<Project[]>} Array of transformed project data
    */
   public async getCustomerProjects(customerId: number): Promise<Project[]> {
     try {
@@ -21,7 +40,12 @@ class ProjectService {
   }
 
   /**
-   * Add a project to a customer
+   * Creates a new project for a customer
+   * 
+   * @param {number} customerId - The customer to add the project to
+   * @param {Omit<Project, 'id'>} project - The project data to create
+   * @throws {Error} If validation fails or the request errors
+   * @returns {Promise<Project>} The created project with generated ID
    */
   public async addProject(
     customerId: number, 
@@ -40,7 +64,13 @@ class ProjectService {
   }
 
   /**
-   * Update a project
+   * Updates an existing project
+   * 
+   * @param {number} customerId - The customer owning the project
+   * @param {number} projectId - The project to update
+   * @param {Partial<Project>} project - The fields to update
+   * @throws {Error} If the project is not found or update fails
+   * @returns {Promise<Project>} The updated project data
    */
   public async updateProject(
     customerId: number,
@@ -59,7 +89,11 @@ class ProjectService {
   }
 
   /**
-   * Delete a project
+   * Deletes a project
+   * 
+   * @param {number} customerId - The customer owning the project
+   * @param {number} projectId - The project to delete
+   * @throws {Error} If the project is not found or deletion fails
    */
   public async deleteProject(customerId: number, projectId: number): Promise<void> {
     try {
@@ -72,7 +106,13 @@ class ProjectService {
   }
 
   /**
-   * Set project as default
+   * Sets a project as the default for a customer
+   * Only one project can be default at a time
+   * 
+   * @param {number} customerId - The customer owning the project
+   * @param {number} projectId - The project to set as default
+   * @throws {Error} If the operation fails
+   * @returns {Promise<Project>} The updated project data
    */
   public async updateDefaultProject(
     customerId: number,
@@ -90,27 +130,41 @@ class ProjectService {
   }
 
   /**
-   * Transform a single project
+   * Transforms raw project data into consistent format
+   * Ensures boolean values and default strings
+   * 
+   * @param {Project} project - Raw project data
+   * @returns {Project} Normalized project data
+   * @private
    */
   private transformProject(project: Project): Project {
     return {
       id: project.id,
       lookupCode: project.lookupCode,
       name: project.name,
-      description: project.description || '',
-      isDefault: Boolean(project.isDefault)
+      description: project.description || '',  // Ensure string for description
+      isDefault: Boolean(project.isDefault)    // Normalize boolean value
     };
   }
 
   /**
-   * Transform multiple projects
+   * Batch transforms multiple projects
+   * 
+   * @param {Project[]} projects - Array of raw project data
+   * @returns {Project[]} Array of normalized projects
+   * @private
    */
   private transformProjects(projects: Project[]): Project[] {
     return projects.map(project => this.transformProject(project));
   }
 
   /**
-   * Validate project data
+   * Validates project data before submission
+   * Checks required fields and field lengths
+   * 
+   * @param {Omit<Project, 'id'>} project - Project data to validate
+   * @throws {Error} If validation fails
+   * @private
    */
   private validateProject(project: Omit<Project, 'id'>): void {
     if (!project.lookupCode) {
@@ -128,7 +182,13 @@ class ProjectService {
   }
 
   /**
-   * Standardized error handling with context
+   * Handles API errors with context
+   * Provides specific error messages for common cases
+   * 
+   * @param {unknown} error - The caught error
+   * @param {string} context - Description of the operation that failed
+   * @returns {Error} Formatted error with context
+   * @private
    */
   private handleError(error: unknown, context: string): Error {
     console.error(`${context}:`, error);
@@ -155,5 +215,5 @@ class ProjectService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance for use across the application
 export const projectService = new ProjectService();

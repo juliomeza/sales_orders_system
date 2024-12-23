@@ -1,7 +1,17 @@
-// frontend/src/shared/api/services/warehouseService.ts
+/**
+ * @fileoverview Warehouse management service layer
+ * Provides comprehensive API integration for warehouse operations with
+ * data validation, transformation, and error handling capabilities.
+ */
+
 import { apiClient } from '../apiClient';
 
-// Types
+/**
+ * Type Definitions
+ * Define interfaces for warehouse-related data structures
+ */
+
+// Basic address structure
 export interface Address {
   address: string;
   city: string;
@@ -9,6 +19,9 @@ export interface Address {
   zipCode: string;
 }
 
+/**
+ * Complete warehouse information including metadata
+ */
 export interface Warehouse {
   id: number;
   lookupCode: string;
@@ -31,6 +44,9 @@ export interface Warehouse {
   modified_at: string;
 }
 
+/**
+ * Statistical information about warehouses
+ */
 export interface WarehouseStats {
   summary: {
     totalActiveWarehouses: number;
@@ -46,6 +62,9 @@ export interface WarehouseStats {
   }>;
 }
 
+/**
+ * Available filters for warehouse queries
+ */
 export interface WarehouseFilters {
   search?: string;
   page?: number;
@@ -89,9 +108,18 @@ export interface UpdateWarehouseData {
   customerIds?: number[];
 }
 
+/**
+ * Service class for managing warehouse operations
+ * Implements CRUD operations with comprehensive validation and error handling
+ */
 class WarehouseService {
   /**
-   * Transform warehouse data for consistency
+   * Normalizes warehouse data for consistency
+   * Ensures all optional fields have default values and standardizes formats
+   * 
+   * @param {Warehouse} warehouse - Raw warehouse data
+   * @returns {Warehouse} Normalized warehouse data
+   * @private
    */
   private transformWarehouse(warehouse: Warehouse): Warehouse {
     return {
@@ -107,7 +135,11 @@ class WarehouseService {
   }
 
   /**
-   * Validate warehouse data before creation
+   * Validates required fields and data formats for warehouse creation
+   * 
+   * @param {CreateWarehouseData} data - Warehouse data to validate
+   * @throws {Error} If validation fails
+   * @private
    */
   private validateCreateData(data: CreateWarehouseData): void {
     const requiredFields: (keyof CreateWarehouseData)[] = [
@@ -140,7 +172,11 @@ class WarehouseService {
   }
 
   /**
-   * Validate email format
+   * Validates email format using regex
+   * 
+   * @param {string} email - Email to validate
+   * @returns {boolean} True if email is valid
+   * @private
    */
   private validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -148,7 +184,11 @@ class WarehouseService {
   }
 
   /**
-   * Build query string from filters
+   * Constructs query string from filter parameters
+   * 
+   * @param {WarehouseFilters} filters - Filter criteria
+   * @returns {string} Formatted query string
+   * @private
    */
   private buildQueryString(filters: WarehouseFilters): string {
     const queryParams = new URLSearchParams();
@@ -161,7 +201,11 @@ class WarehouseService {
   }
 
   /**
-   * Get warehouses with filters and pagination
+   * Fetches warehouses with optional filtering and pagination
+   * 
+   * @param {WarehouseFilters} filters - Optional filter criteria
+   * @throws {Error} If request fails
+   * @returns {Promise<WarehouseResponse>} Paginated warehouse list
    */
   public async getWarehouses(filters: WarehouseFilters = {}): Promise<WarehouseResponse> {
     try {
@@ -180,7 +224,11 @@ class WarehouseService {
   }
 
   /**
-   * Get warehouse by ID
+   * Fetches detailed information for a specific warehouse
+   * 
+   * @param {number} id - Warehouse ID
+   * @throws {Error} If warehouse not found or request fails
+   * @returns {Promise<Warehouse>} Warehouse details
    */
   public async getWarehouse(id: number): Promise<Warehouse> {
     try {
@@ -192,7 +240,10 @@ class WarehouseService {
   }
 
   /**
-   * Get warehouse statistics
+   * Retrieves warehouse statistics and metrics
+   * 
+   * @throws {Error} If request fails
+   * @returns {Promise<WarehouseStats>} Statistical data
    */
   public async getStats(): Promise<WarehouseStats> {
     try {
@@ -204,7 +255,12 @@ class WarehouseService {
   }
 
   /**
-   * Create new warehouse (admin only)
+   * Creates a new warehouse (admin only)
+   * Includes data validation and normalization
+   * 
+   * @param {CreateWarehouseData} data - New warehouse data
+   * @throws {Error} If validation fails or creation fails
+   * @returns {Promise<Warehouse>} Created warehouse
    */
   public async createWarehouse(data: CreateWarehouseData): Promise<Warehouse> {
     try {
@@ -222,7 +278,13 @@ class WarehouseService {
   }
 
   /**
-   * Update warehouse (admin only)
+   * Updates an existing warehouse (admin only)
+   * Validates partial updates and email/capacity if provided
+   * 
+   * @param {number} id - Warehouse ID to update
+   * @param {UpdateWarehouseData} data - Fields to update
+   * @throws {Error} If validation fails or update fails
+   * @returns {Promise<Warehouse>} Updated warehouse
    */
   public async updateWarehouse(id: number, data: UpdateWarehouseData): Promise<Warehouse> {
     try {
@@ -246,7 +308,10 @@ class WarehouseService {
   }
 
   /**
-   * Delete warehouse (admin only)
+   * Deletes a warehouse (admin only)
+   * 
+   * @param {number} id - Warehouse ID to delete
+   * @throws {Error} If deletion fails
    */
   public async deleteWarehouse(id: number): Promise<void> {
     try {
@@ -257,7 +322,13 @@ class WarehouseService {
   }
 
   /**
-   * Standardized error handling with context
+   * Handles API errors with context
+   * Provides specific error messages for common cases
+   * 
+   * @param {unknown} error - The caught error
+   * @param {string} context - Description of the operation that failed
+   * @returns {Error} Formatted error with context
+   * @private
    */
   private handleError(error: unknown, context: string): Error {
     console.error(`${context}:`, error);
@@ -284,5 +355,5 @@ class WarehouseService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance for use across the application
 export const warehouseService = new WarehouseService();

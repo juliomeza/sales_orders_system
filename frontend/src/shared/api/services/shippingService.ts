@@ -1,4 +1,9 @@
-// frontend/src/shared/api/services/shippingService.ts
+/**
+ * @fileoverview Shipping service layer
+ * Provides API integration for managing carriers, services, and warehouses
+ * with data transformation and error handling capabilities.
+ */
+
 import { apiClient } from '../apiClient';
 import { 
   CarriersResponse, 
@@ -8,12 +13,19 @@ import {
   CarrierService
 } from '../types/shipping.types';
 
+/**
+ * Service class for managing shipping-related operations
+ * Handles carriers, carrier services, and warehouse management
+ */
 class ShippingService {
   private readonly carriersPath = '/carriers';
   private readonly warehousesPath = '/warehouses';
 
   /**
-   * Get all carriers with their services
+   * Fetches all carriers with their associated services
+   * 
+   * @throws {Error} If the request fails or returns invalid data
+   * @returns {Promise<Carrier[]>} List of carriers with normalized data
    */
   public async getCarriers(): Promise<Carrier[]> {
     try {
@@ -25,22 +37,33 @@ class ShippingService {
   }
 
   /**
-   * Get available services for a specific carrier
+   * Fetches available services for a specific carrier
+   * Implements graceful error handling by returning empty array on failure
+   * 
+   * @param {string} carrierId - ID of the carrier to fetch services for
+   * @returns {Promise<CarrierService[]>} List of carrier services or empty array
    */
   public async getCarrierServices(carrierId: string): Promise<CarrierService[]> {
     try {
       const response = await apiClient.get<{ services: CarrierService[] }>(
         `${this.carriersPath}/${carrierId}/services`
       );
-      return response.services || []; // Add the || []
+      return response.services || []; // Fallback to empty array if no services
     } catch (error) {
       console.error('Error fetching carrier services:', error);
-      return []; // Return empty array instead of throwing
+      return []; // Graceful failure with empty array
     }
   }
 
   /**
-   * Get all warehouses
+   * Fetches warehouses with optional filtering
+   * 
+   * @param {Object} filters - Optional filters for warehouse query
+   * @param {number} filters.status - Filter by warehouse status
+   * @param {string} filters.city - Filter by city
+   * @param {string} filters.state - Filter by state
+   * @throws {Error} If the request fails
+   * @returns {Promise<Warehouse[]>} List of filtered warehouses
    */
   public async getWarehouses(filters?: {
     status?: number;
@@ -48,6 +71,7 @@ class ShippingService {
     state?: string;
   }): Promise<Warehouse[]> {
     try {
+      // Build query parameters
       const queryParams = new URLSearchParams();
       
       if (filters?.status) {
@@ -60,6 +84,7 @@ class ShippingService {
         queryParams.append('state', filters.state);
       }
 
+      // Construct endpoint with optional filters
       const endpoint = queryParams.toString()
         ? `${this.warehousesPath}?${queryParams.toString()}`
         : this.warehousesPath;
@@ -72,7 +97,11 @@ class ShippingService {
   }
 
   /**
-   * Get warehouse by ID
+   * Fetches details for a specific warehouse
+   * 
+   * @param {string} id - Warehouse ID to fetch
+   * @throws {Error} If warehouse is not found or request fails
+   * @returns {Promise<Warehouse>} Warehouse details
    */
   public async getWarehouse(id: string): Promise<Warehouse> {
     try {
@@ -86,7 +115,12 @@ class ShippingService {
   }
 
   /**
-   * Transform carriers response to ensure consistent data structure
+   * Transforms carrier response data to ensure consistent structure
+   * Normalizes services array and status values
+   * 
+   * @param {CarriersResponse} response - Raw API response
+   * @returns {Carrier[]} Normalized carrier data
+   * @private
    */
   private transformCarriersResponse(response: CarriersResponse): Carrier[] {
     return response.carriers.map(carrier => ({
@@ -97,7 +131,12 @@ class ShippingService {
   }
 
   /**
-   * Transform warehouses response to ensure consistent data structure
+   * Transforms warehouse response data to ensure consistent structure
+   * Normalizes status values and ensures required fields
+   * 
+   * @param {WarehousesResponse} response - Raw API response
+   * @returns {Warehouse[]} Normalized warehouse data
+   * @private
    */
   private transformWarehousesResponse(response: WarehousesResponse): Warehouse[] {
     return response.warehouses.map(warehouse => ({
@@ -107,7 +146,13 @@ class ShippingService {
   }
 
   /**
-   * Standardized error handling with context
+   * Handles service errors with context
+   * Provides specific error messages for common error cases
+   * 
+   * @param {unknown} error - The caught error
+   * @param {string} context - Description of the operation that failed
+   * @returns {Error} Formatted error with context
+   * @private
    */
   private handleError(error: unknown, context: string): Error {
     console.error(`${context}:`, error);
@@ -134,5 +179,5 @@ class ShippingService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance for use across the application
 export const shippingService = new ShippingService();

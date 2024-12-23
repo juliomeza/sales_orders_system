@@ -15,6 +15,8 @@ import {
   CreateWarehouseData, 
   UpdateWarehouseData 
 } from '../api/services/warehouseService';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../config/queryKeys';
 
 interface UseWarehouseReturn {
   warehouses: Warehouse[];
@@ -26,18 +28,21 @@ interface UseWarehouseReturn {
   createWarehouse?: (warehouse: CreateWarehouseData) => Promise<void>;
   updateWarehouse?: (id: number, warehouse: UpdateWarehouseData) => Promise<void>;
   deleteWarehouse?: (id: number) => Promise<void>;
+  isCreating: boolean;
+  isUpdating: boolean;
+  isDeleting: boolean;
 }
 
 export const useWarehouse = (filters: WarehouseFilters = {}): UseWarehouseReturn => {
+  const queryClient = useQueryClient();
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
-  // Queries
   const { 
     data: warehousesData, 
     isLoading: isLoadingWarehouses, 
-    error: warehousesError 
+    error: warehousesError
   } = useWarehousesQuery(filters);
 
   const { 
@@ -46,12 +51,10 @@ export const useWarehouse = (filters: WarehouseFilters = {}): UseWarehouseReturn
     error: statsError
   } = useWarehouseStatsQuery();
 
-  // Mutations (solo para admin)
   const createMutation = useCreateWarehouseMutation();
   const updateMutation = useUpdateWarehouseMutation();
   const deleteMutation = useDeleteWarehouseMutation();
 
-  // Helper functions for admin operations
   const handleCreate = async (warehouse: CreateWarehouseData) => {
     if (!isAdmin) return;
     await createMutation.mutateAsync(warehouse);
@@ -79,5 +82,8 @@ export const useWarehouse = (filters: WarehouseFilters = {}): UseWarehouseReturn
       updateWarehouse: handleUpdate,
       deleteWarehouse: handleDelete,
     }),
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending
   };
 };

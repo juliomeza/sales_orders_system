@@ -1,67 +1,103 @@
 // frontend/src/shared/hooks/useOrderCreationFlow.ts
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useOrderForm } from './useOrderForm';
 import { useOrderValidation } from './useOrderValidation';
 import { InventoryItem } from '../types/shipping';
+import { queryKeys } from '../config/queryKeys';
+
+interface OrderCreationState {
+  activeStep: number;
+  isSubmitted: boolean;
+  showErrors: boolean;
+}
 
 export const useOrderCreationFlow = () => {
-  const [activeStep, setActiveStep] = useState<number>(0);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const queryClient = useQueryClient();
+  const [state, setState] = useState<OrderCreationState>({
+    activeStep: 0,
+    isSubmitted: false,
+    showErrors: false
+  });
   const [selectedItems, setSelectedItems] = useState<InventoryItem[]>([]);
-  const [showErrors, setShowErrors] = useState(false);
 
   const { orderData, handleOrderDataChange, resetForm } = useOrderForm();
   const { errors, canProceedToNextStep, canSubmitOrder } = useOrderValidation(
     orderData,
     selectedItems,
-    activeStep
+    state.activeStep
   );
 
-  const handleNext = () => {
-    if (canProceedToNextStep(activeStep)) {
-      setActiveStep((prevStep) => prevStep + 1);
-      setShowErrors(false);
+  const handleNext = useCallback(() => {
+    if (canProceedToNextStep(state.activeStep)) {
+      setState(prev => ({
+        ...prev,
+        activeStep: prev.activeStep + 1,
+        showErrors: false
+      }));
     } else {
-      setShowErrors(true);
+      setState(prev => ({ ...prev, showErrors: true }));
     }
-  };
+  }, [state.activeStep, canProceedToNextStep]);
 
-  const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1);
-    setShowErrors(false);
-  };
+  const handleBack = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      activeStep: prev.activeStep - 1,
+      showErrors: false
+    }));
+  }, []);
 
-  const handleSubmitOrder = async () => {
+  const handleSubmitOrder = useCallback(async () => {
     if (!canSubmitOrder()) {
-      setShowErrors(true);
+      setState(prev => ({ ...prev, showErrors: true }));
       return;
     }
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsSubmitted(true);
-      setActiveStep(3); // Number of steps
-      setShowErrors(false);
+      // Optimistic update
+      queryClient.setQueryData(queryKeys.orders.all, (oldData: any) => {
+        return oldData ? [...oldData, { ...orderData, status: 'pending' }] : [{ ...orderData, status: 'pending' }];
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Replace with actual API call
+      
+      setState(prev => ({
+        ...prev,
+        isSubmitted: true,
+        activeStep: 3,
+        showErrors: false
+      }));
+
+      // Invalidate relevant queries
+      await queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all });
     } catch (error) {
       console.error('Error submitting order:', error);
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     }
-  };
+  }, [orderData, canSubmitOrder, queryClient]);
 
-  const handleNewOrder = () => {
-    setActiveStep(0);
-    setIsSubmitted(false);
+  const handleNewOrder = useCallback(() => {
+    setState({
+      activeStep: 0,
+      isSubmitted: false,
+      showErrors: false
+    });
     resetForm();
     setSelectedItems([]);
-    setShowErrors(false);
-  };
+  }, [resetForm]);
 
   return {
-    activeStep,
-    isSubmitted,
+    // State
+    activeStep: state.activeStep,
+    isSubmitted: state.isSubmitted,
+    showErrors: state.showErrors,
     selectedItems,
-    showErrors,
     orderData,
     errors,
+
+    // Actions
     handleOrderDataChange,
     handleNext,
     handleBack,

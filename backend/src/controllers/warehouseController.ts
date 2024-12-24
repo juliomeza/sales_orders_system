@@ -1,4 +1,9 @@
 // backend/src/controllers/warehouseController.ts
+/**
+ * Controlador que maneja todas las operaciones relacionadas con almacenes
+ * Incluye funcionalidades CRUD, estadísticas y gestión de almacenes del sistema
+ */
+
 import { Request, Response } from 'express';
 import { WarehouseService } from '../services/warehouseService';
 import { WarehouseRepository } from '../repositories/warehouseRepository';
@@ -8,9 +13,17 @@ import { ApiErrorCode } from '../shared/types';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 
+/**
+ * Controlador principal de almacenes
+ * Gestiona operaciones CRUD y consultas relacionadas con warehouses
+ */
 export class WarehouseController {
   private warehouseService: WarehouseService;
 
+  /**
+   * Constructor del controlador de almacenes
+   * @param warehouseService - Servicio de almacenes opcional para inyección de dependencias
+   */
   constructor(warehouseService?: WarehouseService) {
     this.warehouseService = warehouseService || new WarehouseService(
       new WarehouseRepository(prisma)
@@ -18,6 +31,9 @@ export class WarehouseController {
     this.bindMethods();
   }
 
+  /**
+   * Vincula los métodos del controlador al contexto actual
+   */
   private bindMethods() {
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
@@ -27,8 +43,14 @@ export class WarehouseController {
     this.getStats = this.getStats.bind(this);
   }
 
+  /**
+   * Crea un nuevo almacén en el sistema
+   * @param req - Request con datos del nuevo almacén
+   * @param res - Response con el almacén creado
+   */
   async create(req: Request, res: Response) {
     try {
+      // Verificación de autenticación
       if (!req.user) {
         Logger.warn(LOG_MESSAGES.WAREHOUSES.CREATE.FAILED_AUTH, {
           ip: req.ip,
@@ -45,6 +67,7 @@ export class WarehouseController {
         );
       }
 
+      // Registro del intento de creación
       Logger.info(LOG_MESSAGES.WAREHOUSES.CREATE.ATTEMPT, {
         userId: req.user.userId,
         warehouseData: {
@@ -55,11 +78,13 @@ export class WarehouseController {
         }
       });
 
+      // Procesamiento de la creación
       const result = await this.warehouseService.createWarehouse(
         req.body,
         req.user.userId
       );
 
+      // Manejo de errores y respuesta
       if (!result.success) {
         if (result.errors) {
           Logger.warn(LOG_MESSAGES.WAREHOUSES.CREATE.FAILED_VALIDATION, {
@@ -116,6 +141,11 @@ export class WarehouseController {
     }
   }
 
+  /**
+   * Actualiza un almacén existente
+   * @param req - Request con ID y datos de actualización
+   * @param res - Response con el almacén actualizado
+   */
   async update(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -225,6 +255,13 @@ export class WarehouseController {
       );
     }
   }
+
+  /**
+   * Obtiene detalles de un almacén específico
+   * Filtra acceso según rol del usuario
+   * @param req - Request con ID del almacén
+   * @param res - Response con detalles del almacén
+   */
   async getById(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -314,8 +351,15 @@ export class WarehouseController {
     }
   }
 
+  /**
+   * Lista almacenes con filtros opcionales y paginación
+   * Implementa filtrado por cliente según rol
+   * @param req - Request con parámetros de filtrado
+   * @param res - Response con lista de almacenes
+   */
   async list(req: Request, res: Response) {
     try {
+      // Verificación de autenticación
       if (!req.user) {
         Logger.warn(LOG_MESSAGES.WAREHOUSES.LIST.FAILED_AUTH, {
           ip: req.ip,
@@ -332,6 +376,7 @@ export class WarehouseController {
         );
       }
 
+      // Configuración de filtros
       const filters = {
         search: req.query.search as string,
         status: req.query.status ? Number(req.query.status) : undefined,
@@ -342,6 +387,7 @@ export class WarehouseController {
         limit: req.query.limit ? Number(req.query.limit) : 20
       };
 
+      // Registro de solicitud y procesamiento
       Logger.debug(LOG_MESSAGES.WAREHOUSES.LIST.REQUEST, {
         userId: req.user.userId,
         filters
@@ -405,6 +451,12 @@ export class WarehouseController {
     }
   }
 
+  /**
+   * Elimina o desactiva un almacén
+   * Maneja tanto eliminación física como lógica
+   * @param req - Request con ID del almacén
+   * @param res - Response con confirmación de eliminación
+   */
   async delete(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -502,6 +554,13 @@ export class WarehouseController {
       );
     }
   }
+
+  /**
+   * Obtiene estadísticas generales de almacenes
+   * Incluye totales y métricas relevantes
+   * @param req - Request del usuario autenticado
+   * @param res - Response con estadísticas
+   */
   async getStats(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -566,4 +625,5 @@ export class WarehouseController {
   }
 }
 
+// Exportar instancia única del controlador
 export const warehouseController = new WarehouseController();

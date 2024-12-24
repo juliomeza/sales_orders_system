@@ -1,4 +1,10 @@
 // backend/src/controllers/authController.ts
+/**
+ * Controlador de autenticación que maneja las operaciones relacionadas con la autenticación de usuarios.
+ * Incluye funcionalidades para login, registro, obtención del usuario actual y renovación de tokens.
+ */
+
+// backend/src/controllers/authController.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/authService';
 import { UserRepository } from '../repositories/userRepository';
@@ -10,9 +16,17 @@ import Logger from '../config/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
+/**
+ * Controlador principal de autenticación
+ * Gestiona todas las operaciones relacionadas con la autenticación de usuarios
+ */
 export class AuthController {
   private authService: AuthService;
 
+  /**
+   * Constructor del controlador de autenticación
+   * @param authService - Servicio de autenticación opcional para inyección de dependencias
+   */
   constructor(authService?: AuthService) {
     this.authService = authService || new AuthService(
       new UserRepository(prisma),
@@ -25,6 +39,12 @@ export class AuthController {
     this.refreshToken = this.refreshToken.bind(this);
   }
 
+  /**
+   * Maneja el proceso de inicio de sesión de usuarios
+   * @param req - Request de Express que contiene las credenciales del usuario
+   * @param res - Response de Express para enviar la respuesta al cliente
+   * @returns Respuesta con el token y datos del usuario o error en caso de fallo
+   */
   async login(req: Request, res: Response) {
     const { email } = req.body;
 
@@ -58,18 +78,29 @@ export class AuthController {
     res.json(result.data);
   }
 
+  /**
+   * Gestiona el registro de nuevos usuarios en el sistema
+   * @param req - Request de Express con los datos del nuevo usuario
+   * @param res - Response de Express para enviar la respuesta al cliente
+   * @returns Respuesta con los datos del usuario creado o error en caso de fallo
+   */
   async register(req: Request, res: Response) {
+    // Extraer datos de la solicitud
     const { email, role } = req.body;
 
+    // Registrar intento de registro
     Logger.info(LOG_MESSAGES.AUTH.REGISTRATION.ATTEMPT, {
       email,
       role,
       initiatedBy: req.user?.userId
     });
 
+    // Intentar registrar al usuario
     const result = await this.authService.register(req.body);
     
+    // Manejar diferentes casos de error
     if (!result.success) {
+      // Usuario ya existe
       if (result.error === ERROR_MESSAGES.AUTHENTICATION.USER_EXISTS) {
         Logger.warn(LOG_MESSAGES.AUTH.REGISTRATION.FAILED_USER_EXISTS, {
           email,
@@ -86,6 +117,7 @@ export class AuthController {
         );
       }
 
+      // Errores de validación
       if (result.errors) {
         Logger.warn(LOG_MESSAGES.AUTH.REGISTRATION.FAILED_VALIDATION, {
           email,
@@ -99,6 +131,7 @@ export class AuthController {
         });
       }
 
+      // Error interno del servidor
       Logger.error(LOG_MESSAGES.AUTH.REGISTRATION.FAILED_INTERNAL, {
         email,
         error: result.error,
@@ -110,6 +143,7 @@ export class AuthController {
       });
     }
 
+    // Registro exitoso
     Logger.info(LOG_MESSAGES.AUTH.REGISTRATION.SUCCESS, {
       newUserId: result.data?.user.id,
       email,
@@ -121,6 +155,12 @@ export class AuthController {
     res.status(201).json(result.data);
   }
 
+  /**
+   * Obtiene la información del usuario actualmente autenticado
+   * @param req - Request de Express que debe incluir el usuario autenticado
+   * @param res - Response de Express para enviar la respuesta al cliente
+   * @returns Datos del usuario actual o error si no está autenticado
+   */
   async getCurrentUser(req: Request, res: Response) {
     if (!req.user) {
       Logger.warn(LOG_MESSAGES.AUTH.CURRENT_USER.FAILED_NO_USER, {
@@ -168,7 +208,14 @@ export class AuthController {
     res.json(result.data);
   }
 
+  /**
+   * Renueva el token de autenticación para el usuario actual
+   * @param req - Request de Express que debe incluir el usuario autenticado
+   * @param res - Response de Express para enviar la respuesta al cliente
+   * @returns Nuevo token de autenticación o error si no está autenticado
+   */
   async refreshToken(req: Request, res: Response) {
+    // Verificar si existe usuario autenticado
     if (!req.user) {
       Logger.warn(LOG_MESSAGES.AUTH.TOKEN.FAILED_NO_USER, {
         ip: req.ip
@@ -179,12 +226,15 @@ export class AuthController {
       });
     }
 
+    // Registrar solicitud de renovación de token
     Logger.debug(LOG_MESSAGES.AUTH.TOKEN.REQUEST, {
       userId: req.user.userId
     });
 
+    // Intentar renovar el token
     const result = await this.authService.refreshToken(req.user.userId);
     
+    // Manejar caso de error
     if (!result.success) {
       Logger.warn(LOG_MESSAGES.AUTH.TOKEN.FAILED, {
         userId: req.user.userId,
@@ -196,6 +246,7 @@ export class AuthController {
       });
     }
 
+    // Token renovado exitosamente
     Logger.info(LOG_MESSAGES.AUTH.TOKEN.SUCCESS, {
       userId: req.user.userId
     });
@@ -205,4 +256,5 @@ export class AuthController {
   }
 }
 
+// Exportar una instancia única del controlador
 export const authController = new AuthController();

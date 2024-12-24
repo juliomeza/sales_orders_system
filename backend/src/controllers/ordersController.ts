@@ -1,4 +1,9 @@
 // backend/src/controllers/ordersController.ts
+/**
+ * Controlador que maneja todas las operaciones relacionadas con órdenes de venta
+ * Incluye funcionalidades CRUD, validaciones de acceso y estadísticas de órdenes
+ */
+
 import { Request, Response } from 'express';
 import { OrderService } from '../services/orderService';
 import { OrderRepository } from '../repositories/orderRepository';
@@ -8,9 +13,17 @@ import { ApiErrorCode, Role } from '../shared/types';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 
+/**
+ * Controlador principal de órdenes
+ * Gestiona el ciclo de vida completo de las órdenes de venta
+ */
 export class OrdersController {
   private orderService: OrderService;
 
+  /**
+   * Constructor del controlador de órdenes
+   * @param orderService - Servicio de órdenes opcional para inyección de dependencias
+   */
   constructor(orderService?: OrderService) {
     this.orderService = orderService || new OrderService(
       new OrderRepository(prisma)
@@ -18,6 +31,10 @@ export class OrdersController {
     this.bindMethods();
   }
 
+  /**
+   * Vincula los métodos del controlador al contexto actual
+   * Asegura que 'this' se refiera correctamente en las llamadas
+   */
   private bindMethods() {
     this.create = this.create.bind(this);
     this.list = this.list.bind(this);
@@ -27,14 +44,32 @@ export class OrdersController {
     this.getStats = this.getStats.bind(this);
   }
 
+  /**
+   * Verifica si un rol corresponde a un cliente
+   * @param role - Rol del usuario a verificar
+   * @returns true si el rol es cliente, false en caso contrario
+   */
   private isClient(role: Role): boolean {
     return role === ROLES.CLIENT;
   }
 
+  /**
+   * Verifica si un usuario tiene acceso a una orden específica
+   * @param customerId - ID del cliente del usuario
+   * @param userRole - Rol del usuario
+   * @param orderCustomerId - ID del cliente de la orden
+   * @returns true si tiene acceso, false en caso contrario
+   */
   private hasAccessToOrder(customerId: number | null, userRole: Role, orderCustomerId: number): boolean {
     return userRole === ROLES.ADMIN || customerId === orderCustomerId;
   }
 
+  /**
+   * Crea una nueva orden de venta
+   * Solo clientes pueden crear órdenes y deben tener un customerId asociado
+   * @param req - Request con datos de la nueva orden
+   * @param res - Response con la orden creada o errores
+   */
   async create(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -145,6 +180,12 @@ export class OrdersController {
     }
   }
 
+  /**
+   * Lista órdenes con filtros opcionales
+   * Verifica permisos y aplica filtros por cliente
+   * @param req - Request con parámetros de filtrado
+   * @param res - Response con lista de órdenes
+   */
   async list(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -240,6 +281,13 @@ export class OrdersController {
       });
     }
   }
+
+  /**
+   * Obtiene detalles de una orden específica
+   * Verifica permisos de acceso a la orden
+   * @param req - Request con ID de la orden
+   * @param res - Response con detalles de la orden
+   */
   async getById(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -331,8 +379,16 @@ export class OrdersController {
     }
   }
 
+  /**
+   * Actualiza una orden existente
+   * Solo permite actualizar órdenes en estado borrador
+   * Verifica permisos y estado de la orden
+   * @param req - Request con datos de actualización
+   * @param res - Response con orden actualizada
+   */
   async update(req: Request, res: Response) {
     try {
+      // Verificación de autenticación
       if (!req.user) {
         Logger.warn('Unauthorized access attempt to update order', {
           ip: req.ip,
@@ -344,10 +400,12 @@ export class OrdersController {
         });
       }
 
+      // Extracción de datos necesarios
       const { customerId, role } = req.user;
       const userRole = role as Role;
       const orderId = Number(req.params.id);
 
+      // Registro de intento de actualización
       Logger.info(LOG_MESSAGES.ORDERS.UPDATE.ATTEMPT, {
         userId: req.user.userId,
         orderId,
@@ -357,9 +415,10 @@ export class OrdersController {
         }
       });
 
-      // Verificar existencia y acceso
+      // Verificaciones de seguridad y estado
       const existingOrder = await this.orderService.getOrderById(orderId);
 
+      // Validaciones y manejo de errores
       if (!existingOrder.success || !existingOrder.data) {
         Logger.warn(LOG_MESSAGES.ORDERS.UPDATE.FAILED_NOT_FOUND, {
           userId: req.user.userId,
@@ -466,6 +525,14 @@ export class OrdersController {
       });
     }
   }
+
+  /**
+   * Elimina una orden existente
+   * Solo permite eliminar órdenes en estado borrador
+   * Verifica permisos y estado de la orden
+   * @param req - Request con ID de la orden
+   * @param res - Response con confirmación de eliminación
+   */
   async delete(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -576,6 +643,12 @@ export class OrdersController {
     }
   }
 
+  /**
+   * Obtiene estadísticas de órdenes para un cliente
+   * Solo disponible para usuarios con rol cliente
+   * @param req - Request con parámetros de período
+   * @param res - Response con estadísticas
+   */
   async getStats(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -669,4 +742,5 @@ export class OrdersController {
   }
 }
 
+// Exportar instancia única del controlador
 export const ordersController = new OrdersController();

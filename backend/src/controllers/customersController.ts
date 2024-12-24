@@ -1,4 +1,9 @@
 // backend/src/controllers/customersController.ts
+/**
+ * Controlador que maneja todas las operaciones CRUD relacionadas con clientes
+ * Incluye funcionalidades para listar, crear, actualizar y eliminar clientes
+ */
+
 import { Request, Response } from 'express';
 import { CustomerService } from '../services/customerService';
 import { CreateCustomerDTO, UpdateCustomerDTO, ApiErrorCode } from '../shared/types';
@@ -8,9 +13,17 @@ import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 
+/**
+ * Controlador principal de clientes
+ * Gestiona todas las operaciones relacionadas con la gestión de clientes del sistema
+ */
 export class CustomersController {
   private customerService: CustomerService;
 
+  /**
+   * Constructor del controlador de clientes
+   * @param customerService - Servicio de clientes opcional para inyección de dependencias
+   */
   constructor(customerService?: CustomerService) {
     this.customerService = customerService || new CustomerService(new CustomerRepository(prisma));
     
@@ -21,6 +34,11 @@ export class CustomersController {
     this.delete = this.delete.bind(this);
   }
 
+  /**
+   * Obtiene la lista completa de clientes
+   * @param req - Request de Express que debe incluir usuario autenticado
+   * @param res - Response de Express con la lista de clientes
+   */
   async list(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -75,6 +93,11 @@ export class CustomersController {
     }
   }
 
+  /**
+   * Obtiene un cliente específico por su ID
+   * @param req - Request de Express con el ID del cliente
+   * @param res - Response de Express con los datos del cliente
+   */
   async getById(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -144,6 +167,12 @@ export class CustomersController {
       });
     }
   }
+
+  /**
+   * Crea un nuevo cliente en el sistema
+   * @param req - Request de Express con los datos del nuevo cliente
+   * @param res - Response de Express con los datos del cliente creado
+   */
   async create(req: Request<{}, {}, CreateCustomerDTO>, res: Response) {
     try {
       if (!req.user) {
@@ -218,6 +247,11 @@ export class CustomersController {
     }
   }
 
+  /**
+   * Actualiza los datos de un cliente existente
+   * @param req - Request de Express con ID y datos a actualizar
+   * @param res - Response de Express con los datos actualizados
+   */
   async update(req: Request<{id: string}, {}, UpdateCustomerDTO>, res: Response) {
     try {
       if (!req.user) {
@@ -295,6 +329,11 @@ export class CustomersController {
     }
   }
 
+  /**
+   * Elimina un cliente del sistema
+   * @param req - Request de Express con el ID del cliente a eliminar
+   * @param res - Response de Express con la confirmación de eliminación
+   */
   async delete(req: Request, res: Response) {
     try {
       if (!req.user) {
@@ -365,4 +404,5 @@ export class CustomersController {
   }
 }
 
+// Exportar instancia única del controlador
 export const customersController = new CustomersController();

@@ -1,4 +1,9 @@
 // backend/src/controllers/carriersController.ts
+/**
+ * Controlador que maneja todas las operaciones relacionadas con los transportistas
+ * Incluye funcionalidades CRUD y gestión de servicios de transportistas
+ */
+
 import { Request, Response } from 'express';
 import { CarrierServiceImpl } from '../services/carrierService';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
@@ -6,9 +11,18 @@ import { ApiErrorCode } from '../shared/types/base/responses';
 import { createErrorResponse } from '../shared/utils/response';
 import Logger from '../config/logger';
 
+/**
+ * Controlador principal de transportistas
+ * Gestiona operaciones CRUD y consultas relacionadas con carriers
+ */
 export class CarriersController {
   constructor(private carrierService: CarrierServiceImpl) {}
 
+  /**
+   * Obtiene la lista completa de transportistas
+   * @param req - Request de Express con datos del usuario autenticado
+   * @param res - Response de Express para enviar la lista de transportistas
+   */
   getCarriers = async (req: Request, res: Response) => {
     try {
       if (!req.user) {
@@ -60,6 +74,11 @@ export class CarriersController {
     }
   };
 
+  /**
+   * Obtiene los detalles de un transportista específico por su ID
+   * @param req - Request de Express con el ID del transportista
+   * @param res - Response de Express con los detalles del transportista
+   */
   getCarrierById = async (req: Request, res: Response) => {
     try {
       if (!req.user) {
@@ -127,8 +146,14 @@ export class CarriersController {
     }
   };
 
+  /**
+   * Crea un nuevo transportista en el sistema
+   * @param req - Request de Express con los datos del nuevo transportista
+   * @param res - Response de Express con los datos del transportista creado
+   */
   createCarrier = async (req: Request, res: Response) => {
     try {
+      // Verificación de autenticación
       if (!req.user) {
         Logger.warn('Unauthorized access attempt to create carrier', {
           ip: req.ip,
@@ -140,6 +165,7 @@ export class CarriersController {
         });
       }
 
+      // Registrar intento de creación
       Logger.info(LOG_MESSAGES.CARRIERS.CREATE.ATTEMPT, {
         userId: req.user.userId,
         carrierData: {
@@ -148,9 +174,12 @@ export class CarriersController {
         }
       });
 
+      // Intentar crear el transportista
       const result = await this.carrierService.createCarrier(req.body);
 
+      // Manejar casos de error
       if (!result.success) {
+        // Error de validación
         if (result.errors) {
           Logger.warn(LOG_MESSAGES.CARRIERS.CREATE.FAILED_VALIDATION, {
             userId: req.user.userId,
@@ -168,6 +197,7 @@ export class CarriersController {
           );
         }
 
+        // Código duplicado
         if (result.error === ERROR_MESSAGES.VALIDATION.LOOKUP_CODE_EXISTS) {
           Logger.warn(LOG_MESSAGES.CARRIERS.CREATE.FAILED_EXISTS, {
             userId: req.user.userId,
@@ -185,6 +215,7 @@ export class CarriersController {
           );
         }
 
+        // Error interno
         Logger.error(LOG_MESSAGES.CARRIERS.CREATE.FAILED, {
           userId: req.user.userId,
           error: result.error
@@ -195,6 +226,7 @@ export class CarriersController {
         });
       }
 
+      // Creación exitosa
       Logger.info(LOG_MESSAGES.CARRIERS.CREATE.SUCCESS, {
         userId: req.user.userId,
         carrierId: result.data?.id,
@@ -218,6 +250,11 @@ export class CarriersController {
     }
   };
 
+  /**
+   * Actualiza los datos de un transportista existente
+   * @param req - Request de Express con ID y datos actualizados
+   * @param res - Response de Express con los datos actualizados
+   */
   updateCarrier = async (req: Request, res: Response) => {
     try {
       if (!req.user) {
@@ -310,6 +347,11 @@ export class CarriersController {
     }
   };
 
+  /**
+   * Obtiene la lista de servicios asociados a un transportista
+   * @param req - Request de Express con el ID del transportista
+   * @param res - Response de Express con la lista de servicios
+   */
   getCarrierServices = async (req: Request, res: Response) => {
     try {
       if (!req.user) {

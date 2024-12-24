@@ -1,4 +1,4 @@
-// src/admin/customers/components/dialog/CustomerDialogContent.tsx
+// frontend/src/admin/customers/components/dialog/CustomerDialogContent.tsx
 import React from 'react';
 import { DialogContent, Alert } from '@mui/material';
 import BasicInfoForm from '../forms/BasicInfoForm';

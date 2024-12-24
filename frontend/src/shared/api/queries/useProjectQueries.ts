@@ -1,3 +1,4 @@
+// frontend/src/shared/api/queries/useProjectQueries.ts
 /**
  * @fileoverview React Query hooks for project management
  * Provides functionality for fetching, creating, updating, and deleting projects,

@@ -1,3 +1,4 @@
+// frontend/src/shared/api/services/accountsService.ts
 /**
  * @fileoverview Service layer for managing shipping addresses
  * Provides a complete API wrapper with data validation, error handling, and response transformation

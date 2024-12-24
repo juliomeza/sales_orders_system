@@ -1,3 +1,4 @@
+// frontend/src/shared/api/services/projectService.ts
 /**
  * @fileoverview Project management service layer
  * Provides comprehensive API integration for managing customer projects

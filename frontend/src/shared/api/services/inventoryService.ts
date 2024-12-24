@@ -1,3 +1,4 @@
+// frontend/src/shared/api/services/inventoryService.ts
 /**
  * @fileoverview Inventory service layer
  * Provides API integration for inventory operations with data transformation

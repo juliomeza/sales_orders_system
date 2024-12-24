@@ -1,4 +1,4 @@
-// src/admin/customers/components/form-fields/UserFormInputs.tsx
+// frontend/src/admin/customers/components/form-fields/UserFormInputs.tsx
 import React, { useState } from 'react';
 import { TextField, Box, IconButton, InputAdornment } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';

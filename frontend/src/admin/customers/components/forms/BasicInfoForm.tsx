@@ -1,4 +1,4 @@
-// src/admin/customers/components/forms/BasicInfoForm.tsx
+// frontend/src/admin/customers/components/forms/BasicInfoForm.tsx
 import React from 'react';
 import { Grid, Typography, Alert, Box } from '@mui/material';
 import { CustomerCodeField } from '../form-fields/CustomerCodeField';

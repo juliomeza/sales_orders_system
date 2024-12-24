@@ -1,4 +1,4 @@
-// src/admin/customers/components/header/CustomerManagementHeader.tsx
+// frontend/src/admin/customers/components/header/CustomerManagementHeader.tsx
 import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 

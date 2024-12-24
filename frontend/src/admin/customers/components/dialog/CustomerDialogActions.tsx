@@ -1,4 +1,4 @@
-// src/admin/customers/components/dialog/CustomerDialogActions.tsx
+// frontend/src/admin/customers/components/dialog/CustomerDialogActions.tsx
 import React from 'react';
 import { DialogActions, Button, Stack, Box } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';

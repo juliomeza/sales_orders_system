@@ -1,3 +1,4 @@
+// frontend/src/admin/customers/hooks/useCustomerUsers.ts
 /**
  * Custom hook for managing customer users.
  * Provides functionality for CRUD operations on users and password management.

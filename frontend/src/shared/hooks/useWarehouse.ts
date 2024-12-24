@@ -1,3 +1,4 @@
+// frontend/src/shared/hooks/useWarehouse.ts
 /**
  * @fileoverview Custom hook for comprehensive warehouse management
  * Provides centralized access to warehouse operations with role-based permissions,

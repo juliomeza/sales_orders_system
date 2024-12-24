@@ -1,4 +1,4 @@
-// src/admin/customers/components/dialog/CustomerDialog.tsx
+// frontend/src/admin/customers/components/dialog/CustomerDialog.tsx
 import React from 'react';
 import { Dialog, DialogTitle } from '@mui/material';
 import { CustomerDialogStepper } from './CustomerDialogStepper';

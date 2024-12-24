@@ -1,3 +1,4 @@
+//frontend/src/shared/api/queries/useInventoryQueries.ts
 /**
  * @fileoverview Custom React Query hooks for inventory management
  * Provides functionality for fetching inventory items and individual item details

@@ -1,3 +1,4 @@
+// frontend/src/admin/products/components/notifications/SuccessNotification.tsx
 import React from 'react';
 import { Snackbar, Alert } from '@mui/material';
 import { CheckCircleOutline } from '@mui/icons-material';

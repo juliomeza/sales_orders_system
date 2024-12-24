@@ -1,4 +1,4 @@
-// src/admin/customers/components/tables/UsersTable.tsx
+// frontend/src/admin/customers/components/tables/UsersTable.tsx
 import React from 'react';
 import {
   Table,

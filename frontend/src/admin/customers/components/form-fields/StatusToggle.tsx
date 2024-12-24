@@ -1,4 +1,4 @@
-// src/admin/customers/components/form-fields/StatusToggle.tsx
+// frontend/src/admin/customers/components/form-fields/StatusToggle.tsx
 import React from 'react';
 import { FormControlLabel, Switch, Box } from '@mui/material';
 

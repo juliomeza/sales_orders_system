@@ -1,4 +1,4 @@
-// src/admin/customers/components/forms/ProjectForm.tsx
+// frontend/src/admin/customers/components/forms/ProjectForm.tsx
 import React from 'react';
 import {
   Box,

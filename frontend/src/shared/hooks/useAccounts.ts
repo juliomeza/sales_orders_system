@@ -1,3 +1,4 @@
+// frontend/src/shared/hooks/useAccounts.ts
 /**
  * @fileoverview Custom hook for managing shipping and billing addresses
  * Provides functionality for selecting, creating, and managing shipping/billing addresses

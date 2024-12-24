@@ -1,3 +1,4 @@
+// frontend/src/shared/api/queries/useAccountQueries.ts
 /**
  * @fileoverview Collection of React Query hooks for managing shipping addresses
  * Includes functionality for fetching, creating, updating, and deleting shipping addresses

@@ -1,4 +1,4 @@
-// src/admin/customers/components/dialog/CustomerDialogStepper.tsx
+// frontend/src/admin/customers/components/dialog/CustomerDialogStepper.tsx
 import React from 'react';
 import { Stepper, Step, StepLabel } from '@mui/material';
 

@@ -1,4 +1,4 @@
-// src/admin/customers/components/form-fields/CustomerCodeField.tsx
+// frontend/src/admin/customers/components/form-fields/CustomerCodeField.tsx
 import React from 'react';
 import { FormTextField } from './FormTextField';
 

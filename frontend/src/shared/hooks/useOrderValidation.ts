@@ -1,3 +1,4 @@
+// frontend/src/shared/hooks/useOrderValidation.ts
 /**
  * @fileoverview Custom hook for order validation
  * Provides comprehensive validation for multi-step order creation process

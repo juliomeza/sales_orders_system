@@ -1,3 +1,4 @@
+// frontend/src/shared/api/queries/useCustomerQueries.ts
 /**
  * @fileoverview Customer management React Query hooks
  * Provides functionality for fetching, creating, updating, and deleting customers

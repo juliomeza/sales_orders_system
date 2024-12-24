@@ -1,3 +1,4 @@
+//frontend/src/shared/api/queries/useWarehouseQueries.ts
 /**
  * @fileoverview Warehouse management React Query hooks
  * Provides comprehensive functionality for managing warehouses including CRUD operations,

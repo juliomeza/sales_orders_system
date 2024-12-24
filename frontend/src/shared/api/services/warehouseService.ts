@@ -1,3 +1,4 @@
+// frontend/src/shared/api/services/warehouseService.ts
 /**
  * @fileoverview Warehouse management service layer
  * Provides comprehensive API integration for warehouse operations with

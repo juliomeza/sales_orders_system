@@ -1,4 +1,4 @@
-// src/admin/customers/components/form-fields/ProjectFormInputs.tsx
+// frontend/src/admin/customers/components/form-fields/ProjectFormInputs.tsx
 import React from 'react';
 import { TextField, Box } from '@mui/material';
 

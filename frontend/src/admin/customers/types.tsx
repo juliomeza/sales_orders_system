@@ -1,5 +1,4 @@
 // frontend/src/admin/customers/types.ts
-// src/admin/customers/types.ts
 export interface CustomerUpdateData {
   customer: {
     lookupCode: string;

@@ -1,4 +1,4 @@
-// src/admin/customers/components/dialog/CustomerDialogDelete.tsx
+// frontend/src/admin/customers/components/dialog/CustomerDialogDelete.tsx
 import React from 'react';
 import {
   Dialog,

@@ -1,3 +1,4 @@
+// frontend/src/admin/customers/CustomerManagement.tsx
 /**
  * CustomerManagement Component
  * 

@@ -1,3 +1,4 @@
+// frontend/src/shared/hooks/useShipping.ts
 /**
  * @fileoverview Custom hook for managing shipping-related selections
  * Provides comprehensive state management for carriers, warehouses, and shipping services

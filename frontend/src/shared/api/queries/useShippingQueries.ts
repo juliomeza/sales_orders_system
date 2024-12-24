@@ -1,3 +1,4 @@
+// frontend/src/shared/api/queries/useShippingQueries.ts
 /**
  * @fileoverview Shipping-related React Query hooks
  * Provides functionality for managing carriers, services, and warehouses

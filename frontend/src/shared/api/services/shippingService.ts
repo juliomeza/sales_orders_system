@@ -1,3 +1,4 @@
+// frontend/src/shared/api/services/shippingService.ts
 /**
  * @fileoverview Shipping service layer
  * Provides API integration for managing carriers, services, and warehouses

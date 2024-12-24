@@ -1,3 +1,4 @@
+// frontend/src/client/orders/components/creation/flow/OrderCreationFlow.tsx
 /**
  * @fileoverview OrderCreationFlow component handles the multi-step order creation process
  * including order details, item selection, and order review/submission.

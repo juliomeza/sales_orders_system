@@ -1,3 +1,4 @@
+// frontend/src/shared/api/services/customerService.ts
 /**
  * @fileoverview Customer management service
  * Provides API integration for customer CRUD operations with validation,

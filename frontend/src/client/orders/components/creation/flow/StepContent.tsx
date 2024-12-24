@@ -1,3 +1,4 @@
+// frontend/src/client/orders/components/creation/flow/StepContent.tsx
 /**
  * @fileoverview StepContent component that manages the different steps in the order creation flow
  * and renders the appropriate component based on the current step.

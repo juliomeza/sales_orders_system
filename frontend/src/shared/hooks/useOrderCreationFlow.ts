@@ -1,3 +1,4 @@
+// frontend/src/shared/hooks/useOrderCreationFlow.ts
 /**
  * @fileoverview Custom hook for managing the order creation workflow
  * Handles multi-step form state, validation, and order submission process

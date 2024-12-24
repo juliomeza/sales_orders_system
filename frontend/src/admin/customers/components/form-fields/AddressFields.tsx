@@ -1,4 +1,4 @@
-// src/admin/customers/components/form-fields/AddressFields.tsx
+// frontend/src/admin/customers/components/form-fields/AddressFields.tsx
 import React from 'react';
 import { Grid } from '@mui/material';
 import { FormTextField } from './FormTextField';

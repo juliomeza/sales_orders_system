@@ -1,3 +1,4 @@
+// frontend/src/shared/api/queries/useUserQueries.ts
 /**
  * @fileoverview User management React Query hooks
  * Provides functionality for managing customer users including CRUD operations

@@ -1,3 +1,4 @@
+// frontend/src/shared/api/services/userService.ts
 /**
  * @fileoverview User management service layer
  * Provides comprehensive API integration for managing customer users with

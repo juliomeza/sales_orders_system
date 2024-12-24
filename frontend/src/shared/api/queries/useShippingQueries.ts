@@ -100,15 +100,16 @@ export const useCarrierServicesQuery = (carrierId: string) => {
     queryKey: queryKeys.shipping.services(carrierId),
     queryFn: () => shippingService.getCarrierServices(carrierId),
     staleTime: CACHE_TIME.STATIC,
+    gcTime: CACHE_TIME.STATIC * 2,
     enabled: Boolean(carrierId),
     retry: (failureCount, error: any) => {
       if (error?.response?.status === 404) return false;
       if (error?.response?.status === 403) return false;
       return failureCount < 2;
     },
-    placeholderData: [], // Add this
+    placeholderData: [],
     select: (services) => 
-      services?.filter(service => service.status === 1) || [] // Modify this
+      services?.filter(service => service.status === 1) || []
   });
 };
 

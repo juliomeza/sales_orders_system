@@ -67,12 +67,24 @@ export const prefetchCommonData = async () => {
   }
 
   try {
+    // Get carriers first
+    const carriers = await shippingService.getCarriers();
+
     await Promise.all([
       queryClient.prefetchQuery({
         queryKey: queryKeys.warehouses.all,
         queryFn: () => shippingService.getWarehouses(),
         staleTime: CACHE_TIME.STATIC
       }),
+
+      ...carriers.map(carrier => 
+        queryClient.prefetchQuery({
+          queryKey: queryKeys.shipping.services(carrier.id.toString()),
+          queryFn: () => shippingService.getCarrierServices(carrier.id.toString()),
+          staleTime: CACHE_TIME.STATIC
+        })
+      ),
+
       queryClient.prefetchQuery({
         queryKey: queryKeys.shipping.carriers,
         queryFn: () => shippingService.getCarriers(),
@@ -81,7 +93,6 @@ export const prefetchCommonData = async () => {
     ]);
   } catch (error) {
     console.error('Error prefetching common data:', error);
-    // Don't throw - we don't want to break app initialization
   }
 };
 

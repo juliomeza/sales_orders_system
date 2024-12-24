@@ -34,7 +34,8 @@ export const API_ERROR_CODES = {
     // Technical Errors (9000-9999)
     UNKNOWN_ERROR: 'ERR_9000',
     DATA_CORRUPTION: 'ERR_9001',
-    INTEGRATION_ERROR: 'ERR_9002'
+    INTEGRATION_ERROR: 'ERR_9002',
+    CONTEXT_ERROR: 'ERR_9003',
   } as const;
   
   export const HTTP_STATUS_TO_ERROR_CODE: Record<number, string> = {

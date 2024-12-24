@@ -3,6 +3,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import { AuthResponse } from '../../api/types/api.types';
+import { errorHandler } from '../../errors/ErrorHandler';
+import { AppError, ErrorCategory, ErrorSeverity } from '../../errors/AppError';
+import { API_ERROR_CODES } from '../../errors/ErrorCodes';
 
 type Role = 'ADMIN' | 'CLIENT';
 
@@ -32,11 +35,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          // Verificar el token y obtener datos del usuario
           const userData = await apiClient.get<User>('/auth/me');
           setUser(userData);
         } catch (error) {
-          console.error('Error initializing auth:', error);
+          const appError = new AppError(
+            'Session expired or invalid',
+            ErrorCategory.AUTHENTICATION,
+            ErrorSeverity.WARNING,
+            {
+              code: API_ERROR_CODES.SESSION_EXPIRED,
+              originalError: error
+            }
+          );
+          errorHandler.handleError(appError);
           localStorage.removeItem('token');
         }
       }
@@ -48,55 +59,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('Login attempt for:', email); // Log inicial
-  
       const response = await apiClient.post<AuthResponse>('/auth/login', { 
         email, 
         password 
       });
-  
-      console.log('Raw API Response:', response); // Log de la respuesta completa
-      console.log('Auth Response:', {
-        token: response.token ? 'Token present' : 'No token',
-        user: response.user
-      });
-  
+
       if (!response.token) {
-        console.error('No token received in response');
-        throw new Error('Invalid response format');
+        throw new AppError(
+          'Invalid authentication response',
+          ErrorCategory.AUTHENTICATION,
+          ErrorSeverity.ERROR,
+          { code: API_ERROR_CODES.INVALID_CREDENTIALS }
+        );
       }
-  
+
       localStorage.setItem('token', response.token);
       setUser(response.user);
       
-      console.log('User role:', response.user.role); // Log del rol
-  
-      // Agregar log antes de la redirección
-      console.log('Redirecting user based on role:', response.user.role);
-      
-      if (response.user.role === 'ADMIN') {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
-    } catch (error: any) {
-      console.error('Detailed login error:', {
-        error,
-        response: error.response,
-        message: error.message
-      });
-      throw new Error('Invalid credentials');
+      navigate(response.user.role === 'ADMIN' ? '/admin' : '/');
+    } catch (error) {
+      const appError = error instanceof AppError ? error :
+        new AppError(
+          'Authentication failed',
+          ErrorCategory.AUTHENTICATION,
+          ErrorSeverity.ERROR,
+          {
+            code: API_ERROR_CODES.INVALID_CREDENTIALS,
+            originalError: error
+          }
+        );
+        errorHandler.handleError(appError);
+      throw appError;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    navigate('/login');
+    try {
+      localStorage.removeItem('token');
+      setUser(null);
+      navigate('/login');
+    } catch (error) {
+      errorHandler.handleError(error, {
+        action: 'Logout',
+        path: '/login'
+      });
+    }
   };
 
   if (isLoading) {
-    // Podrías retornar un componente de loading aquí si lo deseas
     return null;
   }
 
@@ -110,7 +120,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new AppError(
+      'useAuth must be used within an AuthProvider',
+      ErrorCategory.TECHNICAL,
+      ErrorSeverity.ERROR,
+      { code: API_ERROR_CODES.CONTEXT_ERROR }
+    );
   }
   return context;
 };

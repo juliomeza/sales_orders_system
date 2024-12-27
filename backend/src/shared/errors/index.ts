@@ -2,3 +2,4 @@
 export * from './BaseError';
 export * from './ApiError'
 export * from './ValidationError';
+export * from './handleCommonErrors';

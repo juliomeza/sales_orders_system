@@ -2,10 +2,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
-import { AuthResponse } from '../../api/types/api.types';
-import { errorHandler } from '../../errors/ErrorHandler';
 import { AppError, ErrorCategory, ErrorSeverity } from '../../errors/AppError';
 import { API_ERROR_CODES } from '../../errors/ErrorCodes';
+import { errorHandler } from '../../errors/ErrorHandler';
 
 type Role = 'ADMIN' | 'CLIENT';
 
@@ -14,6 +13,32 @@ interface User {
   email: string;
   role: Role;
   customerId?: number;
+}
+
+interface ResponseMetadata {
+  timestamp: string;
+  requestId: string;
+  path: string;
+}
+
+interface AuthResponse {
+  success: boolean;
+  data: {
+    token: string;
+    user: User;
+  };
+  metadata: ResponseMetadata;
+}
+
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: string[];
+  };
+  metadata: ResponseMetadata;
 }
 
 interface AuthContextType {
@@ -35,8 +60,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const userData = await apiClient.get<User>('/auth/me');
-          setUser(userData);
+          const response = await apiClient.get<ApiResponse<User>>('/auth/me');
+          if (response.success && response.data) {
+            setUser(response.data);
+          } else {
+            throw new Error('Invalid response format');
+          }
         } catch (error) {
           const appError = new AppError(
             'Session expired or invalid',
@@ -59,12 +88,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/login', { 
-        email, 
-        password 
+      const response = await apiClient.post<AuthResponse>('/auth/login', {
+        email,
+        password
       });
 
-      if (!response.token) {
+      if (!response.success || !response.data?.token) {
         throw new AppError(
           'Invalid authentication response',
           ErrorCategory.AUTHENTICATION,
@@ -73,10 +102,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
       }
 
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+      localStorage.setItem('token', response.data.token);
+      setUser(response.data.user);
       
-      navigate(response.user.role === 'ADMIN' ? '/admin' : '/');
+      navigate(response.data.user.role === 'ADMIN' ? '/admin' : '/');
     } catch (error) {
       const appError = error instanceof AppError ? error :
         new AppError(
@@ -88,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             originalError: error
           }
         );
-        errorHandler.handleError(appError);
+      errorHandler.handleError(appError);
       throw appError;
     }
   };

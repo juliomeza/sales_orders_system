@@ -30,7 +30,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     } catch (err: any) {
       console.error('Login error:', err);
       setError(
-        err?.response?.data?.message || 
+        err?.response?.data?.error?.message || 
         err?.message || 
         'Error logging in. Please try again.'
       );

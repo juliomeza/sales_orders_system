@@ -1,7 +1,5 @@
 // backend/src/shared/types/dto/requests/customer.ts
-import { Project, Customer } from '../../models/customer';
-import { User } from '../../models/user';
-import { Status } from '../../base/common';
+import { Status } from '../../base';
 
 export interface CreateCustomerDTO {
   customer: {

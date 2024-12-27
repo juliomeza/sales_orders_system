@@ -1,6 +1,6 @@
 // backend/src/shared/types/dto/responses/material.ts
 import { Material } from '../../models/material';
-import { ApiResponse } from '../../base/responses';
+import { ApiResponse } from '../../base';
 
 export interface MaterialSummary {
   id: number;

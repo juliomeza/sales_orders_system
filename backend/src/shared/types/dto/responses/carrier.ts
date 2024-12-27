@@ -1,5 +1,5 @@
 // backend/src/shared/types/dto/responses/carrier.ts
-import { ServiceResult } from '../../base/common';  // En lugar de ApiResponse
+import { ServiceResult } from '../../base';
 import { Carrier, CarrierService } from '../../models/carrier';
 
 export interface CarriersListData {

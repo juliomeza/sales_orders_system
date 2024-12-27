@@ -1,6 +1,6 @@
 // backend/src/shared/types/dto/responses/auth.ts
 import { UserDomain } from '../../../../domain/user';
-import { ApiResponse } from '../../base/responses';
+import { ApiResponse } from '../../base';
 
 export interface AuthResponse {
   token: string;

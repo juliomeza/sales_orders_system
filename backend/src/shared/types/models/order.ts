@@ -1,5 +1,5 @@
 // backend/src/shared/types/models/order.ts
-import { BaseEntity, Status } from '../base/common';
+import { BaseEntity, Status } from '../base';
 import { Material } from './material';
 
 export interface Order extends BaseEntity {

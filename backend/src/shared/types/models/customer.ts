@@ -1,5 +1,5 @@
 // backend/src/backend/src/shared/types/models/customer.ts
-import { BaseEntity, Status } from '../base/common';
+import { BaseEntity, Status } from '../base';
 import { User } from './user';
 
 export interface Customer extends BaseEntity {

@@ -1,5 +1,5 @@
 // backend/src/shared/types/models/material.ts
-import { BaseEntity, Status } from '../base/common';
+import { BaseEntity, Status } from '../base';
 import { OrderItemDomain } from '../../../domain/order';
 
 export interface Material extends BaseEntity {

@@ -2,7 +2,6 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import { MaterialDomain, MaterialFilters, MaterialSearchFilters, PaginatedResponse } from '../domain/material';
 import Logger from '../config/logger';
-import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 
 export class MaterialRepository {
   constructor(private prisma: PrismaClient) {}

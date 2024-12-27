@@ -2,7 +2,6 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import { CustomerDomain, ProjectDomain, UserDomain } from '../domain/customer';
 import Logger from '../config/logger';
-import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 
 export class CustomerRepository {
   constructor(private prisma: PrismaClient) {}

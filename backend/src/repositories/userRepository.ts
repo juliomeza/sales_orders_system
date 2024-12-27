@@ -4,7 +4,6 @@ import { UserDomain } from '../domain/user';
 import { CreateUserDTO } from '../shared/types';
 import bcrypt from 'bcryptjs';
 import Logger from '../config/logger';
-import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 
 export class UserRepository {
   constructor(private prisma: PrismaClient) {}

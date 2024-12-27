@@ -3,7 +3,6 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import { OrderDomain, OrderStatsDomain } from '../domain/order';
 import { CreateOrderDTO, UpdateOrderDTO, OrderFilters, OrderStatsFilters } from '../shared/types';
 import Logger from '../config/logger';
-import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 
 export class OrderRepository {
   constructor(private prisma: PrismaClient) {}

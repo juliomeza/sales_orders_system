@@ -3,7 +3,6 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import { WarehouseDomain } from '../domain/warehouse';
 import { WarehouseFilters, CreateWarehouseDTO, UpdateWarehouseDTO } from '../shared/types';
 import Logger from '../config/logger';
-import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 
 export class WarehouseRepository {
   constructor(private prisma: PrismaClient) {}

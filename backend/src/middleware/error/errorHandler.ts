@@ -3,8 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiErrorCode } from '../../shared/types/base';
 import { createErrorResponse, handleCommonErrors } from '../../shared/utils/response';
 import Logger from '../../config/logger';
-import { ValidationError } from '../../shared/errors';
-import { ApiError } from '../../shared/errors';
+import { ValidationError, ApiError } from '../../shared/errors';
 
 export const errorHandler = (
   error: Error,

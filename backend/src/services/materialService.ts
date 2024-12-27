@@ -10,7 +10,7 @@ import {
 } from '../domain/material';
 import { MaterialRepository } from '../repositories/materialRepository';
 import { ServiceResult } from '../shared/types';
-import { MaterialValidation } from '../shared/validations/services/materialValidation';
+import { MaterialValidation } from '../shared/validations/services';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
 import Logger from '../config/logger';
 

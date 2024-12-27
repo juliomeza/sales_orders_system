@@ -1,7 +1,7 @@
 // backend/src/services/carrierService.ts
 import { ERROR_MESSAGES, STATUS, LOG_MESSAGES } from '../shared/constants';
 import { CarrierRepository } from '../repositories/carrierRepository';
-import { CarrierValidation  } from '../shared/validations/services/carrierValidation';
+import { CarrierValidation  } from '../shared/validations/services';
 import Logger from '../config/logger';
 import { 
   CarrierFilters, 

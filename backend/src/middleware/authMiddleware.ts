@@ -1,4 +1,4 @@
-// backend/src/middleware/auth.ts
+// backend/src/middleware/authMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../shared/utils';
 import { STATUS, ROLES, ERROR_MESSAGES } from '../shared/constants';

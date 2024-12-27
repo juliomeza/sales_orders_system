@@ -1,7 +1,7 @@
 // backend/src/routes/materialsRoutes.ts
 import express from 'express';
 import { MaterialsController } from '../controllers/materialsController';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 const materialsController = new MaterialsController();

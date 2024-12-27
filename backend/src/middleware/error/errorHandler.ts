@@ -1,7 +1,7 @@
 // backend/src/middleware/error/errorHandler.ts
 import { Request, Response, NextFunction } from 'express';
 import { ApiErrorCode } from '../../shared/types/base';
-import { createErrorResponse, handleCommonErrors } from '../../shared/utils/response';
+import { createErrorResponse, handleCommonErrors } from '../../shared/utils/response'; // Usar importación específica para evitar problemas con autenticación
 import Logger from '../../config/logger';
 import { ValidationError, ApiError } from '../../shared/errors';
 

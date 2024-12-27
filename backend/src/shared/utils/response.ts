@@ -1,22 +1,50 @@
 // backend/src/shared/utils/response.ts
 import { Request } from 'express';
-import { ApiResponse, ApiError, ApiErrorCode, ResponseMetadata, PaginatedApiResponse } from '../types/base';
+import { ApiResponse, ApiErrorCode, ResponseMetadata, PaginatedApiResponse } from '../types/base';
 
-// Función para crear metadata consistente
+// Determina si el entorno es de desarrollo
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Mapeo de errores conocidos a códigos de error
+const KnownErrors = {
+  ValidationError: ApiErrorCode.VALIDATION_ERROR,
+  PrismaClientKnownRequestError: ApiErrorCode.DATABASE_ERROR,
+  JsonWebTokenError: ApiErrorCode.UNAUTHORIZED,
+  TokenExpiredError: ApiErrorCode.UNAUTHORIZED,
+} as const;
+
+/**
+ * Crea metadata consistente para las respuestas.
+ * @param req - Objeto de la petición HTTP.
+ * @returns Metadata para incluir en la respuesta.
+ */
 const createMetadata = (req?: Request): ResponseMetadata => ({
   timestamp: new Date().toISOString(),
-  requestId: req?.headers['x-request-id'] as string,
-  path: req?.originalUrl
+  requestId: req?.headers['x-request-id'] as string || 'unknown',
+  path: req?.originalUrl || 'unknown',
 });
 
-// Función para crear respuesta exitosa
+/**
+ * Crea una respuesta exitosa estándar.
+ * @param data - Datos para incluir en la respuesta.
+ * @param req - Objeto de la petición HTTP (opcional).
+ * @returns Respuesta con éxito.
+ */
 export const createSuccessResponse = <T>(data: T, req?: Request): ApiResponse<T> => ({
   success: true,
   data,
-  metadata: createMetadata(req)
+  metadata: createMetadata(req),
 });
 
-// Función para crear respuesta paginada
+/**
+ * Crea una respuesta paginada estándar.
+ * @param data - Datos para incluir en la respuesta.
+ * @param page - Página actual.
+ * @param limit - Límite de elementos por página.
+ * @param total - Total de elementos disponibles.
+ * @param req - Objeto de la petición HTTP (opcional).
+ * @returns Respuesta paginada.
+ */
 export const createPaginatedResponse = <T>(
   data: T,
   page: number,
@@ -31,11 +59,18 @@ export const createPaginatedResponse = <T>(
     page,
     limit,
     total,
-    totalPages: Math.ceil(total / limit)
-  }
+    totalPages: Math.ceil(total / limit),
+  },
 });
 
-// Función para crear respuesta de error
+/**
+ * Crea una respuesta de error estándar.
+ * @param code - Código de error.
+ * @param message - Mensaje descriptivo del error.
+ * @param details - Detalles adicionales del error (opcional).
+ * @param req - Objeto de la petición HTTP (opcional).
+ * @returns Respuesta con error.
+ */
 export const createErrorResponse = (
   code: ApiErrorCode,
   message: string,
@@ -47,46 +82,21 @@ export const createErrorResponse = (
     code,
     message,
     details,
-    ...(process.env.NODE_ENV === 'development' && {
-      stack: new Error().stack
-    })
+    ...(isDevelopment && { stack: new Error().stack }),
   },
-  metadata: createMetadata(req)
+  metadata: createMetadata(req),
 });
 
-// Función para manejar errores comunes
+/**
+ * Maneja errores comunes y los convierte en respuestas estándar.
+ * @param error - Error capturado.
+ * @param req - Objeto de la petición HTTP (opcional).
+ * @returns Respuesta de error estandarizada.
+ */
 export const handleCommonErrors = (error: unknown, req?: Request): ApiResponse => {
   if (error instanceof Error) {
-    // Mapeo de errores conocidos
-    if (error.name === 'ValidationError') {
-      return createErrorResponse(
-        ApiErrorCode.VALIDATION_ERROR,
-        'Validation failed',
-        [error.message],
-        req
-      );
-    }
-    if (error.name === 'PrismaClientKnownRequestError') {
-      return createErrorResponse(
-        ApiErrorCode.DATABASE_ERROR,
-        'Database operation failed',
-        [error.message],
-        req
-      );
-    }
-    // Error genérico
-    return createErrorResponse(
-      ApiErrorCode.INTERNAL_ERROR,
-      error.message,
-      undefined,
-      req
-    );
+    const errorCode = KnownErrors[error.name as keyof typeof KnownErrors] || ApiErrorCode.INTERNAL_ERROR;
+    return createErrorResponse(errorCode, error.message, undefined, req);
   }
-  // Error desconocido
-  return createErrorResponse(
-    ApiErrorCode.INTERNAL_ERROR,
-    'An unexpected error occurred',
-    undefined,
-    req
-  );
+  return createErrorResponse(ApiErrorCode.INTERNAL_ERROR, 'An unexpected error occurred', undefined, req);
 };

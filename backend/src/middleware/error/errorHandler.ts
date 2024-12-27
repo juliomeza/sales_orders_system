@@ -1,10 +1,10 @@
 // backend/src/middleware/error/errorHandler.ts
 import { Request, Response, NextFunction } from 'express';
-import { ApiErrorCode } from '../../shared/types/base/responses';
+import { ApiErrorCode } from '../../shared/types/base';
 import { createErrorResponse, handleCommonErrors } from '../../shared/utils/response';
 import Logger from '../../config/logger';
-import { ValidationError } from '../../shared/errors/ValidationError';
-import { ApiError } from '../../shared/errors/ApiError';
+import { ValidationError } from '../../shared/errors';
+import { ApiError } from '../../shared/errors';
 
 export const errorHandler = (
   error: Error,

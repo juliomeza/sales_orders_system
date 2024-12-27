@@ -1,17 +1,11 @@
 // backend/src/controllers/authController.ts
-/**
- * Controlador de autenticación que maneja las operaciones relacionadas con la autenticación de usuarios.
- * Incluye funcionalidades para login, registro, obtención del usuario actual y renovación de tokens.
- */
-
-// backend/src/controllers/authController.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/authService';
 import { UserRepository } from '../repositories/userRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
-import { ApiErrorCode } from '../shared/types/base/responses';
-import { createErrorResponse } from '../shared/utils/response';
+import { ApiErrorCode } from '../shared/types/base';
+import { createErrorResponse } from '../shared/utils';
 import Logger from '../config/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET!;

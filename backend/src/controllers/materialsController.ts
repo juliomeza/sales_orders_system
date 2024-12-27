@@ -11,7 +11,7 @@ import { MaterialRepository } from '../repositories/materialRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ROLES, LOG_MESSAGES } from '../shared/constants';
 import { ApiErrorCode } from '../shared/types';
-import { createErrorResponse } from '../shared/utils/response';
+import { createErrorResponse } from '../shared/utils';
 import Logger from '../config/logger';
 import { MaterialFilters, MaterialSearchFilters } from '../domain/material';
 

@@ -1,16 +1,11 @@
 // backend/src/controllers/shipToController.ts
-/**
- * Controlador que maneja todas las operaciones relacionadas con direcciones de envío
- * Incluye funcionalidades para listar, crear y gestionar direcciones de envío y facturación
- */
-
 import { Request, Response } from 'express';
 import { ShipToService } from '../services/shipToService';
 import { ShipToRepository } from '../repositories/shipToRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ROLES, LOG_MESSAGES } from '../shared/constants';
 import { ApiErrorCode } from '../shared/types';
-import { createErrorResponse } from '../shared/utils/response';
+import { createErrorResponse } from '../shared/utils';
 import Logger from '../config/logger';
 import { Role } from '../shared/types';
 

@@ -1,16 +1,11 @@
 // backend/src/controllers/ordersController.ts
-/**
- * Controlador que maneja todas las operaciones relacionadas con órdenes de venta
- * Incluye funcionalidades CRUD, validaciones de acceso y estadísticas de órdenes
- */
-
 import { Request, Response } from 'express';
 import { OrderService } from '../services/orderService';
 import { OrderRepository } from '../repositories/orderRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, ORDER_STATUS, ROLES, LOG_MESSAGES } from '../shared/constants';
 import { ApiErrorCode, Role } from '../shared/types';
-import { createErrorResponse } from '../shared/utils/response';
+import { createErrorResponse } from '../shared/utils';
 import Logger from '../config/logger';
 
 /**

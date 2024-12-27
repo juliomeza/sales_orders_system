@@ -1,14 +1,9 @@
 // backend/src/controllers/carriersController.ts
-/**
- * Controlador que maneja todas las operaciones relacionadas con los transportistas
- * Incluye funcionalidades CRUD y gestión de servicios de transportistas
- */
-
 import { Request, Response } from 'express';
 import { CarrierServiceImpl } from '../services/carrierService';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
-import { ApiErrorCode } from '../shared/types/base/responses';
-import { createErrorResponse } from '../shared/utils/response';
+import { ApiErrorCode } from '../shared/types/base';
+import { createErrorResponse } from '../shared/utils';
 import Logger from '../config/logger';
 
 /**

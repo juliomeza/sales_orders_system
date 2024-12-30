@@ -1,193 +1,158 @@
-// backend/src/controllers/customersController.ts
-/**
- * Controlador que maneja todas las operaciones CRUD relacionadas con clientes
- * Incluye funcionalidades para listar, crear, actualizar y eliminar clientes
- */
-
 import { Request, Response } from 'express';
 import { CustomerService } from '../services/customerService';
-import { CreateCustomerDTO, UpdateCustomerDTO, ApiErrorCode } from '../shared/types';
 import { CustomerRepository } from '../repositories/customerRepository';
 import prisma from '../config/database';
 import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
+import { ApiErrorCode, Status } from '../shared/types';
+import { CreateCustomerDTO, UpdateCustomerDTO } from '../shared/types/dto/requests/customer';
+import { createSuccessResponse, createErrorResponse, createPaginatedResponse } from '../shared/utils/response';
+import { ApiError } from '../shared/errors/ApiError';
+import { handleCommonErrors } from '../shared/errors/handleCommonErrors';
+import { ValidationService } from '../shared/validations/validationService';
 import Logger from '../config/logger';
+import { AuthenticatedRequest } from '../shared/types/base/auth';
 
-/**
- * Controlador principal de clientes
- * Gestiona todas las operaciones relacionadas con la gestión de clientes del sistema
- */
+interface CustomerFilters {
+  search?: string;
+  status?: Status;
+  city?: string;
+  state?: string;
+  page?: number;
+  limit?: number;
+}
+
 export class CustomersController {
-  private customerService: CustomerService;
+  constructor(
+    private readonly customerService: CustomerService = new CustomerService(
+      new CustomerRepository(prisma)
+    )
+  ) {
+    this.bindMethods();
+  }
 
-  /**
-   * Constructor del controlador de clientes
-   * @param customerService - Servicio de clientes opcional para inyección de dependencias
-   */
-  constructor(customerService?: CustomerService) {
-    this.customerService = customerService || new CustomerService(new CustomerRepository(prisma));
-    
+  private bindMethods(): void {
+    this.create = this.create.bind(this);
     this.list = this.list.bind(this);
     this.getById = this.getById.bind(this);
-    this.create = this.create.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
   }
 
-  /**
-   * Obtiene la lista completa de clientes
-   * @param req - Request de Express que debe incluir usuario autenticado
-   * @param res - Response de Express con la lista de clientes
-   */
-  async list(req: Request, res: Response) {
+  async list(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        Logger.warn('Unauthorized access attempt to customers list', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          success: false,
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+        throw ApiError.unauthorized();
       }
 
+      const authenticatedReq = req as AuthenticatedRequest;
+
+      // Extraer y validar parámetros
+      const { 
+        page = 1, 
+        limit = 20,
+        status,
+        search,
+        city,
+        state,
+        ...unknownParams
+      } = req.query;
+
+      // Validar parámetros desconocidos
+      if (Object.keys(unknownParams).length > 0) {
+        throw ApiError.badRequest(
+          `Invalid filter parameters: ${Object.keys(unknownParams).join(', ')}`
+        );
+      }
+
+      // Validar status si existe
+      let validatedStatus: Status | undefined;
+      if (status) {
+        const statusNumber = Number(status);
+        ValidationService.validateStatus(statusNumber as Status);
+        validatedStatus = statusNumber as Status;
+      }
+
+      const filters: CustomerFilters = {
+        search: search as string,
+        status: validatedStatus,
+        city: city as string,
+        state: state as string,
+        page: Number(page),
+        limit: Number(limit)
+      };
+
       Logger.debug(LOG_MESSAGES.CUSTOMERS.LIST.REQUEST, {
-        userId: req.user.userId
+        userId: authenticatedReq.user.userId,
+        filters
       });
 
       const result = await this.customerService.getAllCustomers();
       
-      if (!result.success) {
-        Logger.error(LOG_MESSAGES.CUSTOMERS.LIST.FAILED, {
-          userId: req.user.userId,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          success: false,
-          error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-        });
+      if (!result.success || !result.data) {
+        throw ApiError.internal(ERROR_MESSAGES.OPERATION.LIST_ERROR);
       }
 
       Logger.info(LOG_MESSAGES.CUSTOMERS.LIST.SUCCESS, {
-        userId: req.user.userId,
-        count: result.data?.length || 0
+        userId: authenticatedReq.user.userId,
+        count: result.data.length
       });
 
-      res.json({
-        success: true,
-        data: { customers: result.data }
-      });
+      res.json(createPaginatedResponse(
+        result.data,
+        filters.page || 1,
+        filters.limit || 20,
+        result.data.length,
+        req
+      ));
     } catch (error) {
-      Logger.error(LOG_MESSAGES.CUSTOMERS.LIST.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        success: false,
-        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-      });
+      handleCommonErrors(res, error, req);
     }
   }
 
-  /**
-   * Obtiene un cliente específico por su ID
-   * @param req - Request de Express con el ID del cliente
-   * @param res - Response de Express con los datos del cliente
-   */
-  async getById(req: Request, res: Response) {
+  async getById(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        Logger.warn('Unauthorized access attempt to customer details', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          success: false,
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+        throw ApiError.unauthorized();
       }
 
+      const authenticatedReq = req as AuthenticatedRequest;
       const id = Number(req.params.id);
+
       Logger.debug(LOG_MESSAGES.CUSTOMERS.GET.REQUEST, {
-        userId: req.user.userId,
+        userId: authenticatedReq.user.userId,
         customerId: id
       });
 
       const result = await this.customerService.getCustomerById(id);
       
-      if (!result.success) {
+      if (!result.success || !result.data) {
         if (result.error === ERROR_MESSAGES.NOT_FOUND.CUSTOMER) {
-          Logger.warn(LOG_MESSAGES.CUSTOMERS.GET.FAILED_NOT_FOUND, {
-            userId: req.user.userId,
-            customerId: id
-          });
-
-          return res.status(404).json({
-            success: false,
-            error: result.error
-          });
+          throw ApiError.notFound('CUSTOMER');
         }
-
-        Logger.error(LOG_MESSAGES.CUSTOMERS.GET.FAILED, {
-          userId: req.user.userId,
-          customerId: id,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          success: false,
-          error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-        });
+        throw ApiError.internal(ERROR_MESSAGES.OPERATION.LIST_ERROR);
       }
 
       Logger.info(LOG_MESSAGES.CUSTOMERS.GET.SUCCESS, {
-        userId: req.user.userId,
+        userId: authenticatedReq.user.userId,
         customerId: id
       });
 
-      res.json({
-        success: true,
-        data: result.data
-      });
+      res.json(createSuccessResponse(result.data, req));
     } catch (error) {
-      Logger.error(LOG_MESSAGES.CUSTOMERS.GET.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        customerId: req.params.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        success: false,
-        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-      });
+      handleCommonErrors(res, error, req);
     }
   }
 
-  /**
-   * Crea un nuevo cliente en el sistema
-   * @param req - Request de Express con los datos del nuevo cliente
-   * @param res - Response de Express con los datos del cliente creado
-   */
-  async create(req: Request<{}, {}, CreateCustomerDTO>, res: Response) {
+  async create(req: Request<{}, {}, CreateCustomerDTO>, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        Logger.warn('Unauthorized access attempt to create customer', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          success: false,
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+        throw ApiError.unauthorized();
       }
 
+      const authenticatedReq = req as AuthenticatedRequest;
+
       Logger.info(LOG_MESSAGES.CUSTOMERS.CREATE.ATTEMPT, {
-        userId: req.user.userId,
+        userId: authenticatedReq.user.userId,
         customerData: {
           lookupCode: req.body.customer.lookupCode,
           name: req.body.customer.name,
@@ -196,78 +161,46 @@ export class CustomersController {
         }
       });
 
+      // Validar campos requeridos
+      ValidationService.validateRequired('lookupCode', req.body.customer.lookupCode);
+      ValidationService.validateRequired('name', req.body.customer.name);
+      ValidationService.validateLookupCode(req.body.customer.lookupCode);
+
       const result = await this.customerService.createCustomer(req.body);
       
       if (!result.success) {
         if (result.errors) {
-          Logger.warn(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED_VALIDATION, {
-            userId: req.user.userId,
-            errors: result.errors
-          });
-
-          return res.status(400).json({
-            success: false,
-            errors: result.errors,
-            error: ERROR_MESSAGES.VALIDATION.FAILED
-          });
+          throw ApiError.badRequest(
+            ERROR_MESSAGES.VALIDATION.FAILED,
+            result.errors
+          );
         }
-
-        Logger.error(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED, {
-          userId: req.user.userId,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          success: false,
-          error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
-        });
+        throw ApiError.internal(ERROR_MESSAGES.OPERATION.LIST_ERROR);
       }
 
       Logger.info(LOG_MESSAGES.CUSTOMERS.CREATE.SUCCESS, {
-        userId: req.user.userId,
+        userId: authenticatedReq.user.userId,
         customerId: result.data?.id,
         customerCode: result.data?.lookupCode
       });
 
-      res.status(201).json({
-        success: true,
-        data: result.data
-      });
+      res.status(201).json(createSuccessResponse(result.data, req));
     } catch (error) {
-      Logger.error(LOG_MESSAGES.CUSTOMERS.CREATE.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        success: false,
-        error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
-      });
+      handleCommonErrors(res, error, req);
     }
   }
 
-  /**
-   * Actualiza los datos de un cliente existente
-   * @param req - Request de Express con ID y datos a actualizar
-   * @param res - Response de Express con los datos actualizados
-   */
-  async update(req: Request<{id: string}, {}, UpdateCustomerDTO>, res: Response) {
+  async update(req: Request<{id: string}, {}, UpdateCustomerDTO>, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        Logger.warn('Unauthorized access attempt to update customer', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          success: false,
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+        throw ApiError.unauthorized();
       }
 
+      const authenticatedReq = req as AuthenticatedRequest;
       const id = Number(req.params.id);
+
       Logger.info(LOG_MESSAGES.CUSTOMERS.UPDATE.ATTEMPT, {
-        userId: req.user.userId,
+        userId: authenticatedReq.user.userId,
         customerId: id,
         updateData: {
           customerUpdates: !!req.body.customer,
@@ -276,80 +209,53 @@ export class CustomersController {
         }
       });
 
+      // Validar lookupCode si se proporciona
+      if (req.body.customer?.lookupCode) {
+        ValidationService.validateLookupCode(req.body.customer.lookupCode);
+      }
+
+      // Validar status si se proporciona
+      if (req.body.customer?.status) {
+        ValidationService.validateStatus(req.body.customer.status);
+      }
+
       const result = await this.customerService.updateCustomer(id, req.body);
       
       if (!result.success) {
-        if (result.errors) {
-          Logger.warn(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED_VALIDATION, {
-            userId: req.user.userId,
-            customerId: id,
-            errors: result.errors
-          });
-
-          return res.status(400).json({
-            success: false,
-            errors: result.errors,
-            error: ERROR_MESSAGES.VALIDATION.FAILED
-          });
+        if (result.error === ERROR_MESSAGES.NOT_FOUND.CUSTOMER) {
+          throw ApiError.notFound('CUSTOMER');
         }
-
-        Logger.error(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED, {
-          userId: req.user.userId,
-          customerId: id,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          success: false,
-          error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
-        });
+        if (result.errors) {
+          throw ApiError.badRequest(
+            ERROR_MESSAGES.VALIDATION.FAILED,
+            result.errors
+          );
+        }
+        throw ApiError.internal(ERROR_MESSAGES.OPERATION.LIST_ERROR);
       }
 
       Logger.info(LOG_MESSAGES.CUSTOMERS.UPDATE.SUCCESS, {
-        userId: req.user.userId,
+        userId: authenticatedReq.user.userId,
         customerId: id
       });
 
-      res.json({
-        success: true,
-        data: result.data
-      });
+      res.json(createSuccessResponse(result.data, req));
     } catch (error) {
-      Logger.error(LOG_MESSAGES.CUSTOMERS.UPDATE.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        customerId: req.params.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        success: false,
-        error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
-      });
+      handleCommonErrors(res, error, req);
     }
   }
 
-  /**
-   * Elimina un cliente del sistema
-   * @param req - Request de Express con el ID del cliente a eliminar
-   * @param res - Response de Express con la confirmación de eliminación
-   */
-  async delete(req: Request, res: Response) {
+  async delete(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        Logger.warn('Unauthorized access attempt to delete customer', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          success: false,
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+        throw ApiError.unauthorized();
       }
 
+      const authenticatedReq = req as AuthenticatedRequest;
       const id = Number(req.params.id);
+
       Logger.info(LOG_MESSAGES.CUSTOMERS.DELETE.ATTEMPT, {
-        userId: req.user.userId,
+        userId: authenticatedReq.user.userId,
         customerId: id
       });
 
@@ -357,51 +263,21 @@ export class CustomersController {
       
       if (!result.success) {
         if (result.error === ERROR_MESSAGES.NOT_FOUND.CUSTOMER) {
-          Logger.warn(LOG_MESSAGES.CUSTOMERS.DELETE.FAILED_NOT_FOUND, {
-            userId: req.user.userId,
-            customerId: id
-          });
-
-          return res.status(404).json({
-            success: false,
-            error: result.error
-          });
+          throw ApiError.notFound('CUSTOMER');
         }
-
-        Logger.error(LOG_MESSAGES.CUSTOMERS.DELETE.FAILED, {
-          userId: req.user.userId,
-          customerId: id,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          success: false,
-          error: ERROR_MESSAGES.OPERATION.DELETE_ERROR 
-        });
+        throw ApiError.internal(ERROR_MESSAGES.OPERATION.LIST_ERROR);
       }
 
       Logger.info(LOG_MESSAGES.CUSTOMERS.DELETE.SUCCESS, {
-        userId: req.user.userId,
+        userId: authenticatedReq.user.userId,
         customerId: id
       });
 
-      res.status(200).json({
-        success: true
-      });
+      res.status(204).send();
     } catch (error) {
-      Logger.error(LOG_MESSAGES.CUSTOMERS.DELETE.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        customerId: req.params.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        success: false,
-        error: ERROR_MESSAGES.OPERATION.DELETE_ERROR 
-      });
+      handleCommonErrors(res, error, req);
     }
   }
 }
 
-// Exportar instancia única del controlador
 export const customersController = new CustomersController();

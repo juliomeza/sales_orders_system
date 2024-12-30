@@ -72,7 +72,6 @@ class ShippingService {
     state?: string;
   }): Promise<Warehouse[]> {
     try {
-      // Build query parameters
       const queryParams = new URLSearchParams();
       
       if (filters?.status) {
@@ -85,13 +84,19 @@ class ShippingService {
         queryParams.append('state', filters.state);
       }
 
-      // Construct endpoint with optional filters
       const endpoint = queryParams.toString()
         ? `${this.warehousesPath}?${queryParams.toString()}`
         : this.warehousesPath;
 
-      const response = await apiClient.get<WarehousesResponse>(endpoint);
-      return this.transformWarehousesResponse(response);
+      const response = await apiClient.get<{
+        data: Warehouse[];
+        page: number;
+        limit: number;
+        total: number;
+      }>(endpoint);
+
+      // Adaptamos la respuesta paginada a la estructura que espera el frontend
+      return this.transformWarehousesResponse(response.data);
     } catch (error) {
       throw this.handleError(error, 'Error fetching warehouses');
     }
@@ -135,12 +140,16 @@ class ShippingService {
    * Transforms warehouse response data to ensure consistent structure
    * Normalizes status values and ensures required fields
    * 
-   * @param {WarehousesResponse} response - Raw API response
+   * @param {Warehouse[]} warehouses - Raw warehouse data
    * @returns {Warehouse[]} Normalized warehouse data
    * @private
    */
-  private transformWarehousesResponse(response: WarehousesResponse): Warehouse[] {
-    return response.warehouses.map(warehouse => ({
+  private transformWarehousesResponse(warehouses: Warehouse[]): Warehouse[] {
+    if (!Array.isArray(warehouses)) {
+      console.warn('Expected warehouses to be an array, got:', typeof warehouses);
+      return [];
+    }
+    return warehouses.map(warehouse => ({
       ...warehouse,
       status: warehouse.status || 1
     }));

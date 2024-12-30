@@ -130,28 +130,41 @@ export const useWarehousesQuery = (filters?: {
 }) => {
   const queryClient = useQueryClient();
 
-  return useQuery<WarehousesResponse, Error, Warehouse[]>({
+  return useQuery<{
+    data: Warehouse[];
+    page: number;
+    limit: number;
+    total: number;
+  }, Error, Warehouse[]>({
     queryKey: [...queryKeys.shipping.warehouses, filters],
     queryFn: async () => {
-      const warehouses = await shippingService.getWarehouses(filters);
+      const response = await shippingService.getWarehouses(filters);
       return {
-        warehouses,
-        total: warehouses.length
+        data: response,
+        page: 1,
+        limit: response.length,
+        total: response.length
       };
     },
     staleTime: CACHE_TIME.STATIC,
     gcTime: CACHE_TIME.STATIC * 2,
     select: (response) => {
-      return response.warehouses.map(warehouse => ({
+      if (!Array.isArray(response.data)) {
+        console.warn('Expected response.data to be an array, got:', typeof response.data);
+        return [];
+      }
+      return response.data.map(warehouse => ({
         ...warehouse,
         status: warehouse.status || 1
       }));
     },
     placeholderData: () => {
-      // Usar datos previos como placeholder mientras se carga la nueva data
-      const previousData = queryClient.getQueryData<WarehousesResponse>(
-        queryKeys.shipping.warehouses
-      );
+      const previousData = queryClient.getQueryData<{
+        data: Warehouse[];
+        page: number;
+        limit: number;
+        total: number;
+      }>(queryKeys.shipping.warehouses);
       return previousData;
     },
     retry: (failureCount, error: any) => {

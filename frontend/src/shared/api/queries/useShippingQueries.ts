@@ -1,10 +1,4 @@
 // frontend/src/shared/api/queries/useShippingQueries.ts
-/**
- * @fileoverview Shipping-related React Query hooks
- * Provides functionality for managing carriers, services, and warehouses
- * with error handling, caching, and data prefetching capabilities.
- */
-
 import { useQuery, useQueryClient, QueryClient } from '@tanstack/react-query';
 import { shippingService } from '../services/shippingService';
 import { queryKeys } from '../../config/queryKeys';
@@ -13,87 +7,46 @@ import {
   Carrier,
   CarrierService,
   Warehouse,
-  WarehousesResponse
+  CarriersResponse,
+  WarehousesResponse,
+  CarrierFilters,
+  WarehouseFilters
 } from '../types/shipping.types';
 
 /**
- * Hook to fetch all available carriers
- * 
- * Features:
- * - Static caching for infrequently changing data
- * - Data normalization and validation
- * - Error handling with fallback values
- * 
- * @returns {UseQueryResult} Query result with carrier list
+ * Hook to fetch carriers with pagination and filtering
  */
-export const useCarriersQuery = () => {
+export const useCarriersQuery = (filters?: CarrierFilters) => {
   const queryClient = useQueryClient();
 
-  return useQuery<{ carriers: Carrier[]; total: number }, Error, Carrier[]>({
-    queryKey: queryKeys.shipping.carriers,
-    queryFn: async () => {
-      try {
-        const response = await shippingService.getCarriers();
-        // Ensure response has correct structure
-        if (!Array.isArray(response)) {
-          console.error('Unexpected response format:', response);
-          return { carriers: [], total: 0 };
-        }
-        return {
-          carriers: response || [],
-          total: (response || []).length
-        };
-      } catch (error) {
-        console.error('Error fetching carriers:', error);
-        throw error;
-      }
-    },
+  return useQuery<CarriersResponse, Error>({
+    queryKey: [...queryKeys.shipping.carriers, filters],
+    queryFn: () => shippingService.getCarriers(filters),
     staleTime: CACHE_TIME.STATIC,
     gcTime: CACHE_TIME.STATIC * 2,
-    select: (response) => {
-      // Asegurarnos de que siempre devolvemos un array
-      if (!response?.carriers) return [];
-      
-      return response.carriers.map(carrier => ({
-        ...carrier,
-        services: carrier.services || [],
-        status: carrier.status || 1
-      }));
-    },
     placeholderData: {
-      carriers: [],
+      data: [],
+      page: 1,
+      limit: 10,
       total: 0
+    },
+    select: (response) => {
+      if (!response?.data) {
+        console.warn('Unexpected carriers response format:', response);
+        return {
+          data: [],
+          page: 1,
+          limit: 10,
+          total: 0
+        };
+      }
+      return response;
     }
   });
 };
 
 /**
- * Prefetches carrier services for active carriers
- * 
- * @param {QueryClient} queryClient - React Query client instance
- * @param {Carrier[]} carriers - List of carriers to prefetch services for
- */
-const prefetchCarrierServices = (queryClient: QueryClient, carriers: Carrier[]) => {
-  carriers.forEach((carrier: Carrier) => {
-    if (carrier.status === 1) {
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.shipping.services(carrier.id.toString()),
-        queryFn: () => shippingService.getCarrierServices(carrier.id.toString()),
-        staleTime: CACHE_TIME.STATIC
-      });
-    }
-  });
-};
-
-/**
- * Hook to fetch services for a specific carrier
- * 
- * Features:
- * - Conditional fetching based on carrier ID
- * - Filters for active services only
- * - Smart retry logic for specific error codes
- * 
- * @param {string} carrierId - ID of the carrier
+ * Hook to fetch carrier services
  */
 export const useCarrierServicesQuery = (carrierId: string) => {
   return useQuery<CarrierService[]>({
@@ -114,76 +67,44 @@ export const useCarrierServicesQuery = (carrierId: string) => {
 };
 
 /**
- * Hook to fetch warehouses with optional filtering
- * 
- * Features:
- * - Support for status, city, and state filters
- * - Placeholder data from cache while loading
- * - Data normalization for consistency
- * 
- * @param {Object} filters - Optional filters for warehouse query
+ * Hook to fetch warehouses with pagination and filtering
  */
-export const useWarehousesQuery = (filters?: {
-  status?: number;
-  city?: string;
-  state?: string;
-}) => {
+export const useWarehousesQuery = (filters?: WarehouseFilters) => {
   const queryClient = useQueryClient();
 
-  return useQuery<{
-    data: Warehouse[];
-    page: number;
-    limit: number;
-    total: number;
-  }, Error, Warehouse[]>({
+  return useQuery<WarehousesResponse, Error>({
     queryKey: [...queryKeys.shipping.warehouses, filters],
-    queryFn: async () => {
-      const response = await shippingService.getWarehouses(filters);
-      return {
-        data: response,
-        page: 1,
-        limit: response.length,
-        total: response.length
-      };
-    },
+    queryFn: () => shippingService.getWarehouses(filters),
     staleTime: CACHE_TIME.STATIC,
     gcTime: CACHE_TIME.STATIC * 2,
     select: (response) => {
-      if (!Array.isArray(response.data)) {
-        console.warn('Expected response.data to be an array, got:', typeof response.data);
-        return [];
+      if (!response?.data) {
+        console.warn('Expected response to have data property');
+        return {
+          data: [],
+          page: 1,
+          limit: 10,
+          total: 0
+        };
       }
-      return response.data.map(warehouse => ({
-        ...warehouse,
-        status: warehouse.status || 1
-      }));
+      return response;
     },
     placeholderData: () => {
-      const previousData = queryClient.getQueryData<{
-        data: Warehouse[];
-        page: number;
-        limit: number;
-        total: number;
-      }>(queryKeys.shipping.warehouses);
-      return previousData;
-    },
-    retry: (failureCount, error: any) => {
-      if (error?.response?.status === 404) return false;
-      if (error?.response?.status === 403) return false;
-      return failureCount < 2;
+      const previousData = queryClient.getQueryData<WarehousesResponse>(
+        queryKeys.shipping.warehouses
+      );
+      return previousData || {
+        data: [],
+        page: 1,
+        limit: 10,
+        total: 0
+      };
     }
   });
 };
 
 /**
- * Hook to fetch details for a specific warehouse
- * 
- * Features:
- * - Uses cached warehouse list as placeholder
- * - Conditional fetching based on ID
- * - Static caching for performance
- * 
- * @param {string} id - Warehouse ID
+ * Hook to fetch warehouse details
  */
 export const useWarehouseQuery = (id: string) => {
   const queryClient = useQueryClient();
@@ -194,56 +115,23 @@ export const useWarehouseQuery = (id: string) => {
     enabled: Boolean(id),
     staleTime: CACHE_TIME.STATIC,
     placeholderData: () => {
-      const warehouses = queryClient.getQueryData<Warehouse[]>(
+      const warehouses = queryClient.getQueryData<WarehousesResponse>(
         queryKeys.shipping.warehouses
       );
-      return warehouses?.find(w => w.id.toString() === id);
+      return warehouses?.data?.find(w => w.id.toString() === id);
     }
   });
 };
 
 /**
- * Prefetches critical shipping data
- * Includes carriers and warehouses for initial app load
- * 
- * @param {QueryClient} queryClient - React Query client instance
- */
-export const prefetchShippingData = async (queryClient: any) => {
-  try {
-    await Promise.all([
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.shipping.carriers,
-        queryFn: () => shippingService.getCarriers(),
-        staleTime: CACHE_TIME.STATIC
-      }),
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.shipping.warehouses,
-        queryFn: () => shippingService.getWarehouses(),
-        staleTime: CACHE_TIME.STATIC
-      })
-    ]);
-  } catch (error) {
-    console.error('Error prefetching shipping data:', error);
-  }
-};
-
-/**
- * Custom hook combining carrier and service data
- * 
- * Features:
- * - Combines data from multiple queries
- * - Provides carrier validation
- * - Returns normalized service list
- * 
- * @param {string} carrierId - Optional carrier ID
- * @returns {Object} Combined carrier and services data
+ * Hook combining carrier and service data
  */
 export const useCarrierWithServices = (carrierId?: string) => {
-  const { data: carriers } = useCarriersQuery();
+  const { data: carriersResponse } = useCarriersQuery();
   const { data: services } = useCarrierServicesQuery(carrierId || '');
 
   const selectedCarrier = carrierId 
-    ? carriers?.find(c => c.id.toString() === carrierId)
+    ? carriersResponse?.data?.find(c => c.id.toString() === carrierId)
     : undefined;
 
   return {
@@ -251,4 +139,46 @@ export const useCarrierWithServices = (carrierId?: string) => {
     services: services || [],
     isValidCarrier: Boolean(selectedCarrier)
   };
+};
+
+/**
+ * Prefetches carrier services for active carriers
+ */
+const prefetchCarrierServices = (queryClient: QueryClient, carriers: Carrier[]) => {
+  carriers.forEach((carrier: Carrier) => {
+    if (carrier.status === 1) {
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.shipping.services(carrier.id.toString()),
+        queryFn: () => shippingService.getCarrierServices(carrier.id.toString()),
+        staleTime: CACHE_TIME.STATIC
+      });
+    }
+  });
+};
+
+/**
+ * Prefetches critical shipping data
+ */
+export const prefetchShippingData = async (queryClient: QueryClient) => {
+  try {
+    const initialFilters = {
+      page: 1,
+      limit: 10
+    };
+
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: [...queryKeys.shipping.carriers, initialFilters],
+        queryFn: () => shippingService.getCarriers(initialFilters),
+        staleTime: CACHE_TIME.STATIC
+      }),
+      queryClient.prefetchQuery({
+        queryKey: [...queryKeys.shipping.warehouses, initialFilters],
+        queryFn: () => shippingService.getWarehouses(initialFilters),
+        staleTime: CACHE_TIME.STATIC
+      })
+    ]);
+  } catch (error) {
+    console.error('Error prefetching shipping data:', error);
+  }
 };

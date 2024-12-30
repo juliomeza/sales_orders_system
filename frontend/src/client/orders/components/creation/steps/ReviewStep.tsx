@@ -43,8 +43,12 @@ interface ShippingAddress {
   zipCode: string;
 }
 
+// Actualizada para la nueva estructura paginada
 interface CarriersResponse {
-  carriers: Carrier[];
+  data: Carrier[];
+  page: number;
+  limit: number;
+  total: number;
 }
 
 interface AddressResponse {
@@ -75,16 +79,30 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
       setError(null);
 
       try {
+        // Añadir filtros básicos para la paginación
+        const filters = {
+          page: 1,
+          limit: 100, // Un límite alto para asegurar obtener todos los carriers
+          status: 1 // Solo carriers activos
+        };
+
+        const queryParams = new URLSearchParams(filters as any).toString();
+        
         const [carriersResponse, addressesResponse] = await Promise.all([
-          apiClient.get<CarriersResponse>('/carriers'),
+          apiClient.get<CarriersResponse>(`/carriers?${queryParams}`),
           apiClient.get<AddressResponse>('/ship-to')
         ]);
 
-        // Find and set carrier information
-        const carrier = carriersResponse.carriers.find(c => c.id.toString() === orderData.carrier);
+        // Usar la nueva estructura .data para carriers
+        const carrier = carriersResponse.data.find(
+          c => c.id.toString() === orderData.carrier
+        );
+        
         if (carrier) {
           setCarrierName(carrier.lookupCode);
-          const service = carrier.services.find(s => s.id.toString() === orderData.serviceType);
+          const service = carrier.services.find(
+            s => s.id.toString() === orderData.serviceType
+          );
           if (service) {
             setCarrierService(service.name);
           }
@@ -92,14 +110,18 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
         // Set shipping and billing names
         if (orderData.shipToAccount) {
-          const shipTo = addressesResponse.addresses.find(a => a.id === orderData.shipToAccount);
+          const shipTo = addressesResponse.addresses.find(
+            a => a.id === orderData.shipToAccount
+          );
           if (shipTo) {
             setShipToName(shipTo.name);
           }
         }
 
         if (orderData.billToAccount) {
-          const billTo = addressesResponse.addresses.find(a => a.id === orderData.billToAccount);
+          const billTo = addressesResponse.addresses.find(
+            a => a.id === orderData.billToAccount
+          );
           if (billTo) {
             setBillToName(billTo.name);
           }
@@ -107,14 +129,23 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
       } catch (err: any) {
         console.error('Error loading review data:', err);
-        setError(err?.response?.data?.error || 'Error loading review data');
+        setError(
+          err?.response?.data?.error || 
+          err?.message || 
+          'Error loading review data'
+        );
       } finally {
         setIsLoading(false);
       }
     };
 
     loadData();
-  }, [orderData.carrier, orderData.serviceType, orderData.shipToAccount, orderData.billToAccount]);
+  }, [
+    orderData.carrier, 
+    orderData.serviceType, 
+    orderData.shipToAccount, 
+    orderData.billToAccount
+  ]);
 
   if (isLoading) {
     return (

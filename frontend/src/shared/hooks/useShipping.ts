@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { Carrier, CarrierService, Warehouse } from '../api/types/shipping.types';
+import { Carrier, CarrierService, Warehouse, CarrierFilters, WarehouseFilters } from '../api/types/shipping.types';
 import { 
   useCarriersQuery, 
   useWarehousesQuery,
@@ -33,18 +33,30 @@ export const useShipping = (
     service: initialServiceId || ''
   });
 
+  // Define default filters
+  const defaultFilters: CarrierFilters = {
+    page: 1,
+    limit: 100, // Ajusta según necesidades
+    status: 1 // Solo carriers activos
+  };
+
+  const defaultWarehouseFilters: WarehouseFilters = {
+    page: 1,
+    limit: 100 // Ajusta según necesidades
+  };
+
   // Fetch required data using React Query hooks
   const { 
-    data: carriers = [],
+    data: carriersResponse = { data: [], page: 1, limit: 10, total: 0 },
     isLoading: isLoadingCarriers,
     error: carriersError 
-  } = useCarriersQuery();
+  } = useCarriersQuery(defaultFilters);
 
   const { 
-    data: warehouses = [], 
+    data: warehousesResponse = { data: [], page: 1, limit: 10, total: 0 }, 
     isLoading: isLoadingWarehouses,
     error: warehousesError 
-  } = useWarehousesQuery();
+  } = useWarehousesQuery(defaultWarehouseFilters);
 
   const {
     data: services = [],
@@ -52,8 +64,12 @@ export const useShipping = (
   } = useCarrierServicesQuery(selectedIds.carrier);
 
   // Find selected entities from available data
-  const selectedCarrier = carriers.find((c: Carrier) => c.id.toString() === selectedIds.carrier);
-  const selectedWarehouse = warehouses.find((w: Warehouse) => w.id.toString() === selectedIds.warehouse);
+  const selectedCarrier = carriersResponse.data.find(
+    (c: Carrier) => c.id.toString() === selectedIds.carrier
+  );
+  const selectedWarehouse = warehousesResponse.data.find(
+    (w: Warehouse) => w.id.toString() === selectedIds.warehouse
+  );
   const availableServices = selectedCarrier?.services || services || [];
 
   /**
@@ -107,9 +123,9 @@ export const useShipping = (
 
   // Return hook interface
   return {
-    carriers: carriers.filter((carrier: Carrier) => carrier.status === 1),  // Only active carriers
-    warehouses,
-    availableServices: availableServices.filter((service: CarrierService) => service.status === 1),  // Only active services
+    carriers: carriersResponse.data.filter((carrier: Carrier) => carrier.status === 1),
+    warehouses: warehousesResponse.data,
+    availableServices: availableServices.filter((service: CarrierService) => service.status === 1),
     selectedCarrier,
     selectedWarehouse,
     selectedService: selectedIds.service,
@@ -117,6 +133,17 @@ export const useShipping = (
     error: carriersError || warehousesError ? String(carriersError || warehousesError) : null,
     setSelectedCarrierId,
     setSelectedWarehouseId,
-    setSelectedService
+    setSelectedService,
+    // Metadata adicional por si se necesita para paginación
+    carriersMeta: {
+      total: carriersResponse.total,
+      page: carriersResponse.page,
+      limit: carriersResponse.limit
+    },
+    warehousesMeta: {
+      total: warehousesResponse.total,
+      page: warehousesResponse.page,
+      limit: warehousesResponse.limit
+    }
   };
 };

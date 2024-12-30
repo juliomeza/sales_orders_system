@@ -8,14 +8,12 @@ import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = Router();
 
+// Inicialización de dependencias
 const carrierRepository = new CarrierRepository(prisma);
 const carrierService = new CarrierServiceImpl(carrierRepository);
 const carriersController = new CarriersController(carrierService);
 
+// Única ruta para obtener lista de transportistas
 router.get('/', authenticateToken, carriersController.getCarriers);
-router.get('/:id', authenticateToken, carriersController.getCarrierById);
-router.post('/', authenticateToken, carriersController.createCarrier);
-router.put('/:id', authenticateToken, carriersController.updateCarrier);
-router.get('/:id/services', authenticateToken, carriersController.getCarrierServices);
 
 export default router;

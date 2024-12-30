@@ -1,423 +1,102 @@
 // backend/src/controllers/carriersController.ts
 import { Request, Response } from 'express';
 import { CarrierServiceImpl } from '../services/carrierService';
-import { ERROR_MESSAGES, LOG_MESSAGES } from '../shared/constants';
-import { ApiErrorCode } from '../shared/types/base';
-import { createErrorResponse } from '../shared/utils';
+import { ERROR_MESSAGES } from '../shared/constants';
+import { ApiError, ValidationError } from '../shared/errors';
+import { handleCommonErrors } from '../shared/errors';
+import { ValidationService } from '../shared/validations/validationService';
 import Logger from '../config/logger';
+import { CarriersListResult } from '../shared/types/dto/responses/carrier';
+import { BaseFilters, ServiceResult, Status } from '../shared/types/base/common';
+import { createPaginatedResponse } from '../shared/utils/response';
+
+interface CarrierFilters extends BaseFilters {
+  name?: string;
+  lookupCode?: string;
+}
 
 /**
- * Controlador principal de transportistas
- * Gestiona operaciones CRUD y consultas relacionadas con carriers
+ * Controlador de transportistas
+ * Gestiona operaciones relacionadas con carriers siguiendo estándares del backend
  */
 export class CarriersController {
-  constructor(private carrierService: CarrierServiceImpl) {}
+  constructor(
+    private readonly carrierService: CarrierServiceImpl
+  ) {}
 
   /**
-   * Obtiene la lista completa de transportistas
-   * @param req - Request de Express con datos del usuario autenticado
+   * Obtiene la lista de transportistas con soporte para filtros y paginación
+   * @param req - Request de Express con datos del usuario y parámetros de filtrado
    * @param res - Response de Express para enviar la lista de transportistas
    */
-  getCarriers = async (req: Request, res: Response) => {
+  getCarriers = async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
-        Logger.warn('Unauthorized access attempt to carriers list', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-        
-        return res.status(401).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+        throw ApiError.unauthorized();
       }
 
-      Logger.debug(LOG_MESSAGES.CARRIERS.LIST.REQUEST, {
+      Logger.debug('Fetching carriers list', {
         userId: req.user.userId,
         filters: req.query
       });
 
-      const result = await this.carrierService.getAllCarriers();
+      // Extraer y validar parámetros de paginación
+      const { 
+        page = 1, 
+        limit = 10, 
+        search,
+        status,
+        name,
+        lookupCode,
+        ...unknownParams
+      } = req.query;
 
-      if (!result.success) {
-        Logger.error(LOG_MESSAGES.CARRIERS.LIST.FAILED, {
-          userId: req.user.userId,
-          error: result.error
-        });
-
-        // Mantener formato de respuesta original
-        return res.status(500).json({ 
-          error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
-        });
+      // Validar que no hay parámetros desconocidos
+      if (Object.keys(unknownParams).length > 0) {
+        throw new ValidationError(`Invalid filter parameters: ${Object.keys(unknownParams).join(', ')}`);
       }
 
-      Logger.info(LOG_MESSAGES.CARRIERS.LIST.SUCCESS, {
-        userId: req.user.userId,
-        count: result.data?.carriers.length || 0
-      });
-
-      // Mantener formato de respuesta original
-      res.json(result.data);
-    } catch (error) {
-      Logger.error(LOG_MESSAGES.CARRIERS.LIST.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-      });
-    }
-  };
-
-  /**
-   * Obtiene los detalles de un transportista específico por su ID
-   * @param req - Request de Express con el ID del transportista
-   * @param res - Response de Express con los detalles del transportista
-   */
-  getCarrierById = async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        Logger.warn('Unauthorized access attempt to carrier details', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
+      // Validar status si existe
+      let validatedStatus: Status | undefined;
+      if (status) {
+        const statusNumber = Number(status) as 1 | 2 | 3;
+        ValidationService.validateStatus(statusNumber);
+        validatedStatus = statusNumber;
       }
 
-      const id = Number(req.params.id);
-      Logger.debug(LOG_MESSAGES.CARRIERS.GET.REQUEST, {
-        userId: req.user.userId,
-        carrierId: id
-      });
+      // Construir filtros tipados
+      const filters: CarrierFilters = {
+        page: Number(page),
+        limit: Number(limit),
+        search: search as string,
+        status: validatedStatus,
+        name: name as string,
+        lookupCode: lookupCode as string
+      };
 
-      const result = await this.carrierService.getCarrierById(id);
-      
-      if (!result.success) {
-        if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
-          Logger.warn(LOG_MESSAGES.CARRIERS.GET.FAILED_NOT_FOUND, {
-            userId: req.user.userId,
-            carrierId: id
-          });
+      // Obtener carriers con filtros validados
+      const result = await this.carrierService.getAllCarriers(filters);
 
-          return res.status(404).json({
-            error: result.error
-          });
-        }
-
-        Logger.error(LOG_MESSAGES.CARRIERS.GET.FAILED, {
-          userId: req.user.userId,
-          carrierId: id,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
-        });
-      }
-
-      Logger.info(LOG_MESSAGES.CARRIERS.GET.SUCCESS, {
-        userId: req.user.userId,
-        carrierId: id
-      });
-
-      // Mantener formato de respuesta original
-      res.json({
-        success: true,
-        data: result.data
-      });
-    } catch (error) {
-      Logger.error(LOG_MESSAGES.CARRIERS.GET.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        carrierId: req.params.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-      });
-    }
-  };
-
-  /**
-   * Crea un nuevo transportista en el sistema
-   * @param req - Request de Express con los datos del nuevo transportista
-   * @param res - Response de Express con los datos del transportista creado
-   */
-  createCarrier = async (req: Request, res: Response) => {
-    try {
-      // Verificación de autenticación
-      if (!req.user) {
-        Logger.warn('Unauthorized access attempt to create carrier', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
-      }
-
-      // Registrar intento de creación
-      Logger.info(LOG_MESSAGES.CARRIERS.CREATE.ATTEMPT, {
-        userId: req.user.userId,
-        carrierData: {
-          lookupCode: req.body.lookupCode,
-          name: req.body.name
-        }
-      });
-
-      // Intentar crear el transportista
-      const result = await this.carrierService.createCarrier(req.body);
-
-      // Manejar casos de error
-      if (!result.success) {
-        // Error de validación
-        if (result.errors) {
-          Logger.warn(LOG_MESSAGES.CARRIERS.CREATE.FAILED_VALIDATION, {
-            userId: req.user.userId,
-            errors: result.errors
-          });
-
-          // Usar nuevo formato para errores de validación
-          return res.status(400).json(
-            createErrorResponse(
-              ApiErrorCode.VALIDATION_ERROR,
-              ERROR_MESSAGES.VALIDATION.FAILED,
-              result.errors,
-              req
-            )
-          );
-        }
-
-        // Código duplicado
-        if (result.error === ERROR_MESSAGES.VALIDATION.LOOKUP_CODE_EXISTS) {
-          Logger.warn(LOG_MESSAGES.CARRIERS.CREATE.FAILED_EXISTS, {
-            userId: req.user.userId,
-            lookupCode: req.body.lookupCode
-          });
-
-          // Usar nuevo formato para error de duplicado
-          return res.status(409).json(
-            createErrorResponse(
-              ApiErrorCode.CONFLICT,
-              result.error,
-              undefined,
-              req
-            )
-          );
-        }
-
-        // Error interno
-        Logger.error(LOG_MESSAGES.CARRIERS.CREATE.FAILED, {
-          userId: req.user.userId,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          error: result.error || ERROR_MESSAGES.OPERATION.CREATE_ERROR 
-        });
-      }
-
-      // Creación exitosa
-      Logger.info(LOG_MESSAGES.CARRIERS.CREATE.SUCCESS, {
-        userId: req.user.userId,
-        carrierId: result.data?.id,
-        lookupCode: result.data?.lookupCode
-      });
-
-      // Mantener formato de respuesta original para éxito
-      res.status(201).json({
-        success: true,
-        data: result.data
-      });
-    } catch (error) {
-      Logger.error(LOG_MESSAGES.CARRIERS.CREATE.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        error: ERROR_MESSAGES.OPERATION.CREATE_ERROR 
-      });
-    }
-  };
-
-  /**
-   * Actualiza los datos de un transportista existente
-   * @param req - Request de Express con ID y datos actualizados
-   * @param res - Response de Express con los datos actualizados
-   */
-  updateCarrier = async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        Logger.warn('Unauthorized access attempt to update carrier', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
-      }
-
-      const id = Number(req.params.id);
-      Logger.info(LOG_MESSAGES.CARRIERS.UPDATE.ATTEMPT, {
-        userId: req.user.userId,
-        carrierId: id,
-        updateData: req.body
-      });
-
-      const result = await this.carrierService.updateCarrier(id, req.body);
-      
-      if (!result.success) {
-        if (result.errors) {
-          Logger.warn(LOG_MESSAGES.CARRIERS.UPDATE.FAILED_VALIDATION, {
-            userId: req.user.userId,
-            carrierId: id,
-            errors: result.errors
-          });
-
-          // Usar nuevo formato para errores de validación
-          return res.status(400).json(
-            createErrorResponse(
-              ApiErrorCode.VALIDATION_ERROR,
-              ERROR_MESSAGES.VALIDATION.FAILED,
-              result.errors,
-              req
-            )
-          );
-        }
-
-        if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
-          Logger.warn(LOG_MESSAGES.CARRIERS.UPDATE.FAILED_NOT_FOUND, {
-            userId: req.user.userId,
-            carrierId: id
-          });
-
-          // Usar nuevo formato para error not found
-          return res.status(404).json(
-            createErrorResponse(
-              ApiErrorCode.NOT_FOUND,
-              result.error,
-              undefined,
-              req
-            )
-          );
-        }
-
-        Logger.error(LOG_MESSAGES.CARRIERS.UPDATE.FAILED, {
-          userId: req.user.userId,
-          carrierId: id,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          error: result.error || ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
-        });
-      }
-
-      Logger.info(LOG_MESSAGES.CARRIERS.UPDATE.SUCCESS, {
-        userId: req.user.userId,
-        carrierId: id
-      });
-
-      // Mantener formato de respuesta original para éxito
-      res.json({
-        success: true,
-        data: result.data
-      });
-    } catch (error) {
-      Logger.error(LOG_MESSAGES.CARRIERS.UPDATE.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        carrierId: req.params.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        error: ERROR_MESSAGES.OPERATION.UPDATE_ERROR 
-      });
-    }
-  };
-
-  /**
-   * Obtiene la lista de servicios asociados a un transportista
-   * @param req - Request de Express con el ID del transportista
-   * @param res - Response de Express con la lista de servicios
-   */
-  getCarrierServices = async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        Logger.warn('Unauthorized access attempt to carrier services', {
-          ip: req.ip,
-          userAgent: req.get('user-agent')
-        });
-
-        return res.status(401).json({ 
-          error: ERROR_MESSAGES.AUTHENTICATION.REQUIRED 
-        });
-      }
-
-      const id = Number(req.params.id);
-      Logger.debug(LOG_MESSAGES.CARRIERS.SERVICES.GET.REQUEST, {
-        userId: req.user.userId,
-        carrierId: id
-      });
-
-      const result = await this.carrierService.getCarrierById(id);
-      
       if (!result.success || !result.data) {
-        if (result.error === ERROR_MESSAGES.NOT_FOUND.CARRIER) {
-          Logger.warn(LOG_MESSAGES.CARRIERS.SERVICES.GET.FAILED_NOT_FOUND, {
-            userId: req.user.userId,
-            carrierId: id
-          });
-
-          // Usar nuevo formato para error not found
-          return res.status(404).json(
-            createErrorResponse(
-              ApiErrorCode.NOT_FOUND,
-              result.error,
-              undefined,
-              req
-            )
-          );
-        }
-
-        Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.GET.FAILED, {
-          userId: req.user.userId,
-          carrierId: id,
-          error: result.error
-        });
-
-        return res.status(500).json({ 
-          error: result.error || ERROR_MESSAGES.OPERATION.LIST_ERROR 
-        });
+        throw ApiError.internal(ERROR_MESSAGES.OPERATION.LIST_ERROR);
       }
 
-      Logger.info(LOG_MESSAGES.CARRIERS.SERVICES.GET.SUCCESS, {
+      Logger.info('Carriers list retrieved successfully', {
         userId: req.user.userId,
-        carrierId: id,
-        serviceCount: result.data.services.length
+        count: result.data.carriers.length
       });
 
-      // Mantener formato de respuesta original
-      res.json({
-        success: true,
-        data: result.data.services
-      });
+      const response = createPaginatedResponse(
+        result.data.carriers,
+        filters.page || 1,
+        filters.limit || 10,
+        result.data.total,
+        req
+      );
+
+      res.json(response);
     } catch (error) {
-      Logger.error(LOG_MESSAGES.CARRIERS.SERVICES.GET.FAILED, {
-        userId: req.user?.userId || 'anonymous',
-        carrierId: req.params.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      res.status(500).json({ 
-        error: ERROR_MESSAGES.OPERATION.LIST_ERROR 
-      });
+      handleCommonErrors(res, error, req);
     }
   };
 }

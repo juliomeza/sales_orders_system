@@ -19,7 +19,7 @@ import {
  */
 interface ServiceResponse<T> {
   success: boolean;
-  data?: { customers?: Customer[] } | Customer | T;
+  data?: { customers?: Customer[] } | Customer | T | Customer[];
   error?: string;
   errors?: string[];
 }
@@ -57,23 +57,27 @@ class CustomerService {
         ? `${this.basePath}?${queryParams.toString()}` 
         : this.basePath;
 
-      const response = await apiClient.get<{
-        success: boolean;
-        data: { customers: Customer[] };
-        error?: string;
-      }>(endpoint);
+      const response = await apiClient.get<ServiceResponse<Customer[]>>(endpoint);
 
       // Validate and process response
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch customers');
       }
 
-      // Ensure data integrity
-      if (!response.data || !response.data.customers) {
+      if (!response.data) {
+        throw new Error('Invalid response format: missing data');
+      }
+
+      // Handle both array response and nested customers object
+      const customers = Array.isArray(response.data) 
+        ? response.data 
+        : ('customers' in response.data ? response.data.customers : null);
+
+      if (!customers || !Array.isArray(customers)) {
         throw new Error('Invalid response format: missing customers data');
       }
 
-      return response.data;
+      return { customers };
     } catch (error) {
       console.error('Error fetching customers:', error);
       throw this.handleError(error);
@@ -86,14 +90,13 @@ class CustomerService {
    * @param data - Customer creation data
    * @throws {Error} If validation fails or creation request fails
    */
-  public async createCustomer(data: CreateCustomerData): Promise<void> { // Cambiar return type a void
+  public async createCustomer(data: CreateCustomerData): Promise<void> {
     try {
       const response = await apiClient.post<ServiceResponse<void>>(
         this.basePath, 
         data
       );
   
-      // Solo verificamos el success
       if (!response.success) {
         const errorMessage = response.errors 
           ? `Validation failed: ${response.errors.join(', ')}` 
@@ -102,7 +105,6 @@ class CustomerService {
         throw new Error(errorMessage);
       }
   
-      // Si success es true, todo está bien
       return;
     } catch (error) {
       console.error('Error creating customer:', error);
@@ -158,14 +160,12 @@ class CustomerService {
         `${this.basePath}/${customerId}`
       );
   
-      // Para respuestas normales, verificar success
       if (!response?.success) {
         throw new Error(response?.error || 'Failed to delete customer');
       }
     } catch (error) {
       console.error('Error deleting customer:', error);
       
-      // Si el error es de tipo axios y el status es 204, considerarlo como éxito
       if (typeof error === 'object' && error !== null && 'response' in error) {
         const axiosError = error as any;
         if (axiosError?.response?.status === 204) {
